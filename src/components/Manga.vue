@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 
 interface MangaPage {
 	src: string
@@ -12,15 +12,23 @@ const props = defineProps<{
 	scroll: number
 }>()
 
+defineEmits<{
+	touchend: [e: TouchEvent]
+}>()
+
 const style = computed(() => {
 	return {
 		transform: `translate3d(0, -${props.scroll}px, 0)`,
 	}
 })
+
+const root = ref<HTMLElement | null>(null)
+
+defineExpose({root})
 </script>
 
 <template>
-	<div class="Manga">
+	<div class="Manga" ref="root" @touchend="$emit('touchend', $event)">
 		<div class="pages" :style="style">
 			<img class="page" v-for="(attrs, i) in pages" :key="i" v-bind="attrs" />
 		</div>
@@ -31,7 +39,6 @@ const style = computed(() => {
 .Manga
 	position fixed
 	inset 0
-	pointer-events none
 	background red
 
 .page
@@ -39,4 +46,5 @@ const style = computed(() => {
 	width 100%
 	height auto
 	image-rendering pixelated
+	pointer-events none
 </style>

@@ -27,6 +27,8 @@ export function useAudio(src: string) {
 			lastTime: number = 0,
 			lastRate: number = 0
 
+		let currentTime = 0
+
 		let autoStop: ReturnType<typeof setTimeout> = 0
 
 		scratch.value = (time: number) => {
@@ -37,15 +39,13 @@ export function useAudio(src: string) {
 				rate = Math.sign(rate) * maxRate
 			}
 
-			if (source) {
-				const estimatedTime = lastTime + lastRate * (now - lastDate)
-				const error = Math.abs(time - estimatedTime)
+			currentTime += (now - lastDate) * lastRate
+			const error = Math.abs(time - currentTime)
 
-				if (error > 0.1 || rate * lastRate < 0) {
-					source.stop()
-					source.disconnect()
-					source = null
-				}
+			if (error > 0.05 || rate * lastRate < 0) {
+				source?.stop()
+				source?.disconnect()
+				source = null
 			}
 
 			lastTime = time
@@ -61,6 +61,7 @@ export function useAudio(src: string) {
 				source.loop = false
 				source.connect(audioContext.destination)
 				source.start(0, bufTime)
+				currentTime = time
 			}
 
 			source.playbackRate.value = Math.abs(rate)
@@ -74,6 +75,8 @@ export function useAudio(src: string) {
 		}
 
 		play.value = (time: number) => {
+			console.log('play', time)
+			clearTimeout(autoStop)
 			source?.stop()
 
 			source = audioContext.createBufferSource()
@@ -84,6 +87,7 @@ export function useAudio(src: string) {
 		}
 
 		stop.value = () => {
+			clearTimeout(autoStop)
 			source?.stop()
 			source?.disconnect()
 			source = null

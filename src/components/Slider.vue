@@ -24,6 +24,8 @@ function onKnobPointed(e: PointerEvent) {
 
 	dragging.value = true
 
+	onPointermove(e)
+
 	knob.setPointerCapture(e.pointerId)
 
 	knob.addEventListener('pointermove', onPointermove)

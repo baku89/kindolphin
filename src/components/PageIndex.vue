@@ -7,8 +7,8 @@ import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
 import {useAudio} from '@/use/useAudio'
-
-const $manga = ref<HTMLElement | null>(null)
+import {useDrag} from '@/use/useDrag'
+import {withTimeDelta} from '@/utils'
 
 const scrollY = ref(0)
 useEventListener('wheel', e => {
@@ -83,18 +83,56 @@ function togglePlay() {
 }
 
 function onScrub(time: number) {
+	dragSpeed = 0
 	isPlaying.value = false
 	currentTime.value = time
 }
+
+// Inertial dragging
+const $scrollable = ref<HTMLElement | null>(null)
+
+let dragSpeed = 0
+
+const [onDrag, resetDrag] = withTimeDelta((timeDelta, deltaY: number) => {
+	if (timeDelta !== null) {
+		dragSpeed = -deltaY / timeDelta
+	}
+	scrollY.value = scalar.clamp(scrollY.value - deltaY, 0, 100000)
+})
+
+const [scrollByInertia, resetInertiaScroll] = withTimeDelta(timeDelta => {
+	if (isPlaying.value || dragging.value || Math.abs(dragSpeed) < 1) {
+		return
+	}
+	if (timeDelta !== null) {
+		dragSpeed *= 1 / (timeDelta + 1)
+
+		const delta = dragSpeed * timeDelta
+
+		scrollY.value = scalar.clamp(scrollY.value + delta, 0, 100000)
+	}
+
+	requestAnimationFrame(scrollByInertia)
+})
+
+const {dragging} = useDrag($scrollable, {
+	onDragStart() {
+		dragSpeed = 0
+		resetDrag()
+	},
+	onDrag({delta}) {
+		onDrag(delta[1])
+	},
+	onDragEnd() {
+		resetInertiaScroll()
+		requestAnimationFrame(scrollByInertia)
+	},
+})
 </script>
 
 <template>
-	<Manga
-		ref="$manga"
-		:pages="mangaPages"
-		:scroll="scrollY"
-		@pointerdown="isPlaying = false"
-	/>
+	<div class="scrollable" ref="$scrollable" />
+	<Manga class="manga" :pages="mangaPages" :scroll="scrollY" />
 	<nav class="nav">
 		<button class="play" @click="togglePlay">
 			<i
@@ -112,10 +150,16 @@ function onScrub(time: number) {
 </template>
 
 <style scoped lang="stylus">
-.manga-page
-	width 100%
-	height auto
-	image-rendering pixelated
+.scrollable
+	position fixed
+	inset 0
+	overflow hidden
+	// background red
+	z-index 1
+	cursor grab
+
+.manga
+	pointer-events none
 
 .nav
 	--padding-bottom calc(1vh + env(safe-area-inset-bottom))
@@ -129,6 +173,7 @@ function onScrub(time: number) {
 	display flex
 	align-items stretch
 	gap 2vw
+	z-index 2
 
 .play
 	font-size 2vh
