@@ -73,7 +73,7 @@ function onKnobPointed(e: PointerEvent) {
 .track
 	width 100%
 	height calc(2 * var(--px))
-	background black
+	background var(--color-ink)
 
 .knob-wrapper
 	position absolute
@@ -82,18 +82,19 @@ function onKnobPointed(e: PointerEvent) {
 	height 100%
 
 	&.dragging .knob
-		width 8vh
-		height 8vh
+		width var(--nav-height)
+		height var(--nav-height)
 
 .knob
 	position absolute
 	top 50%
 	left 0
-	width 4vh
-	height 4vh
+	width calc(0.7 * var(--nav-height))
+	height calc(0.7 * var(--nav-height))
 	background white
-	border calc(var(--px) * 1) solid black
+	border calc(var(--px) * 1) solid var(--color-ink)
 	border-radius 50%
 	transform translate(-50%, -50%)
 	transition width 0.1s steps(3), height 0.1s steps(3)
+	cursor ew-resize
 </style>

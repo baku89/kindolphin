@@ -1,5 +1,6 @@
 import {toReactive} from '@vueuse/core'
-import {ref} from 'vue'
+import {scalar} from 'linearly'
+import {Ref, ref, watchEffect} from 'vue'
 
 import {getReversedAudioBuffer} from '@/utils'
 
@@ -7,7 +8,7 @@ function getNowSeconds() {
 	return Date.now() / 1000
 }
 
-export function useAudio(src: string) {
+export function useAudio(src: string, volume: Ref<number>) {
 	const maxRate = 1
 
 	const scratch = ref<(time: number) => void>(() => {})
@@ -21,6 +22,16 @@ export function useAudio(src: string) {
 		const buffer = await audioContext.decodeAudioData(arrayBuffer)
 		const revBuffer = getReversedAudioBuffer(audioContext, buffer)
 
+		const masterGain = audioContext.createGain()
+		masterGain.connect(audioContext.destination)
+
+		watchEffect(() => {
+			masterGain.gain.linearRampToValueAtTime(volume.value, 1)
+		})
+
+		const scrubGain = audioContext.createGain()
+		scrubGain.connect(masterGain)
+
 		let source: AudioBufferSourceNode | null = null
 
 		let lastDate: number = 0,
@@ -33,61 +44,64 @@ export function useAudio(src: string) {
 
 		scratch.value = (time: number) => {
 			const now = getNowSeconds()
-			let rate = (time - lastTime) / (now - lastDate)
+			const rate = (time - lastTime) / (now - lastDate)
 
+			let limitedRate = rate
 			if (Math.abs(rate) > maxRate) {
-				rate = Math.sign(rate) * maxRate
+				limitedRate = Math.sign(rate) * maxRate
 			}
 
 			currentTime += (now - lastDate) * lastRate
 			const error = Math.abs(time - currentTime)
 
 			if (error > 0.05 || rate * lastRate < 0) {
-				source?.stop()
-				source?.disconnect()
-				source = null
+				disposeSource()
 			}
 
 			lastTime = time
 			lastDate = new Date().getTime() / 1000
-			lastRate = rate
+			lastRate = limitedRate
 
 			const buf = rate > 0 ? buffer : revBuffer
 			const bufTime = rate > 0 ? time : buf.duration - time
 
 			if (!source) {
-				source = audioContext.createBufferSource()
-				source.buffer = buf
-				source.loop = false
-				source.connect(audioContext.destination)
-				source.start(0, bufTime)
+				source = createAndStartSource(buf, bufTime)
 				currentTime = time
 			}
 
-			source.playbackRate.value = Math.abs(rate)
+			source.playbackRate.value = Math.abs(limitedRate)
+			const volume = scalar.fit(Math.abs(1 - rate), 0, 1, 0.1, 1)
+
+			scrubGain.gain.linearRampToValueAtTime(volume, 0.5)
 
 			clearTimeout(autoStop)
-			autoStop = setTimeout(() => {
-				source?.stop()
-				source?.disconnect()
-				source = null
-			}, 50)
+			autoStop = setTimeout(disposeSource, 50)
 		}
 
 		play.value = (time: number) => {
-			console.log('play', time)
 			clearTimeout(autoStop)
-			source?.stop()
+			disposeSource()
 
-			source = audioContext.createBufferSource()
-			source.buffer = buffer
-			source.loop = false
-			source.connect(audioContext.destination)
-			source.start(0, time)
+			createAndStartSource(buffer, time)
+			scrubGain.gain.linearRampToValueAtTime(1, 2)
 		}
 
 		stop.value = () => {
+			disposeSource()
 			clearTimeout(autoStop)
+		}
+
+		function createAndStartSource(buf: AudioBuffer, time: number) {
+			source = audioContext.createBufferSource()
+			source.buffer = buf
+			source.loop = false
+			source.connect(scrubGain)
+			source.start(0, time)
+			return source
+		}
+
+		function disposeSource() {
 			source?.stop()
 			source?.disconnect()
 			source = null

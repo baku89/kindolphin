@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import {useEventListener, useWindowSize} from '@vueuse/core'
+import {
+	useElementSize,
+	useEventListener,
+	useMagicKeys,
+	whenever,
+} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {computed, ref, watch} from 'vue'
 
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
+import SoundAlert from '@/components/SoundAlert.vue'
 import Timecode from '@/components/Timecode.vue'
 import {useAudio} from '@/use/useAudio'
 import {useDrag} from '@/use/useDrag'
 import {withTimeDelta} from '@/utils'
 
+const enableSound = ref<boolean | null>(null)
+const volume = computed(() => (enableSound.value ? 1 : 0))
+
 const scrollY = ref(0)
-useEventListener('wheel', e => {
-	isPlaying.value = false
-	scrollY.value = scalar.clamp(scrollY.value + e.deltaY, 0, 100000)
-})
+
+const $mangaWrapper = ref<HTMLElement | null>(null)
 
 const mangaPages = [
 	597, 695, 740, 765, 1211, 937, 716, 1246, 527, 1142, 538, 1689, 1211, 1133,
@@ -26,7 +33,7 @@ const mangaPages = [
 	height,
 }))
 
-const {width: windowWidth} = useWindowSize()
+const {width: windowWidth} = useElementSize($mangaWrapper)
 const heightPerSecond = computed(() => (690 / 1080) * windowWidth.value)
 
 const duration = 163.392
@@ -40,7 +47,7 @@ const currentTime = computed({
 })
 const isPlaying = ref(false)
 
-const audio = useAudio('./assets/happening.mp3')
+const audio = useAudio('./assets/happening.mp3', volume)
 
 watch(
 	currentTime,
@@ -83,11 +90,30 @@ function togglePlay() {
 	}
 }
 
+function onTapManga() {
+	dragSpeed = 0
+	isPlaying.value = false
+	audio.stop()
+}
+
 function onScrub(time: number) {
 	dragSpeed = 0
 	isPlaying.value = false
 	currentTime.value = time
 }
+
+//------------------------------------------------------------------------------
+// Wheel scrolling
+useEventListener('wheel', e => {
+	isPlaying.value = false
+	scrollY.value = scalar.clamp(scrollY.value + e.deltaY, 0, 100000)
+})
+
+//------------------------------------------------------------------------------
+// Space to toggle
+const {space} = useMagicKeys()
+
+whenever(space, togglePlay)
 
 //------------------------------------------------------------------------------
 // Inertial dragging
@@ -133,25 +159,56 @@ const {dragging} = useDrag($scrollable, {
 </script>
 
 <template>
-	<div class="scrollable" ref="$scrollable" />
-	<Manga class="manga" :pages="mangaPages" :scroll="scrollY" />
-	<nav class="nav">
-		<button class="play" @click="togglePlay">
-			<i
-				class="fa-sharp fa-solid"
-				:class="isPlaying ? 'fa-pause' : 'fa-play'"
-			></i>
-		</button>
-		<Slider
-			:modelValue="currentTime"
-			@update:modelValue="onScrub"
-			:duration="duration"
-		/>
-		<Timecode class="timecode" :modelValue="currentTime" />
-	</nav>
+	<div class="App">
+		<nav class="nav">
+			<a href="./" class="nav-item">
+				<i class="fa fa-sharp fa-solid fa-home" />
+			</a>
+			<a href="./" class="nav-item">
+				<i class="fa fa-sharp fa-solid fa-book" />
+			</a>
+			<a href="./" class="nav-item">
+				<i class="fa fa-sharp fa-solid fa-user" />
+			</a>
+		</nav>
+		<SoundAlert v-model="enableSound" v-if="enableSound === null" />
+		<div class="scrollable" ref="$scrollable" @pointerdown="onTapManga" />
+		<main class="manga-wrapper">
+			<div class="manga-content" ref="$mangaWrapper">
+				<Manga class="manga" :pages="mangaPages" :scroll="scrollY" />
+			</div>
+		</main>
+		<footer class="footer">
+			<button class="play" @click="togglePlay">
+				<i
+					class="fa-sharp fa-solid"
+					:class="isPlaying ? 'fa-pause' : 'fa-play'"
+				></i>
+			</button>
+			<Slider
+				:modelValue="currentTime"
+				@update:modelValue="onScrub"
+				:duration="duration"
+			/>
+			<Timecode class="timecode" :modelValue="currentTime" />
+		</footer>
+	</div>
 </template>
 
 <style scoped lang="stylus">
+.App
+	--nav-height 'min(6vh, 4rem)' % null
+
+.nav
+	position fixed
+	top 0
+	height var(--nav-height)
+	background var(--color-bg)
+	border-bottom var(--px) solid var(--color-ink)
+	z-index 2
+	width 100%
+
+
 .scrollable
 	position fixed
 	inset 0
@@ -160,31 +217,45 @@ const {dragging} = useDrag($scrollable, {
 	z-index 1
 	cursor grab
 
-.manga
+.manga-wrapper
 	pointer-events none
-
-.nav
-	--padding-bottom calc(1vh + env(safe-area-inset-bottom))
 	position fixed
-	bottom 0
-	height calc(9vh + var(--padding-botom))
-	padding 1vh 2vw var(--padding-bottom)
-	background var(--color-bg)
+	inset 0
+	overflow hidden
+
+.manga-content
+	position relative
+	height 100%
+	width var(--manga-width)
+	margin 0 auto
+
+.manga
 	width 100%
-	border-top var(--px) solid black
+	height 100%
+
+.footer
+	box-sizing content-box
+	--padding-bottom calc(1rem + env(safe-area-inset-bottom))
+	position fixed
+	left 0
+	right 0
+	bottom 0
+	height var(--nav-height)
+	padding 1rem 1rem var(--padding-bottom)
+	background var(--color-bg)
+	border-top var(--px) solid var(--color-ink)
 	display flex
 	align-items stretch
-	gap 2vw
+	gap 3rem
 	z-index 2
 
 .play
 	font-size 2vh
-	height 6vh
+	height 100%
 	line-height 100%
-	background black
+	background var(--color-ink)
 	color white
 	aspect-ratio 1
-	margin 0.5rem
 	border-radius 50%
 
 	.fa-play
@@ -194,5 +265,5 @@ const {dragging} = useDrag($scrollable, {
 	width 2.5em
 	text-align right
 	font-size 3vh
-	line-height 8vh
+	line-height var(--nav-height)
 </style>

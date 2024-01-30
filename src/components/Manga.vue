@@ -54,7 +54,7 @@ const pageAttrs = computed(() => {
 				class="page"
 				v-for="page in pageAttrs"
 				:key="page.src"
-				v-bind="page as any"
+				v-bind="page"
 			/>
 		</div>
 	</div>
@@ -62,7 +62,7 @@ const pageAttrs = computed(() => {
 
 <style lang="stylus" scoped>
 .Manga
-	position fixed
+	position absolute
 	inset 0
 	background white
 

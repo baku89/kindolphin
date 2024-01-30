@@ -1,14 +1,16 @@
 @import './reset.styl'
 
 :root
+	font-size calc(8 * var(--px))
 	--color-bg #fff
 	--color-ink #000
-	--px calc((100vw / 324))
+	--manga-width 'min(100vw, 70vh)' % null
+	--px calc((var(--manga-width) / 324))
 
 html
 	background var(--color-bg)
 	color var(--color-ink)
-	font-size 16px
+	font-family serif
 
 //Hide the scrollbar
 body
@@ -17,5 +19,8 @@ body
 	touch-action manipulation
 
 *, button, input, textarea
-	font-smooth never
-	-webkit-font-smoothing none
+	font-smooth never !important
+	-webkit-font-smoothing none !important
+
+button
+	cursor pointer
