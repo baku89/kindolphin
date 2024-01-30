@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {useElementSize} from '@vueuse/core'
 import {computed, ref} from 'vue'
 
 interface MangaPage {
@@ -16,21 +17,45 @@ defineEmits<{
 	touchend: [e: TouchEvent]
 }>()
 
-const style = computed(() => {
-	return {
-		transform: `translate3d(0, -${props.scroll}px, 0)`,
-	}
+const $root = ref<HTMLElement | null>(null)
+
+const {width: pageWidth, height: pageHeight} = useElementSize($root)
+
+const pageAttrs = computed(() => {
+	const scale = pageWidth.value / props.pages[0].width
+	let top = 0
+
+	return props.pages.map((page, i) => {
+		const y = top - props.scroll
+		const height = page.height * scale
+
+		top += page.height * scale
+
+		if (y > pageHeight.value || y < -height) {
+			return {...props.pages[i], style: {display: 'none'}}
+		}
+
+		return {
+			src: page.src,
+			width: page.width,
+			height: page.height,
+			style: {
+				transform: `translate3d(0, ${y}px, 0)`,
+			},
+		}
+	})
 })
-
-const root = ref<HTMLElement | null>(null)
-
-defineExpose({root})
 </script>
 
 <template>
-	<div class="Manga" ref="root" @touchend="$emit('touchend', $event)">
-		<div class="pages" :style="style">
-			<img class="page" v-for="(attrs, i) in pages" :key="i" v-bind="attrs" />
+	<div class="Manga" ref="$root" @touchend="$emit('touchend', $event)">
+		<div class="pages">
+			<img
+				class="page"
+				v-for="page in pageAttrs"
+				:key="page.src"
+				v-bind="page as any"
+			/>
 		</div>
 	</div>
 </template>
@@ -39,9 +64,11 @@ defineExpose({root})
 .Manga
 	position fixed
 	inset 0
-	background red
+	background white
 
 .page
+	position absolute
+	top 0
 	display block
 	width 100%
 	height auto
