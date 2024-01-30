@@ -1,25 +1,40 @@
 <script setup lang="ts">
-import {useEventListener, useWindowScroll, useWindowSize} from '@vueuse/core'
+import {useEventListener, useWindowSize} from '@vueuse/core'
+import {scalar} from 'linearly'
 import {computed, ref, watch} from 'vue'
 
+import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
 import {useAudio} from '@/use/useAudio'
 
 const $manga = ref<HTMLElement | null>(null)
 
-const pageHeights = [
+const scrollY = ref(0)
+useEventListener('wheel', e => {
+	isPlaying.value = false
+	scrollY.value = scalar.clamp(scrollY.value + e.deltaY, 0, 100000)
+})
+
+const mangaPages = [
 	597, 695, 740, 765, 121, 937, 716, 124, 527, 114, 538, 168, 121, 113, 178,
 	119, 114, 112, 121, 152, 116, 132, 115, 851, 142, 117, 154, 175, 101, 914,
-]
+].map((height, i) => ({
+	src: `./assets/manga_${i.toString().padStart(2, '0')}.webp`,
+	width: 324,
+	height,
+}))
 
 const {width: windowWidth} = useWindowSize()
-const {y: scrollY} = useWindowScroll()
 const heightPerSecond = computed(() => (690 / 1080) * windowWidth.value)
+
+const duration = 163.392
 const currentTime = computed({
-	get: () => scrollY.value / heightPerSecond.value,
+	get() {
+		return scrollY.value / heightPerSecond.value
+	},
 	set(time) {
-		window.scrollTo(0, time * heightPerSecond.value)
+		scrollY.value = time * heightPerSecond.value
 	},
 })
 
@@ -34,13 +49,15 @@ watch(
 	{flush: 'sync'}
 )
 
-useEventListener($manga, 'pointerdown', () => (isPlaying.value = false))
-
 const isPlaying = ref(false)
 
 function togglePlay() {
 	isPlaying.value = !isPlaying.value
-	if (!isPlaying.value) return
+
+	if (!isPlaying.value) {
+		audio.stop()
+		return
+	}
 
 	const dateAtStart = Date.now() / 1000
 	const timeAtStart = currentTime.value
@@ -67,22 +84,17 @@ function togglePlay() {
 
 function onScrub(time: number) {
 	isPlaying.value = false
-
 	currentTime.value = time
 }
 </script>
 
 <template>
-	<div class="manga" ref="$manga">
-		<img
-			class="manga-page"
-			v-for="(height, i) in pageHeights"
-			:key="i"
-			:src="`./assets/manga_${i.toString().padStart(2, '0')}.gif`"
-			:width="324"
-			:height="height"
-		/>
-	</div>
+	<Manga
+		ref="$manga"
+		:pages="mangaPages"
+		:scroll="scrollY"
+		@pointerdown="isPlaying = false"
+	/>
 	<nav class="nav">
 		<button class="play" @click="togglePlay">
 			<i
@@ -93,16 +105,13 @@ function onScrub(time: number) {
 		<Slider
 			:modelValue="currentTime"
 			@update:modelValue="onScrub"
-			:duration="163.392"
+			:duration="duration"
 		/>
 		<Timecode class="timecode" :modelValue="currentTime" />
 	</nav>
 </template>
 
 <style scoped lang="stylus">
-.manga
-	pointer-event none
-
 .manga-page
 	width 100%
 	height auto
@@ -118,7 +127,7 @@ function onScrub(time: number) {
 	width 100%
 	border-top var(--px) solid black
 	display flex
-	align-items center
+	align-items stretch
 	gap 2vw
 
 .play
@@ -135,7 +144,7 @@ function onScrub(time: number) {
 		text-indent 0.2em
 
 .timecode
-	width 4ch
+	width 2.5em
 	text-align right
 	font-size 3vh
 	line-height 8vh

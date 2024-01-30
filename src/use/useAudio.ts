@@ -12,7 +12,7 @@ export function useAudio(src: string) {
 
 	const scratch = ref<(time: number) => void>(() => {})
 	const play = ref<(time: number) => void>(() => {})
-	const stop = ref<(time: number) => void>(() => {})
+	const stop = ref<() => void>(() => {})
 
 	;(async () => {
 		const audioContext = new AudioContext()

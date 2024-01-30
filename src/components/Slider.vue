@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {scalar} from 'linearly'
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 
 const props = defineProps<{
 	modelValue: number
@@ -17,9 +17,12 @@ const knobStyle = computed(() => {
 	}
 })
 
+const dragging = ref(false)
+
 function onKnobPointed(e: PointerEvent) {
-	const knob = e.target as HTMLElement
-	const wrapper = knob.parentElement!
+	const knob = e.currentTarget as HTMLElement
+
+	dragging.value = true
 
 	knob.setPointerCapture(e.pointerId)
 
@@ -30,7 +33,7 @@ function onKnobPointed(e: PointerEvent) {
 
 	function onPointermove(e: PointerEvent) {
 		e.preventDefault()
-		const {left, right} = wrapper.getBoundingClientRect()
+		const {left, right} = knob.getBoundingClientRect()
 		const {clientX} = e
 
 		const newValue = scalar.fit(clientX, left, right, 0, props.duration)
@@ -39,6 +42,8 @@ function onKnobPointed(e: PointerEvent) {
 	}
 
 	function onPointerup() {
+		dragging.value = false
+
 		knob.removeEventListener('pointermove', onPointermove)
 		knob.removeEventListener('pointerup', onPointerup)
 		knob.removeEventListener('pointerleave', onPointerup)
@@ -50,13 +55,8 @@ function onKnobPointed(e: PointerEvent) {
 <template>
 	<div class="Slider">
 		<div class="track" />
-		<div class="knob-wrapper">
-			<div
-				class="knob"
-				:style="knobStyle"
-				ref="$knob"
-				@pointerdown="onKnobPointed"
-			/>
+		<div class="knob-wrapper" :class="{dragging}" @pointerdown="onKnobPointed">
+			<div class="knob" :style="knobStyle" />
 		</div>
 	</div>
 </template>
@@ -67,7 +67,6 @@ function onKnobPointed(e: PointerEvent) {
 	width 100%
 	display flex
 	align-items center
-	background gray
 
 .track
 	width 100%
@@ -80,6 +79,10 @@ function onKnobPointed(e: PointerEvent) {
 	right 2vw
 	height 100%
 
+	&.dragging .knob
+		width 8vh
+		height 8vh
+
 .knob
 	position absolute
 	top 50%
@@ -90,5 +93,5 @@ function onKnobPointed(e: PointerEvent) {
 	border calc(var(--px) * 1) solid black
 	border-radius 50%
 	transform translate(-50%, -50%)
-	transition left 0.1s
+	transition width 0.1s steps(3), height 0.1s steps(3)
 </style>
