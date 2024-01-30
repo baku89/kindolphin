@@ -1,9 +1,23 @@
-@import './reset.styl';
+@import './reset.styl'
 
-html {
-	font-size: 16px;
-}
+:root
+	--color-bg #fff
+	--color-ink #000
+	--px calc((100vw / 324))
 
-body {
-	background: #fff;
-}
+html
+	background var(--color-bg)
+	color var(--color-ink)
+	font-size 16px
+
+//Hide the scrollbar
+body
+	-ms-overlay-style none
+	scrollbar-width none
+
+body::-webkit-scrollbar
+	display none
+
+*, button, input, textarea
+	font-smooth never
+	-webkit-font-smoothing none
