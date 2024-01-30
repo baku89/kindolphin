@@ -38,8 +38,10 @@ const currentTime = computed({
 		scrollY.value = time * heightPerSecond.value
 	},
 })
+const isPlaying = ref(false)
 
 const audio = useAudio('./assets/happening.mp3')
+
 watch(
 	currentTime,
 	time => {
@@ -49,8 +51,6 @@ watch(
 	},
 	{flush: 'sync'}
 )
-
-const isPlaying = ref(false)
 
 function togglePlay() {
 	isPlaying.value = !isPlaying.value
@@ -89,6 +89,7 @@ function onScrub(time: number) {
 	currentTime.value = time
 }
 
+//------------------------------------------------------------------------------
 // Inertial dragging
 const $scrollable = ref<HTMLElement | null>(null)
 
