@@ -44,10 +44,10 @@ defineEmits<{
 .alert
 	width fit-content
 	max-width 90vw
-	background var(--color-bg)
+	background white
 	text-align center
 	font-size 16rem
-	border 1rem solid var(--color-ink)
+	border 1rem solid black
 
 	i
 		font-size 1.5em
@@ -69,7 +69,7 @@ defineEmits<{
 .buttons
 	position relative
 	font-size 0.8em
-	color var(--color-ink)
+	color black
 	display grid
 	grid-template-columns 1fr 1fr
 	gap 0.3em
@@ -79,11 +79,11 @@ defineEmits<{
 		box-sizing content-box
 		height 3em
 		line-height 3em
-		background var(--color-bg)
-		color var(--color-ink)
-		border 1rem solid var(--color-ink)
+		background white
+		color black
+		border 1rem solid black
 
 		&:hover
-			color var(--color-bg)
-			background var(--color-ink)
+			color white
+			background black
 </style>

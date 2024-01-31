@@ -65,17 +65,18 @@ button
 		span
 			padding 1rem
 
-	.bg-overlay, .ink-overlay
-		position fixed
-		inset 0
+.bg-overlay, .ink-overlay
+	position fixed
+	pointer-events none
+	inset 0
 
-	.bg-overlay
-		background var(--color-bg)
-		mix-blend-mode darken
+.bg-overlay
+	background var(--color-bg)
+	mix-blend-mode darken
 
-	.ink-overlay
-		background var(--color-ink)
-		mix-blend-mode lighten
+.ink-overlay
+	background var(--color-ink)
+	mix-blend-mode lighten
 
 .fa
 	display inline-block

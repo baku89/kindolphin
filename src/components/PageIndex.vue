@@ -123,7 +123,7 @@ const minimized = ref(true)
 
 .header
 	height var(--header-height)
-	border-bottom 1rem solid var(--color-ink)
+	border-bottom 1rem solid black
 	font-size 12rem
 	text-align center
 	line-height var(--header-height)
@@ -158,14 +158,16 @@ const minimized = ref(true)
 .book
 	display grid
 	grid-template-columns min-content 1fr
-	border-bottom 1rem dotted var(--color-ink)
 	padding 10rem
 	gap 10rem
+
+	&:not(:last-child)
+		border-bottom 1rem dotted black
 
 	.thumb
 		width 120rem
 		aspect-ratio 3 / 4
-		border 1rem solid var(--color-ink)
+		border 1rem solid black
 
 		&.album
 			aspect-ratio 1
@@ -190,6 +192,14 @@ const minimized = ref(true)
 		display flex
 		flex-direction column
 
+.badge
+	letter-spacing 0.1em
+	background black
+	font-size 10rem
+	padding 0.1em 0.2em
+	display inline-block
+	border-radius 2rem
+	color white
 
 .reader
 	position fixed
@@ -202,17 +212,15 @@ const minimized = ref(true)
 
 	&.minimized
 		transform scale(0.2)
-		outline 5rem solid var(--color-ink)
-
-
+		outline 5rem solid black
 
 
 .footer
 	box-sizing content-box
 	height var(--header-height)
 	padding var(--nav-margin-vert) var(--nav-margin-horiz) var(--footer-padding-bottom)
-	background var(--color-bg)
-	border-top 1rem solid var(--color-ink)
+	background white
+	border-top 1rem solid black
 	display flex
 	align-items stretch
 	gap 16rem

@@ -297,6 +297,7 @@ const {dragging} = useDrag($scrollable, {
 
 <style scoped lang="stylus">
 .MangaReader
+	background white
 	position fixed
 	inset 0
 	overflow hidden
@@ -305,8 +306,8 @@ const {dragging} = useDrag($scrollable, {
 
 .header
 	height var(--header-height)
-	background var(--color-bg)
-	border-bottom 1rem solid var(--color-ink)
+	background white
+	border-bottom 1rem solid black
 	z-index 2
 	transform translate3d(0, -100%, 0)
 	font-size 12rem
@@ -365,8 +366,8 @@ const {dragging} = useDrag($scrollable, {
 	box-sizing content-box
 	height var(--header-height)
 	padding var(--nav-margin-vert) var(--nav-margin-horiz) var(--footer-padding-bottom)
-	background var(--color-bg)
-	border-top 1rem solid var(--color-ink)
+	background white
+	border-top 1rem solid black
 	display flex
 	align-items stretch
 	gap 16rem
@@ -378,8 +379,8 @@ const {dragging} = useDrag($scrollable, {
 	height 70%
 	margin auto 0
 	line-height 100%
-	background var(--color-ink)
-	color var(--color-bg)
+	background black
+	color white
 	aspect-ratio 1
 	border-radius 50%
 

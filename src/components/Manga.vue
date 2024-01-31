@@ -80,8 +80,6 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 				v-bind="page"
 			/>
 		</div>
-		<div class="bg-overlay" />
-		<div class="ink-overlay" />
 	</div>
 </template>
 
@@ -89,20 +87,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 .Manga
 	position absolute
 	inset 0
-	background var(--color-bg)
-
-.bg-overlay
-.ink-overlay
-	position fixed
-	inset 0
-
-.bg-overlay
-	background var(--color-bg)
-	mix-blend-mode darken
-
-.ink-overlay
-	background var(--color-ink)
-	mix-blend-mode lighten
+	background white
 
 .bottom-ink
 	position absolute
@@ -110,7 +95,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	left 0
 	right 0
 	bottom calc(-1 * var(--footer-height))
-	background var(--color-ink)
+	background black
 
 .page
 	position absolute
