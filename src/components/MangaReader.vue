@@ -250,7 +250,7 @@ const {dragging} = useDrag($scrollable, {
 		<header class="header" :class="{show: showNav}" ref="$navTop">
 			<div class="left">
 				<button @click.stop="$emit('update:minimized', true)">
-					<i class="fa fa-sharp fa-solid fa-circle-info" />
+					<i class="fa fa-sharp fa-solid fa-house" />
 				</button>
 			</div>
 			<h1 class="title">group_inou / HAPPENING (1)</h1>

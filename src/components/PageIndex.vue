@@ -2,9 +2,12 @@
 import {defineAsyncComponent, ref} from 'vue'
 
 import {mangaPages} from '@/manga'
+import {useAppSettingsStore} from '@/store/appSettings'
 import {usePreload} from '@/use/usePreload'
 
 const preload = usePreload()
+
+const settings = useAppSettingsStore()
 
 mangaPages.forEach(page => {
 	preload.fetch(page.src, page.height / 100)
@@ -23,7 +26,25 @@ const minimized = ref(true)
 
 <template>
 	<div class="PageIndex">
-		<header class="header">Kindle</header>
+		<header class="header">
+			<div class="left">
+				<button>
+					<i class="fa fa-sharp fa-solid fa-house" />
+				</button>
+			</div>
+			<h1 class="title">Kindle</h1>
+			<div class="right">
+				<button>
+					<i
+						class="fa fa-sharp fa-solid"
+						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
+					/>
+				</button>
+				<button @click="settings.muted = !settings.muted">
+					<i class="fa fa-sharp fa-solid fa-font" />
+				</button>
+			</div>
+		</header>
 		<main class="main">
 			<section class="book">
 				<img class="thumb" src="/assets/happening_thumb.gif" />
@@ -45,26 +66,43 @@ const minimized = ref(true)
 						<li>4&nbsp;&nbsp;SKETCH</li>
 						<li>5&nbsp;&nbsp;FANTASY</li>
 						<li>6&nbsp;&nbsp;MESSAGE</li>
+						<li>1&nbsp;&nbsp;ON</li>
+						<li>2&nbsp;&nbsp;HAPPY</li>
+						<li>3&nbsp;&nbsp;HAPPENING</li>
+						<li>4&nbsp;&nbsp;SKETCH</li>
+						<li>5&nbsp;&nbsp;FANTASY</li>
+						<li>6&nbsp;&nbsp;MESSAGE</li>
+						<li>1&nbsp;&nbsp;ON</li>
+						<li>2&nbsp;&nbsp;HAPPY</li>
+						<li>3&nbsp;&nbsp;HAPPENING</li>
+						<li>4&nbsp;&nbsp;SKETCH</li>
+						<li>5&nbsp;&nbsp;FANTASY</li>
+						<li>6&nbsp;&nbsp;MESSAGE</li>
+						<li>1&nbsp;&nbsp;ON</li>
+						<li>2&nbsp;&nbsp;HAPPY</li>
+						<li>3&nbsp;&nbsp;HAPPENING</li>
+						<li>4&nbsp;&nbsp;SKETCH</li>
+						<li>5&nbsp;&nbsp;FANTASY</li>
+						<li>6&nbsp;&nbsp;MESSAGE</li>
 					</ul>
 				</div>
 			</section>
-
-			<Suspense>
-				<template #default>
-					<MangaReader
-						class="reader"
-						:class="{minimized}"
-						v-if="preload.progress === 1"
-						@click="minimized = false"
-						v-model:minimized="minimized"
-					/>
-				</template>
-				<template #fallback>
-					<div class="reader">Loading...</div>
-				</template>
-			</Suspense>
 		</main>
 		<footer class="footer" />
+		<Suspense>
+			<template #default>
+				<MangaReader
+					class="reader"
+					:class="{minimized}"
+					v-if="preload.progress === 1"
+					@click="minimized = false"
+					v-model:minimized="minimized"
+				/>
+			</template>
+			<template #fallback>
+				<div class="reader">Loading...</div>
+			</template>
+		</Suspense>
 	</div>
 </template>
 
@@ -86,14 +124,36 @@ const minimized = ref(true)
 .header
 	height var(--header-height)
 	border-bottom 1rem solid var(--color-ink)
-
-	font-size 30rem
+	font-size 12rem
 	text-align center
 	line-height var(--header-height)
+	display grid
+	grid-template-columns 1fr auto 1fr
+	align-items center
+	padding 0 var(--nav-margin-horiz)
+
+	.title
+		font-size 30rem
+
+	.left
+	.right
+		display flex
+		gap var(--nav-margin-horiz)
+
+	.right
+		flex-direction row-reverse
+
+
+	button
+		display block
+		font-size 20rem
+
 
 .main
 	display flex
 	flex-direction column
+	overflow-y scroll
+	-webkit-overflow-scrolling touch
 
 .book
 	display grid
