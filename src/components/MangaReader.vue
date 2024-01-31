@@ -282,7 +282,7 @@ const {dragging} = useDrag($scrollable, {
 			<button class="play" @click="togglePlay">
 				<i
 					class="fa fa-sharp fa-solid"
-					:class="isPlaying ? 'fa-pause' : 'fa-play'"
+					:class="isPlaying ? 'fa-circle-pause' : 'fa-circle-play'"
 				></i>
 			</button>
 			<Slider
@@ -359,8 +359,8 @@ const {dragging} = useDrag($scrollable, {
 	position absolute
 	left 0
 	right 0
-	height 1rem
-	background red
+	height 2rem
+	background var(--color-primary)
 
 .footer
 	box-sizing content-box
@@ -375,12 +375,9 @@ const {dragging} = useDrag($scrollable, {
 	transform translate3d(0, 100%, 0)
 
 .play
-	font-size 20rem
-	height 70%
+	font-size 33rem
 	margin auto 0
 	line-height 100%
-	background black
-	color white
 	aspect-ratio 1
 	border-radius 50%
 

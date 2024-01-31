@@ -15,7 +15,7 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		{
 			bg: '#e5e0cf',
 			ink: '#4b3876',
-			primary: '#ff0000',
+			primary: '#ff6338',
 		},
 	])
 

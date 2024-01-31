@@ -58,7 +58,7 @@ function onKnobPointed(e: PointerEvent) {
 	<div class="Slider">
 		<div class="track" />
 		<div class="knob-wrapper" :class="{dragging}" @pointerdown="onKnobPointed">
-			<div class="knob" :style="knobStyle" />
+			<button class="knob fa fa-regular fa-circle" :style="knobStyle" />
 		</div>
 	</div>
 </template>
@@ -82,19 +82,21 @@ function onKnobPointed(e: PointerEvent) {
 	height 100%
 
 	&.dragging .knob
-		width calc(0.7 * var(--header-height))
-		height calc(0.7 * var(--header-height))
+		transform translate(-50%, -50%) scale(1.4)
 
 .knob
 	position absolute
+	display block
 	top 50%
+	font-size calc(0.5 * var(--header-height))
+	text-align center
+	line-height calc(0.5 * var(--header-height))
 	width calc(0.5 * var(--header-height))
 	height calc(0.5 * var(--header-height))
 	background white
-	border 1rem solid black
 	border-radius 50%
 	transform translate(-50%, -50%)
-	transition width 0.1s steps(3), height 0.1s steps(3)
+	transition transform 0.1s steps(3)
 	cursor ew-resize
-	will-change left
+	will-change left, transform
 </style>
