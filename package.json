@@ -30,6 +30,7 @@
 		"stylus": "^0.60.0",
 		"typescript": "^5.2.2",
 		"vite": "^4.4.9",
+		"vite-plugin-pwa": "^0.17.5",
 		"vue": "3.4.15",
 		"vue-eslint-parser": "^9.3.2"
 	}

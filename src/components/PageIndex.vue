@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {defineAsyncComponent, ref} from 'vue'
 
-import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {usePreload} from '@/use/usePreload'
 
@@ -11,9 +10,9 @@ const preload = usePreload()
 
 const settings = useAppSettingsStore()
 
-mangaPages.forEach(page => {
-	preload.fetch(page.src, page.height / 100)
-})
+// mangaPages.forEach(page => {
+// 	preload.fetch(page.src, page.height / 100)
+// })
 
 // watchEffect(() => {
 // 	console.log('progress=', preload.progress)
@@ -36,13 +35,13 @@ const minimized = ref(true)
 			</div>
 			<h1 class="title">Kindle</h1>
 			<div class="right">
-				<button>
+				<button @click="settings.muted = !settings.muted">
 					<i
 						class="fa fa-sharp fa-solid"
 						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
 					/>
 				</button>
-				<button @click.stop="settings.show = true">
+				<button @click="settings.show = true">
 					<i class="fa fa-sharp fa-solid fa-font" />
 				</button>
 			</div>
@@ -54,6 +53,32 @@ const minimized = ref(true)
 					<h2>GIFマンガ <br /><span class="neg">「HAPPENING」(1)</span></h2>
 					<h3>AC部</h3>
 					<div class="badge">今すぐ読む</div>
+					<div class="reading-progress">
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+						<i class="fa fa-sharp fa-regular fa-circle" />
+					</div>
 				</div>
 			</a>
 			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank">
@@ -78,7 +103,6 @@ const minimized = ref(true)
 				<MangaReader
 					class="reader"
 					:class="{minimized}"
-					v-if="preload.progress === 1"
 					@click="minimized = false"
 					v-model:minimized="minimized"
 				/>
@@ -176,6 +200,9 @@ const minimized = ref(true)
 
 	h2
 		font-size 16rem
+		margin-bottom 0.2em
+
+	h3
 		margin-bottom 0.5em
 
 	ul
@@ -192,10 +219,17 @@ const minimized = ref(true)
 	display inline-block
 	border-radius 2rem
 	color white
+	margin-bottom 1em
 
 	.book:hover &
 		background white
 		color black
+
+.reading-progress
+	font-size 8rem
+
+	i
+		margin-right 2rem
 
 .reader
 	position fixed
@@ -214,7 +248,7 @@ const minimized = ref(true)
 .footer
 	box-sizing content-box
 	height var(--header-height)
-	padding var(--nav-margin-vert) var(--nav-margin-horiz) var(--footer-padding-bottom)
+	padding var(--nav-margin-vert) var(--nav-margin-horiz) env(safe-area-inset-bottom)
 	background white
 	border-top 1rem solid black
 	display flex
