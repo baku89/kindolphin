@@ -25,3 +25,49 @@ body
 
 button
 	cursor pointer
+
+.splash
+	position fixed
+	background white
+	inset 0
+
+	.kindle-ish-tree
+		position fixed
+		bottom 0
+		left 'calc((100vw - var(--manga-width)) / 2)' % null
+		display block
+		margin 0 auto
+		width var(--manga-width)
+		image-rendering pixelated
+
+	.ramp
+		position fixed
+		top 0
+		right 0
+		left 0
+		height calc(var(--px) * 400)
+		background-image url('/assets/splash_ramp.webp')
+		background-size contain
+		image-rendering pixelated
+
+	.loading-text
+		position relative
+		top 24vh
+		color black
+		text-align center
+		font-size 30rem
+
+		span
+			padding 1rem
+
+	.bg-overlay, .ink-overlay
+		position fixed
+		inset 0
+
+	.bg-overlay
+		background var(--color-bg)
+		mix-blend-mode darken
+
+	.ink-overlay
+		background var(--color-ink)
+		mix-blend-mode lighten
