@@ -37,6 +37,8 @@ const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 	height: 1,
 })
 
+const $navTop = ref<HTMLElement | null>(null)
+
 const mangaWidth = 324
 const mangaHeights = [
 	597, 695, 740, 765, 1211, 937, 716, 1246, 527, 1142, 538, 1689, 1211, 1133,
@@ -163,7 +165,7 @@ function onPressManga() {
 }
 
 function onClickManga() {
-	showNav.value = true
+	showNav.value = !showNav.value
 }
 
 function onScrubSlider(timecode: number) {
@@ -234,7 +236,7 @@ const {dragging} = useDrag($scrollable, {
 
 <template>
 	<div class="App">
-		<nav class="nav" :class="{show: showNav}">
+		<nav class="nav" :class="{show: showNav}" ref="$navTop">
 			<div class="left">
 				<button @click="enableSound = !enableSound">
 					<i class="fa fa-sharp fa-solid fa-circle-info" />
@@ -270,7 +272,7 @@ const {dragging} = useDrag($scrollable, {
 				<div class="seekbar" :style="seekbarStyle" />
 			</div>
 		</main>
-		<footer class="footer">
+		<footer class="footer" :class="{show: showNav}">
 			<button class="play" @click="togglePlay">
 				<i
 					class="fa-sharp fa-solid"
@@ -292,8 +294,6 @@ const {dragging} = useDrag($scrollable, {
 	position fixed
 	inset 0
 	--nav-height 50rem
-	display grid
-	grid-template-rows 1fr min-content
 
 .nav
 	position fixed
@@ -304,7 +304,6 @@ const {dragging} = useDrag($scrollable, {
 	z-index 2
 	width 100%
 	transform translate3d(0, -100%, 0)
-	transition transform 0.15s steps(3)
 	font-size 12rem
 	display grid
 	grid-template-columns 1fr auto 1fr
@@ -324,10 +323,16 @@ const {dragging} = useDrag($scrollable, {
 		display block
 		font-size 20rem
 
+.nav
+.footer
+	transition transform 0.3s steps(5)
+
 	&.show
 		transform translate3d(0, 0, 0)
 
 .manga-wrapper
+	position fixed
+	inset 0
 	overflow hidden
 
 .manga-scrollable
@@ -358,6 +363,10 @@ const {dragging} = useDrag($scrollable, {
 	background red
 
 .footer
+	position fixed
+	bottom 0
+	left 0
+	right 0
 	box-sizing content-box
 	--padding-bottom calc(5rem + env(safe-area-inset-bottom))
 	height var(--nav-height)
@@ -368,6 +377,7 @@ const {dragging} = useDrag($scrollable, {
 	align-items stretch
 	gap 16rem
 	z-index 2
+	transform translate3d(0, 100%, 0)
 
 .play
 	font-size 20rem
