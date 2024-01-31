@@ -172,13 +172,11 @@ function onScrubSlider(timecode: number) {
 
 watch(
 	() => props.minimized,
-	minimized => {
-		if (minimized) {
-			isPlaying.value = false
-			audio.stop()
-			dragSpeed = 0
-			showNav.value = false
-		}
+	() => {
+		isPlaying.value = false
+		audio.stop()
+		dragSpeed = 0
+		showNav.value = true
 	}
 )
 
@@ -247,13 +245,15 @@ const {dragging} = useDrag($scrollable, {
 
 <template>
 	<div class="MangaReader">
-		<header class="header" :class="{show: showNav}" ref="$navTop">
+		<header class="header" :class="{show: showNav, minimized}" ref="$navTop">
 			<div class="left">
 				<button @click.stop="$emit('update:minimized', true)">
 					<i class="fa fa-sharp fa-solid fa-house" />
 				</button>
 			</div>
-			<h1 class="title">group_inou / HAPPENING (1)</h1>
+			<h1 class="title" @click.stop="$emit('update:minimized', true)">
+				group_inou / HAPPENING (1)
+			</h1>
 			<div class="right">
 				<button @click="settings.muted = !settings.muted">
 					<i
@@ -261,7 +261,7 @@ const {dragging} = useDrag($scrollable, {
 						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
 					/>
 				</button>
-				<button @click="settings.muted = !settings.muted">
+				<button @click.stop="settings.show = true">
 					<i class="fa fa-sharp fa-solid fa-font" />
 				</button>
 			</div>
@@ -278,7 +278,7 @@ const {dragging} = useDrag($scrollable, {
 				<div class="seekbar" :style="seekbarStyle" />
 			</div>
 		</main>
-		<footer class="footer" :class="{show: showNav}">
+		<footer class="footer" :class="{show: showNav, minimized}">
 			<button class="play" @click="togglePlay">
 				<i
 					class="fa fa-sharp fa-solid"
@@ -308,7 +308,6 @@ const {dragging} = useDrag($scrollable, {
 	height var(--header-height)
 	background white
 	border-bottom 1rem solid black
-	z-index 2
 	transform translate3d(0, -100%, 0)
 	font-size 12rem
 	display grid
@@ -331,10 +330,15 @@ const {dragging} = useDrag($scrollable, {
 
 .header
 .footer
+	z-index 2
 	transition transform 0.3s steps(5)
 
 	&.show
 		transform translate3d(0, 0, 0)
+
+	&.minimized
+		transform translate3d(0, 0, 0)
+		opacity 0
 
 .manga-scrollable
 	position fixed
@@ -371,7 +375,6 @@ const {dragging} = useDrag($scrollable, {
 	display flex
 	align-items stretch
 	gap 16rem
-	z-index 2
 	transform translate3d(0, 100%, 0)
 
 .play

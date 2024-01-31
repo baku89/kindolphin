@@ -14,8 +14,6 @@
 	--footer-padding-bottom calc(var(--nav-margin-vert) + env(safe-area-inset-bottom))
 
 html
-	background var(--color-bg)
-	color var(--color-ink)
 	font-weight bold
 	font-family serif
 
@@ -23,6 +21,8 @@ html
 body
 	position fixed
 	overflow hidden
+	background var(--color-bg)
+	color var(--color-ink)
 	touch-action manipulation
 
 *, button, input, textarea
@@ -67,6 +67,7 @@ button
 
 .bg-overlay, .ink-overlay
 	position fixed
+	z-index 20
 	pointer-events none
 	inset 0
 

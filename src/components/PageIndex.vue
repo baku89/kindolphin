@@ -5,6 +5,8 @@ import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {usePreload} from '@/use/usePreload'
 
+import PaneSettings from './PaneSettings.vue'
+
 const preload = usePreload()
 
 const settings = useAppSettingsStore()
@@ -28,8 +30,8 @@ const minimized = ref(true)
 	<div class="PageIndex">
 		<header class="header">
 			<div class="left">
-				<button>
-					<i class="fa fa-sharp fa-solid fa-house" />
+				<button @click="minimized = false">
+					<i class="fa fa-brands fa-readme" />
 				</button>
 			</div>
 			<h1 class="title">Kindle</h1>
@@ -40,21 +42,21 @@ const minimized = ref(true)
 						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
 					/>
 				</button>
-				<button @click="settings.muted = !settings.muted">
+				<button @click.stop="settings.show = true">
 					<i class="fa fa-sharp fa-solid fa-font" />
 				</button>
 			</div>
 		</header>
 		<main class="main">
-			<section class="book">
+			<a class="book" @click="minimized = false">
 				<img class="thumb" src="/assets/happening_thumb.gif" />
 				<div class="info">
 					<h2>GIFマンガ <br /><span class="neg">「HAPPENING」(1)</span></h2>
 					<h3>AC部</h3>
 					<div class="badge">今すぐ読む</div>
 				</div>
-			</section>
-			<section class="book">
+			</a>
+			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank">
 				<img class="thumb album" src="/assets/happy.gif" />
 				<div class="info">
 					<h2>2nd EP “HAPPY”</h2>
@@ -66,27 +68,9 @@ const minimized = ref(true)
 						<li>4&nbsp;&nbsp;SKETCH</li>
 						<li>5&nbsp;&nbsp;FANTASY</li>
 						<li>6&nbsp;&nbsp;MESSAGE</li>
-						<li>1&nbsp;&nbsp;ON</li>
-						<li>2&nbsp;&nbsp;HAPPY</li>
-						<li>3&nbsp;&nbsp;HAPPENING</li>
-						<li>4&nbsp;&nbsp;SKETCH</li>
-						<li>5&nbsp;&nbsp;FANTASY</li>
-						<li>6&nbsp;&nbsp;MESSAGE</li>
-						<li>1&nbsp;&nbsp;ON</li>
-						<li>2&nbsp;&nbsp;HAPPY</li>
-						<li>3&nbsp;&nbsp;HAPPENING</li>
-						<li>4&nbsp;&nbsp;SKETCH</li>
-						<li>5&nbsp;&nbsp;FANTASY</li>
-						<li>6&nbsp;&nbsp;MESSAGE</li>
-						<li>1&nbsp;&nbsp;ON</li>
-						<li>2&nbsp;&nbsp;HAPPY</li>
-						<li>3&nbsp;&nbsp;HAPPENING</li>
-						<li>4&nbsp;&nbsp;SKETCH</li>
-						<li>5&nbsp;&nbsp;FANTASY</li>
-						<li>6&nbsp;&nbsp;MESSAGE</li>
 					</ul>
 				</div>
-			</section>
+			</a>
 		</main>
 		<footer class="footer" />
 		<Suspense>
@@ -103,6 +87,9 @@ const minimized = ref(true)
 				<div class="reader">Loading...</div>
 			</template>
 		</Suspense>
+		<div class="bg-overlay"></div>
+		<div class="ink-overlay"></div>
+		<PaneSettings />
 	</div>
 </template>
 
@@ -160,6 +147,11 @@ const minimized = ref(true)
 	grid-template-columns min-content 1fr
 	padding 10rem
 	gap 10rem
+	cursor pointer
+
+	&:hover
+		background black
+		color white
 
 	&:not(:last-child)
 		border-bottom 1rem dotted black
@@ -183,7 +175,7 @@ const minimized = ref(true)
 		text-indent -0.5em
 
 	h2
-		font-size 15rem
+		font-size 16rem
 		margin-bottom 0.5em
 
 	ul
@@ -200,6 +192,10 @@ const minimized = ref(true)
 	display inline-block
 	border-radius 2rem
 	color white
+
+	.book:hover &
+		background white
+		color black
 
 .reader
 	position fixed

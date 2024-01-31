@@ -17,6 +17,11 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 			ink: '#4b3876',
 			primary: '#ff6338',
 		},
+		{
+			bg: 'white',
+			ink: 'black',
+			primary: '#ff6338',
+		},
 	])
 
 	const themeIndex = useLocalStorage('jp.g-a-l.happening.themeIndex', 0)
@@ -30,5 +35,7 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		}
 	})
 
-	return {muted, themes}
+	const show = ref(false)
+
+	return {muted, themes, show, themeIndex}
 })
