@@ -46,8 +46,8 @@ defineEmits<{
 	max-width 90vw
 	background var(--color-bg)
 	text-align center
-	font-size "min(5vw, 40px)" % null
-	border var(--px) solid var(--color-ink)
+	font-size 8rem
+	border 1rem solid var(--color-ink)
 
 	i
 		font-size 1.5em

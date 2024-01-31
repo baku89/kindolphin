@@ -88,13 +88,13 @@ function onKnobPointed(e: PointerEvent) {
 .knob
 	position absolute
 	top 50%
-	left 0
 	width calc(0.7 * var(--nav-height))
 	height calc(0.7 * var(--nav-height))
-	background white
+	background var(--color-bg)
 	border calc(var(--px) * 1) solid var(--color-ink)
 	border-radius 50%
 	transform translate(-50%, -50%)
 	transition width 0.1s steps(3), height 0.1s steps(3)
 	cursor ew-resize
+	will-change left
 </style>
