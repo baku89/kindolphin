@@ -1,5 +1,6 @@
 import {toReactive} from '@vueuse/core'
 import {scalar} from 'linearly'
+import {clamp} from 'lodash'
 import {Ref, ref, watchEffect} from 'vue'
 
 import {getReversedAudioBuffer} from '@/utils'
@@ -14,6 +15,7 @@ export function useAudio(src: string, volume: Ref<number>) {
 	const scratch = ref<(time: number) => void>(() => {})
 	const play = ref<(time: number) => void>(() => {})
 	const stop = ref<() => void>(() => {})
+	const preliminaryPlay = ref<() => void>(() => {})
 
 	;(async () => {
 		const audioContext = new AudioContext()
@@ -26,7 +28,7 @@ export function useAudio(src: string, volume: Ref<number>) {
 		masterGain.connect(audioContext.destination)
 
 		watchEffect(() => {
-			masterGain.gain.linearRampToValueAtTime(volume.value, 1)
+			masterGain.gain.linearRampToValueAtTime(volume.value, 0.25)
 		})
 
 		const scrubGain = audioContext.createGain()
@@ -92,12 +94,20 @@ export function useAudio(src: string, volume: Ref<number>) {
 			clearTimeout(autoStop)
 		}
 
+		preliminaryPlay.value = () => {
+			source = audioContext.createBufferSource()
+			source.buffer = buffer
+			source.loop = false
+			source.connect(scrubGain)
+			source.start(0, 0, 0.5)
+		}
+
 		function createAndStartSource(buf: AudioBuffer, time: number) {
 			source = audioContext.createBufferSource()
 			source.buffer = buf
 			source.loop = false
 			source.connect(scrubGain)
-			source.start(0, time)
+			source.start(0, clamp(time, 0, buf.duration))
 			return source
 		}
 
@@ -112,5 +122,6 @@ export function useAudio(src: string, volume: Ref<number>) {
 		scratch,
 		play,
 		stop,
+		preliminaryPlay,
 	})
 }

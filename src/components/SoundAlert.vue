@@ -46,7 +46,7 @@ defineEmits<{
 	max-width 90vw
 	background var(--color-bg)
 	text-align center
-	font-size 8rem
+	font-size 16rem
 	border 1rem solid var(--color-ink)
 
 	i

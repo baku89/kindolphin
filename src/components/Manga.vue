@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {useCssVar, useElementSize} from '@vueuse/core'
-import {computed, ImgHTMLAttributes, ref, ReservedProps, watchEffect} from 'vue'
+import {useElementSize} from '@vueuse/core'
+import {computed, ImgHTMLAttributes, ref, ReservedProps} from 'vue'
 
 interface MangaPage {
 	src: string
@@ -53,13 +53,6 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 			},
 		}
 	})
-})
-
-const colorBg = useCssVar('--color-bg')
-const colorInk = useCssVar('--color-ink')
-
-watchEffect(() => {
-	console.log(colorBg.value, colorInk.value)
 })
 </script>
 

@@ -56,24 +56,24 @@ export const scrollTrack: Keyframe<number>[] = [
 
 function createLookup(xIndex: number, yIndex: number) {
 	return (x: number, track: Keyframe<number>[]) => {
-		// If the frame is before the first keyframe, return the first keyframe
-		if (x <= track[0][xIndex]) {
-			return track[0][yIndex]
-		}
-		// If the frame is after the last keyframe, return the last keyframe
-		if (x >= track[track.length - 1][xIndex]) {
-			return track[track.length - 1][yIndex]
-		}
-
-		// Search the first keyframe that is greater than the frame by binary search
 		let left = 0
 		let right = track.length - 1
-		while (left < right) {
-			const mid = Math.floor((left + right) / 2)
-			if (track[mid][xIndex] <= x) {
-				left = mid + 1
-			} else {
-				right = mid
+
+		if (x <= track[0][xIndex]) {
+			// If the frame is before the first keyframe, extrapolate from the first two keyframes
+			left = 1
+		} else if (x >= track[track.length - 1][xIndex]) {
+			// If the frame is after the last keyframe, return the last keyframe
+			left = track.length - 1
+		} else {
+			// Search the first keyframe that is greater than the frame by binary search
+			while (left < right) {
+				const mid = Math.floor((left + right) / 2)
+				if (track[mid][xIndex] <= x) {
+					left = mid + 1
+				} else {
+					right = mid
+				}
 			}
 		}
 

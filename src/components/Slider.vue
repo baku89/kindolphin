@@ -82,14 +82,14 @@ function onKnobPointed(e: PointerEvent) {
 	height 100%
 
 	&.dragging .knob
-		width var(--nav-height)
-		height var(--nav-height)
+		width calc(0.7 * var(--nav-height))
+		height calc(0.7 * var(--nav-height))
 
 .knob
 	position absolute
 	top 50%
-	width calc(0.7 * var(--nav-height))
-	height calc(0.7 * var(--nav-height))
+	width calc(0.5 * var(--nav-height))
+	height calc(0.5 * var(--nav-height))
 	background var(--color-bg)
 	border calc(var(--px) * 1) solid var(--color-ink)
 	border-radius 50%

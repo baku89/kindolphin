@@ -6,7 +6,7 @@ import {
 	whenever,
 } from '@vueuse/core'
 import {scalar} from 'linearly'
-import {computed, ref, watch} from 'vue'
+import {computed, ref, watch, watchEffect} from 'vue'
 
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
@@ -19,6 +19,16 @@ import {withTimeDelta} from '@/utils'
 
 const enableSound = ref<boolean | null>(null)
 const volume = computed(() => (enableSound.value ? 1 : 0))
+
+watch(
+	enableSound,
+	() => {
+		if (enableSound.value !== null) {
+			audio.preliminaryPlay()
+		}
+	},
+	{flush: 'sync'}
+)
 
 const $mangaWrapper = ref<HTMLElement | null>(null)
 const scrollY = ref(0)
@@ -47,7 +57,7 @@ const maxScrollY = computed(
 
 // 漫画座標系におけるシークバーの位置
 const seekbarPosition = computed(() => {
-	const offsetY = viewHeight.value * 0.5
+	const offsetY = viewHeight.value * 0.7
 	return offsetY / mangaScale.value
 })
 
@@ -57,22 +67,41 @@ const seekbarStyle = computed(() => {
 	}
 })
 
-const duration = 163.392
+const audioDuration = 164.4930612244898
+
+const inBlankDuration = computed(() => {
+	return -lookupTime(seekbarPosition.value, scrollTrack) / FPS
+})
+
+const outBlankDuration = computed(() => {
+	const mangaY = maxScrollY.value / mangaScale.value + seekbarPosition.value
+	return lookupTime(mangaY, scrollTrack) / FPS - audioDuration
+})
+
+const timelineDuration = computed(() => {
+	return audioDuration + inBlankDuration.value + outBlankDuration.value
+})
+
+// オーディオファイルを基準とした時間
 const currentTime = computed({
 	get() {
 		const mangaY = scrollY.value / mangaScale.value + seekbarPosition.value
 		return lookupTime(mangaY, scrollTrack) / FPS
 	},
 	set(time) {
-		scrollY.value =
-			scalar.clamp(
-				lookupValue(time * FPS, scrollTrack) * mangaScale.value,
-				0,
-				maxScrollY.value
-			) -
-			seekbarPosition.value * mangaScale.value
+		scrollY.value = scalar.clamp(
+			lookupValue(time * FPS, scrollTrack) * mangaScale.value -
+				seekbarPosition.value * mangaScale.value,
+			0,
+			maxScrollY.value
+		)
 	},
 })
+
+const currentTimecode = computed(() => {
+	return currentTime.value + inBlankDuration.value
+})
+
 const isPlaying = ref(false)
 
 const audio = useAudio('./assets/happening.mp3', volume)
@@ -86,6 +115,10 @@ watch(
 	},
 	{flush: 'sync'}
 )
+
+watchEffect(() => {
+	console.log('remaining', timelineDuration.value - currentTimecode.value)
+})
 
 function togglePlay() {
 	isPlaying.value = !isPlaying.value
@@ -110,10 +143,6 @@ function togglePlay() {
 		const elapsed = Date.now() / 1000 - dateAtStart
 		const time = timeAtStart + elapsed
 
-		if (Math.abs(time - currentTime.value) > 0.03) {
-			isPlaying.value = false
-			return
-		}
 		currentTime.value = time
 
 		requestAnimationFrame(updateTime)
@@ -137,10 +166,10 @@ function onClickManga() {
 	showNav.value = true
 }
 
-function onScrubSlider(time: number) {
+function onScrubSlider(timecode: number) {
 	dragSpeed = 0
 	isPlaying.value = false
-	currentTime.value = time
+	currentTime.value = timecode - inBlankDuration.value
 }
 
 //------------------------------------------------------------------------------
@@ -249,11 +278,11 @@ const {dragging} = useDrag($scrollable, {
 				></i>
 			</button>
 			<Slider
-				:modelValue="currentTime"
+				:modelValue="currentTimecode"
 				@update:modelValue="onScrubSlider"
-				:duration="duration"
+				:duration="timelineDuration"
 			/>
-			<Timecode class="timecode" :modelValue="currentTime" />
+			<Timecode class="timecode" :modelValue="currentTimecode" />
 		</footer>
 	</div>
 </template>
@@ -262,7 +291,7 @@ const {dragging} = useDrag($scrollable, {
 .App
 	position fixed
 	inset 0
-	--nav-height 40rem
+	--nav-height 50rem
 	display grid
 	grid-template-rows 1fr min-content
 
@@ -282,13 +311,10 @@ const {dragging} = useDrag($scrollable, {
 	align-items center
 	padding 0 5rem
 
-	.title
-		font-weight bold
-
 	.left
 	.right
 		display flex
-		gap 5rem
+		gap 10rem
 
 	.right
 		flex-direction row-reverse
@@ -296,6 +322,7 @@ const {dragging} = useDrag($scrollable, {
 
 	button
 		display block
+		font-size 20rem
 
 	&.show
 		transform translate3d(0, 0, 0)
@@ -334,17 +361,18 @@ const {dragging} = useDrag($scrollable, {
 	box-sizing content-box
 	--padding-bottom calc(5rem + env(safe-area-inset-bottom))
 	height var(--nav-height)
-	padding 5rem 5rem var(--padding-bottom)
+	padding 5rem 10rem var(--padding-bottom)
 	background var(--color-bg)
 	border-top 1rem solid var(--color-ink)
 	display flex
 	align-items stretch
-	gap 10rem
+	gap 16rem
 	z-index 2
 
 .play
-	font-size 10rem
-	height 100%
+	font-size 20rem
+	height 70%
+	margin auto 0
 	line-height 100%
 	background var(--color-ink)
 	color var(--color-bg)
@@ -355,8 +383,8 @@ const {dragging} = useDrag($scrollable, {
 		text-indent 0.2em
 
 .timecode
-	width 2.5em
+	width 2.4em
 	text-align right
-	font-size 13rem
+	font-size 12rem
 	line-height var(--nav-height)
 </style>
