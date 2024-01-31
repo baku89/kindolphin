@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useElementSize} from '@vueuse/core'
+import {useElementBounding, useElementSize, useWindowSize} from '@vueuse/core'
 import {computed, ImgHTMLAttributes, ref, ReservedProps} from 'vue'
 
 interface MangaPage {
@@ -23,6 +23,13 @@ const {width: pageWidth, height: pageHeight} = useElementSize($root)
 
 type ImgAttrs = ImgHTMLAttributes & ReservedProps & Record<string, unknown>
 
+const {top: marginTop, bottom} = useElementBounding($root)
+const {height: windowHeight} = useWindowSize()
+
+const marginBottom = computed(() => {
+	return windowHeight.value - bottom.value
+})
+
 const pageAttrs = computed<ImgAttrs[]>(() => {
 	const scale = pageWidth.value / props.pages[0].width
 	let top = 0
@@ -35,7 +42,10 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 
 		top += page.height * scale
 
-		if (y > pageHeight.value || y < -height) {
+		if (
+			y > pageHeight.value + marginBottom.value ||
+			y < -height - marginTop.value
+		) {
 			return {
 				...props.pages[i],
 				key: props.pages[i].src,
@@ -58,8 +68,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 
 <template>
 	<div class="Manga" ref="$root" @touchend="$emit('touchend', $event)">
-		<div class="bg-overlay" />
-		<div class="ink-overlay" />
+		<div class="bottom-ink" />
 		<div class="pages">
 			<img
 				class="page"
@@ -68,6 +77,8 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 				v-bind="page"
 			/>
 		</div>
+		<div class="bg-overlay" />
+		<div class="ink-overlay" />
 	</div>
 </template>
 
@@ -79,9 +90,8 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 
 .bg-overlay
 .ink-overlay
-	position absolute
+	position fixed
 	inset 0
-	z-index 10
 
 .bg-overlay
 	background var(--color-bg)
@@ -90,6 +100,14 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 .ink-overlay
 	background var(--color-ink)
 	mix-blend-mode lighten
+
+.bottom-ink
+	position absolute
+	top 99%
+	left 0
+	right 0
+	bottom calc(-1 * var(--footer-height))
+	background var(--color-ink)
 
 .page
 	position absolute

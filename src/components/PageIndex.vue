@@ -6,7 +6,7 @@ import {
 	whenever,
 } from '@vueuse/core'
 import {scalar} from 'linearly'
-import {computed, ref, watch, watchEffect} from 'vue'
+import {computed, ref, watch} from 'vue'
 
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
@@ -65,7 +65,7 @@ const seekbarPosition = computed(() => {
 
 const seekbarStyle = computed(() => {
 	return {
-		top: `calc(${seekbarPosition.value} * var(--px))`,
+		top: `${seekbarPosition.value}rem`,
 	}
 })
 
@@ -117,10 +117,6 @@ watch(
 	},
 	{flush: 'sync'}
 )
-
-watchEffect(() => {
-	console.log('remaining', timelineDuration.value - currentTimecode.value)
-})
 
 function togglePlay() {
 	isPlaying.value = !isPlaying.value
@@ -291,13 +287,21 @@ const {dragging} = useDrag($scrollable, {
 
 <style scoped lang="stylus">
 .App
+	--nav-margin-vert 5rem
+	--nav-margin-horiz 10rem
+
+	--nav-height 50rem
+	--footer-height calc(1rem + var(--nav-margin-vert) + var(--nav-height) + var(--footer-padding-bottom))
+	--footer-padding-bottom calc(var(--nav-margin-vert) + env(safe-area-inset-bottom))
+
+
 	position fixed
 	inset 0
-	--nav-height 50rem
+	overflow hidden
+	display grid
+	grid-template-rows min-content 1fr min-content
 
 .nav
-	position fixed
-	top 0
 	height var(--nav-height)
 	background var(--color-bg)
 	border-bottom var(--px) solid var(--color-ink)
@@ -308,12 +312,12 @@ const {dragging} = useDrag($scrollable, {
 	display grid
 	grid-template-columns 1fr auto 1fr
 	align-items center
-	padding 0 5rem
+	padding 0 var(--nav-margin)
 
 	.left
 	.right
 		display flex
-		gap 10rem
+		gap var(--nav-margin-horiz)
 
 	.right
 		flex-direction row-reverse
@@ -330,16 +334,10 @@ const {dragging} = useDrag($scrollable, {
 	&.show
 		transform translate3d(0, 0, 0)
 
-.manga-wrapper
-	position fixed
-	inset 0
-	overflow hidden
-
 .manga-scrollable
 	position fixed
 	inset 0
 	overflow hidden
-	// background red
 	z-index 1
 	cursor grab
 
@@ -363,14 +361,9 @@ const {dragging} = useDrag($scrollable, {
 	background red
 
 .footer
-	position fixed
-	bottom 0
-	left 0
-	right 0
 	box-sizing content-box
-	--padding-bottom calc(5rem + env(safe-area-inset-bottom))
 	height var(--nav-height)
-	padding 5rem 10rem var(--padding-bottom)
+	padding var(--nav-margin-vert) var(--nav-margin-horiz) var(--footer-padding-bottom)
 	background var(--color-bg)
 	border-top 1rem solid var(--color-ink)
 	display flex
