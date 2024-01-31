@@ -217,7 +217,7 @@ const [scrollByInertia, resetInertiaScroll] = withTimeDelta(timeDelta => {
 		return
 	}
 	if (timeDelta !== null) {
-		dragSpeed *= 1 / (timeDelta + 1)
+		dragSpeed *= 1 / (timeDelta * 0.1 + 1)
 
 		const delta = dragSpeed * timeDelta
 
@@ -361,8 +361,8 @@ const {dragging} = useDrag($scrollable, {
 
 .seekbar
 	position absolute
-	left 0
-	right 0
+	left -30rem
+	right -30rem
 	height 2rem
 	background var(--color-primary)
 

@@ -52,8 +52,8 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 			return {
 				...props.pages[i],
 				key: props.pages[i].src,
-				// src: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-				src: props.pages[i].src,
+				src: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+				// src: props.pages[i].src,
 				style: {visibility: 'hidden', aspectRatio},
 			}
 		}

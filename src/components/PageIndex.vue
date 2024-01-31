@@ -174,9 +174,14 @@ const minimized = ref(true)
 	gap 10rem
 	cursor pointer
 
+	&:not(:first-child)
+		margin-top -1rem
+		border-top 1rem solid transparent
+
 	&:hover
 		background black
 		color white
+		border-top-color black
 
 	&:not(:last-child)
 		border-bottom 1rem dotted black
@@ -238,7 +243,7 @@ const minimized = ref(true)
 	overflow hidden
 	z-index 10
 	transform-origin 50% 98svh
-	transition transform 0.2s steps(4), outline 0.2s steps(4)
+	transition transform 0.2s steps(8), outline 0.2s steps(8)
 
 
 	&.minimized

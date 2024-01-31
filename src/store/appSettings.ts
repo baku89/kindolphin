@@ -33,6 +33,12 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 			const varName = '--color-' + key
 			document.body.style.setProperty(varName, value)
 		}
+
+		// Change the theme-color in the meta tag
+		const metaThemeColor = document.querySelector('meta[name=theme-color]')
+		if (metaThemeColor) {
+			metaThemeColor.setAttribute('content', currentTheme.value.bg)
+		}
 	})
 
 	const show = ref(false)
