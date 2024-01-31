@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {useElementBounding, useElementSize, useWindowSize} from '@vueuse/core'
-import {computed, ImgHTMLAttributes, ref, ReservedProps, watchEffect} from 'vue'
+import {useElementSize, useWindowSize} from '@vueuse/core'
+import {computed, ImgHTMLAttributes, ref, ReservedProps} from 'vue'
 
 interface MangaPage {
 	src: string
@@ -23,21 +23,15 @@ const {width: pageWidth, height: pageHeight} = useElementSize($root)
 
 type ImgAttrs = ImgHTMLAttributes & ReservedProps & Record<string, unknown>
 
-const {top: marginTop, bottom} = useElementBounding($root)
+// const {top: marginTop, bottom} = useElementBounding($root)
 const {height: windowHeight} = useWindowSize()
 
-const marginBottom = computed(() => {
-	return windowHeight.value - bottom.value
-})
+// const marginBottom = computed(() => {
+// 	return windowHeight.value - bottom.value
+// })
 
-watchEffect(() => {
-	console.log(
-		'marginTop=',
-		marginTop.value,
-		'marginBottom=',
-		marginBottom.value
-	)
-})
+const marginTop = computed(() => windowHeight.value * 0.3)
+const marginBottom = computed(() => windowHeight.value * 0.3)
 
 const pageAttrs = computed<ImgAttrs[]>(() => {
 	const scale = pageWidth.value / props.pages[0].width
