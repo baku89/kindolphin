@@ -13,6 +13,7 @@ import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
 import {mangaPages, mangaTotalHeight, mangaWidth} from '@/manga'
+import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, lookupTime, lookupValue, scrollTrack} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
 import {useDrag} from '@/use/useDrag'
@@ -26,8 +27,9 @@ defineEmits<{
 	'update:minimized': [value: boolean]
 }>()
 
-const enableSound = ref<boolean>(true)
-const volume = computed(() => (enableSound.value ? 1 : 0))
+const settings = useAppSettingsStore()
+
+const volume = computed(() => (settings.muted || props.minimized ? 0 : 1))
 
 watchOnce(
 	() => props.minimized,
@@ -253,13 +255,13 @@ const {dragging} = useDrag($scrollable, {
 			</div>
 			<h1 class="title">group_inou / HAPPENING (1)</h1>
 			<div class="right">
-				<button @click="enableSound = !enableSound">
+				<button @click="settings.muted = !settings.muted">
 					<i
 						class="fa fa-sharp fa-solid"
-						:class="enableSound ? 'fa-volume-high' : 'fa-volume-xmark'"
+						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
 					/>
 				</button>
-				<button @click="enableSound = !enableSound">
+				<button @click="settings.muted = !settings.muted">
 					<i class="fa fa-sharp fa-solid fa-font" />
 				</button>
 			</div>
@@ -279,7 +281,7 @@ const {dragging} = useDrag($scrollable, {
 		<footer class="footer" :class="{show: showNav}">
 			<button class="play" @click="togglePlay">
 				<i
-					class="fa-sharp fa-solid"
+					class="fa fa-sharp fa-solid"
 					:class="isPlaying ? 'fa-pause' : 'fa-play'"
 				></i>
 			</button>
@@ -306,7 +308,6 @@ const {dragging} = useDrag($scrollable, {
 	background var(--color-bg)
 	border-bottom 1rem solid var(--color-ink)
 	z-index 2
-	width 100%
 	transform translate3d(0, -100%, 0)
 	font-size 12rem
 	display grid
