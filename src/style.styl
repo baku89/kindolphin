@@ -6,6 +6,11 @@
 	--color-ink #4b3876
 	--manga-width 'min(100vw, 70vh)' % null
 	--px calc((var(--manga-width) / 324))
+	--nav-margin-vert 5rem
+	--nav-margin-horiz 10rem
+	--header-height 50rem
+	--footer-height calc(1rem + var(--nav-margin-vert) + var(--header-height) + var(--footer-padding-bottom))
+	--footer-padding-bottom calc(var(--nav-margin-vert) + env(safe-area-inset-bottom))
 
 html
 	background var(--color-bg)
@@ -45,7 +50,7 @@ button
 		top 0
 		right 0
 		left 0
-		height calc(var(--px) * 400)
+		height 400rem
 		background-image url('/assets/splash_ramp.webp')
 		background-size contain
 		image-rendering pixelated

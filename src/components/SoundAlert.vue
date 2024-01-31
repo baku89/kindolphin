@@ -81,7 +81,7 @@ defineEmits<{
 		line-height 3em
 		background var(--color-bg)
 		color var(--color-ink)
-		border var(--px) solid var(--color-ink)
+		border 1rem solid var(--color-ink)
 
 		&:hover
 			color var(--color-bg)

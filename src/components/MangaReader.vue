@@ -220,7 +220,7 @@ const {dragging} = useDrag($scrollable, {
 
 <template>
 	<div class="MangaReader">
-		<nav class="nav" :class="{show: showNav}" ref="$navTop">
+		<header class="header" :class="{show: showNav}" ref="$navTop">
 			<div class="left">
 				<button @click="enableSound = !enableSound">
 					<i class="fa fa-sharp fa-solid fa-circle-info" />
@@ -242,7 +242,7 @@ const {dragging} = useDrag($scrollable, {
 					<i class="fa fa-sharp fa-solid fa-font" />
 				</button>
 			</div>
-		</nav>
+		</header>
 		<SoundAlert v-model="enableSound" v-if="enableSound === null" />
 		<main class="manga-wrapper">
 			<div
@@ -275,24 +275,16 @@ const {dragging} = useDrag($scrollable, {
 
 <style scoped lang="stylus">
 .MangaReader
-	--nav-margin-vert 5rem
-	--nav-margin-horiz 10rem
-
-	--nav-height 50rem
-	--footer-height calc(1rem + var(--nav-margin-vert) + var(--nav-height) + var(--footer-padding-bottom))
-	--footer-padding-bottom calc(var(--nav-margin-vert) + env(safe-area-inset-bottom))
-
-
 	position fixed
 	inset 0
 	overflow hidden
 	display grid
 	grid-template-rows min-content 1fr min-content
 
-.nav
-	height var(--nav-height)
+.header
+	height var(--header-height)
 	background var(--color-bg)
-	border-bottom var(--px) solid var(--color-ink)
+	border-bottom 1rem solid var(--color-ink)
 	z-index 2
 	width 100%
 	transform translate3d(0, -100%, 0)
@@ -315,7 +307,7 @@ const {dragging} = useDrag($scrollable, {
 		display block
 		font-size 20rem
 
-.nav
+.header
 .footer
 	transition transform 0.3s steps(5)
 
@@ -350,7 +342,7 @@ const {dragging} = useDrag($scrollable, {
 
 .footer
 	box-sizing content-box
-	height var(--nav-height)
+	height var(--header-height)
 	padding var(--nav-margin-vert) var(--nav-margin-horiz) var(--footer-padding-bottom)
 	background var(--color-bg)
 	border-top 1rem solid var(--color-ink)
@@ -377,5 +369,5 @@ const {dragging} = useDrag($scrollable, {
 	width 2.4em
 	text-align right
 	font-size 12rem
-	line-height var(--nav-height)
+	line-height var(--header-height)
 </style>
