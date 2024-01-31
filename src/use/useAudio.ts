@@ -42,7 +42,7 @@ export function useAudio(src: string, volume: Ref<number>) {
 
 		let currentTime = 0
 
-		let autoStop: ReturnType<typeof setTimeout> = 0
+		let autoStop: ReturnType<typeof setTimeout>
 
 		scratch.value = (time: number) => {
 			const now = getNowSeconds()

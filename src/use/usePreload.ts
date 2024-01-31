@@ -48,8 +48,22 @@ export function usePreload() {
 		xhr.send()
 	}
 
+	async function fetchImage(src: string, weight: number) {
+		const img = new Image()
+		console.error('loading', src)
+		img.onload = () => {
+			console.error('loaded', src)
+			loadedWeight.value += weight
+			remainingTasks.value--
+		}
+		img.src = src
+		weightsTotal.value += weight
+		remainingTasks.value++
+	}
+
 	return toReactive({
 		fetch: fetchResource,
+		fetchImage,
 		progress,
 		done,
 	})

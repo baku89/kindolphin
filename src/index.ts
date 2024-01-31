@@ -7,7 +7,9 @@ const pinia = createPinia()
 const app = createApp(PageIndex)
 app.use(pinia)
 
-app.mount('#app')
+setTimeout(() => {
+	app.mount('#app')
+}, 1000)
 
 window.addEventListener('touchmove', e => {
 	e.preventDefault()

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {defineAsyncComponent, ref} from 'vue'
+import {defineAsyncComponent, ref, watchEffect} from 'vue'
 
+import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {usePreload} from '@/use/usePreload'
 
@@ -10,13 +11,13 @@ const preload = usePreload()
 
 const settings = useAppSettingsStore()
 
-// mangaPages.forEach(page => {
-// 	preload.fetch(page.src, page.height / 100)
-// })
+mangaPages.forEach(page => {
+	preload.fetchImage(page.src, page.height / 100)
+})
 
-// watchEffect(() => {
-// 	console.log('progress=', preload.progress)
-// })
+watchEffect(() => {
+	console.log('progress=', preload.progress)
+})
 
 const MangaReader = defineAsyncComponent(
 	() => import('@/components/MangaReader.vue')
