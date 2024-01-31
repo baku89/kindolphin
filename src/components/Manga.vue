@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useElementBounding, useElementSize, useWindowSize} from '@vueuse/core'
-import {computed, ImgHTMLAttributes, ref, ReservedProps} from 'vue'
+import {computed, ImgHTMLAttributes, ref, ReservedProps, watchEffect} from 'vue'
 
 interface MangaPage {
 	src: string
@@ -28,6 +28,15 @@ const {height: windowHeight} = useWindowSize()
 
 const marginBottom = computed(() => {
 	return windowHeight.value - bottom.value
+})
+
+watchEffect(() => {
+	console.log(
+		'marginTop=',
+		marginTop.value,
+		'marginBottom=',
+		marginBottom.value
+	)
 })
 
 const pageAttrs = computed<ImgAttrs[]>(() => {
@@ -115,7 +124,6 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	display block
 	width 100%
 	height auto
-	image-rendering pixelated
 	pointer-events none
 	will-change visibility, transform
 	object-fit fill

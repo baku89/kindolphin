@@ -3,6 +3,7 @@ import {
 	useElementSize,
 	useEventListener,
 	useMagicKeys,
+	watchOnce,
 	whenever,
 } from '@vueuse/core'
 import {scalar} from 'linearly'
@@ -10,7 +11,6 @@ import {computed, ref, watch} from 'vue'
 
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
-import SoundAlert from '@/components/SoundAlert.vue'
 import Timecode from '@/components/Timecode.vue'
 import {mangaPages, mangaTotalHeight, mangaWidth} from '@/manga'
 import {FPS, lookupTime, lookupValue, scrollTrack} from '@/timeline'
@@ -18,15 +18,21 @@ import {useAudio} from '@/use/useAudio'
 import {useDrag} from '@/use/useDrag'
 import {withTimeDelta} from '@/utils'
 
-const enableSound = ref<boolean | null>(null)
+const props = defineProps<{
+	minimized: boolean
+}>()
+
+defineEmits<{
+	'update:minimized': [value: boolean]
+}>()
+
+const enableSound = ref<boolean>(true)
 const volume = computed(() => (enableSound.value ? 1 : 0))
 
-watch(
-	enableSound,
+watchOnce(
+	() => props.minimized,
 	() => {
-		if (enableSound.value !== null) {
-			audio.preliminaryPlay()
-		}
+		audio.preliminaryPlay()
 	},
 	{flush: 'sync'}
 )
@@ -138,7 +144,7 @@ function togglePlay() {
 //------------------------------------------------------------------------------
 // nav
 
-const showNav = ref(true)
+const showNav = ref(false)
 
 //------------------------------------------------------------------------------
 // Events
@@ -149,7 +155,11 @@ function onPressManga() {
 }
 
 function onClickManga() {
-	showNav.value = !showNav.value
+	if (props.minimized) {
+		showNav.value = true
+	} else {
+		showNav.value = !showNav.value
+	}
 }
 
 function onScrubSlider(timecode: number) {
@@ -158,9 +168,23 @@ function onScrubSlider(timecode: number) {
 	currentTime.value = timecode - inBlankDuration.value
 }
 
+watch(
+	() => props.minimized,
+	minimized => {
+		if (minimized) {
+			isPlaying.value = false
+			audio.stop()
+			dragSpeed = 0
+			showNav.value = false
+		}
+	}
+)
+
 //------------------------------------------------------------------------------
 // Wheel scrolling
 useEventListener('wheel', e => {
+	if (props.minimized) return
+
 	isPlaying.value = false
 	scrollY.value = scalar.clamp(scrollY.value + e.deltaY, 0, maxScrollY.value)
 
@@ -204,6 +228,7 @@ const [scrollByInertia, resetInertiaScroll] = withTimeDelta(timeDelta => {
 })
 
 const {dragging} = useDrag($scrollable, {
+	disabled: computed(() => props.minimized),
 	onDragStart() {
 		dragSpeed = 0
 		resetDrag()
@@ -222,12 +247,8 @@ const {dragging} = useDrag($scrollable, {
 	<div class="MangaReader">
 		<header class="header" :class="{show: showNav}" ref="$navTop">
 			<div class="left">
-				<button @click="enableSound = !enableSound">
+				<button @click.stop="$emit('update:minimized', true)">
 					<i class="fa fa-sharp fa-solid fa-circle-info" />
-				</button>
-
-				<button @click="enableSound = !enableSound">
-					<i class="fa fa-sharp fa-solid fa-wand-magic-sparkles" />
 				</button>
 			</div>
 			<h1 class="title">group_inou / HAPPENING (1)</h1>
@@ -243,7 +264,6 @@ const {dragging} = useDrag($scrollable, {
 				</button>
 			</div>
 		</header>
-		<SoundAlert v-model="enableSound" v-if="enableSound === null" />
 		<main class="manga-wrapper">
 			<div
 				class="manga-scrollable"
