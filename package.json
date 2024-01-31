@@ -24,6 +24,7 @@
 		"linearly": "^0.21.0",
 		"loadsh": "^0.0.4",
 		"pify": "^6.1.0",
+		"pinia": "^2.1.7",
 		"prettier": "^3.0.3",
 		"prettier-plugin-stylus": "^0.1.0",
 		"stylus": "^0.60.0",
