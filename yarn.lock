@@ -1235,6 +1235,11 @@
     magic-string "^0.25.0"
     string.prototype.matchall "^4.0.6"
 
+"@types/createjs-lib@*":
+  version "0.0.33"
+  resolved "https://registry.yarnpkg.com/@types/createjs-lib/-/createjs-lib-0.0.33.tgz#03b0d67f6ae33a4e3239ef2184ccbb4fe4a91844"
+  integrity sha512-mvK1sn2qSyGPwctg/MsjAP5m3/TBx83eB0hcEdZ6UqpuzQqCUWpVyyQddqkbAsKRpMECK0s7JosYXoTtIuNbhw==
+
 "@types/estree@0.0.39":
   version "0.0.39"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
@@ -1256,6 +1261,13 @@
   integrity sha512-5G4zQwdiQBSWYTDAH1ctw2eidqdhMJaNsiIDKHFr55ihz5Trl2qqR8fdrT732yPBho5gkNxXm67OxWFBqX9aPg==
   dependencies:
     undici-types "~5.26.4"
+
+"@types/preloadjs@^0.6.36":
+  version "0.6.36"
+  resolved "https://registry.yarnpkg.com/@types/preloadjs/-/preloadjs-0.6.36.tgz#9e40f988dce9b1d5a71d4a9d145d3f60e813cdf6"
+  integrity sha512-/Xo6BRCkvZiw0VXHszRQJnnTHyfkISPD5DiMj0JDrmQWiw104BxoijjeIlZ0umQxXEUb+gWLZsdZbuEhmP5vsw==
+  dependencies:
+    "@types/createjs-lib" "*"
 
 "@types/resolve@1.17.1":
   version "1.17.1"
@@ -2931,6 +2943,11 @@ postcss@^8.4.27, postcss@^8.4.33:
     nanoid "^3.3.7"
     picocolors "^1.0.0"
     source-map-js "^1.0.2"
+
+preloadjs@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/preloadjs/-/preloadjs-1.0.1.tgz#71d14e94a8c94b1f6def2b01891d6bcd7e788c5d"
+  integrity sha512-XwdxL9bfoq9abJU4lVBJDVgbxWvQOk/BbuwXKEEG5BaduY7S8N1VXX4My5PM/UwW6Xf4uWAvWzwWlzb20uECxQ==
 
 prelude-ls@^1.2.1:
   version "1.2.1"

@@ -9,7 +9,7 @@ const settings = useAppSettingsStore()
 		class="PaneSettings__outside"
 		v-if="settings.show"
 		@click="settings.show = !settings.show"
-	/>
+	></div>
 	<div class="PaneSettings" ref="$root" :class="{show: settings.show}">
 		<section class="property">
 			<h2 class="name">
@@ -37,6 +37,9 @@ const settings = useAppSettingsStore()
 	position fixed
 	inset 0
 	z-index 99
+	background var(--color-bg)
+	mask-image url('data:image/webp;base64,UklGRlIAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSBMAAAABDzD/ERFCIJBQ5jTLxBH9jywDAFZQOCAYAAAAMAEAnQEqCAAIAAIANCWkAANwAP77lAAA')
+	mask-size 8rem 8rem
 
 .PaneSettings
 	position fixed

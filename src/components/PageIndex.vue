@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineAsyncComponent, ref, watchEffect} from 'vue'
+import {defineAsyncComponent, onMounted, ref, watchEffect} from 'vue'
 
 import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -11,8 +11,12 @@ const preload = usePreload()
 
 const settings = useAppSettingsStore()
 
-mangaPages.forEach(page => {
-	preload.fetchImage(page.src, page.height / 100)
+onMounted(() => {
+	setTimeout(() => {
+		mangaPages.forEach(page => {
+			preload.fetch(page.src, page.height)
+		})
+	}, 250)
 })
 
 watchEffect(() => {
@@ -48,8 +52,26 @@ const minimized = ref(true)
 			</div>
 		</header>
 		<main class="main">
+			<a class="youtube" href="https://www.youtube.com/watch?v=JP2728BtJ34">
+				<i class="fa fa-brands fa-youtube"></i>
+				<div>View on YouTube</div>
+				<i class="fa fa-solid fa-sort"></i>
+			</a>
 			<a class="book" @click="minimized = false">
-				<img class="thumb" src="/assets/happening_thumb.gif" />
+				<div class="thumb">
+					<img class="thumb-content" src="/assets/cover_happening.webp" />
+					<div
+						class="book-loading white-semitransparent"
+						v-if="preload.progress < 1"
+					>
+						<div class="message">
+							Downloading ({{ Math.round(preload.progress * 100) }}%)
+						</div>
+						<div class="progress">
+							<div class="bar" :style="{width: preload.progress * 100 + '%'}" />
+						</div>
+					</div>
+				</div>
 				<div class="info">
 					<h2>GIFマンガ <br /><span class="neg">「HAPPENING」(1)</span></h2>
 					<h3>AC部</h3>
@@ -72,18 +94,11 @@ const minimized = ref(true)
 						<i class="fa fa-sharp fa-regular fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
 					</div>
 				</div>
 			</a>
 			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank">
-				<img class="thumb album" src="/assets/happy.gif" />
+				<img class="thumb album" src="/assets/cover_happy.webp" />
 				<div class="info">
 					<h2>2nd EP “HAPPY”</h2>
 					<h3>group_inou (2024)</h3>
@@ -126,13 +141,6 @@ const minimized = ref(true)
 	display grid
 	grid-template-rows min-content 1fr min-content
 
-.loading
-	position relative
-	width var(--manga-width)
-	margin 0 auto
-	font-size 30rem
-	text-align center
-
 .header
 	height var(--header-height)
 	border-bottom 1rem solid black
@@ -167,6 +175,26 @@ const minimized = ref(true)
 	overflow-y scroll
 	-webkit-overflow-scrolling touch
 
+.youtube
+	text-align center
+	font-size 12rem
+	height 35rem
+	line-height 30rem
+	border-bottom 1rem solid black
+	display flex
+	align-items center
+	justify-content space-between
+	padding 0 var(--nav-margin-horiz)
+
+	i
+		font-size 16rem
+
+	&:hover
+		background black
+		color white
+
+
+
 .book
 	display grid
 	grid-template-columns min-content 1fr
@@ -187,9 +215,43 @@ const minimized = ref(true)
 		border-bottom 1rem dotted black
 
 	.thumb
+		position relative
 		width 120rem
 		aspect-ratio 3 / 4
 		border 1rem solid black
+
+		.book-loading
+			position absolute
+			inset 0
+			width 100%
+			display flex
+			flex-direction column
+			align-items center
+			justify-content center
+			gap 5rem
+
+		.message
+			background white
+			color black
+			font-size 10rem
+
+		.thumb-content
+			width 100%
+			height 100%
+			object-fit cover
+
+		.progress
+			height 10rem
+			width 80%
+			background white
+			position relative
+			border 1rem solid black
+
+		.bar
+			position absolute
+			inset 0
+			background black
+
 
 		&.album
 			aspect-ratio 1

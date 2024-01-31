@@ -30,7 +30,6 @@ export function usePreload() {
 
 		const xhr = new XMLHttpRequest()
 		xhr.open('GET', url)
-		xhr.responseType = 'blob'
 
 		let lastLoaded = 0
 
@@ -50,10 +49,21 @@ export function usePreload() {
 
 	async function fetchImage(src: string, weight: number) {
 		const img = new Image()
-		console.error('loading', src)
+		let lastLoaded = 0
+		let hasProgressCalled = false
+
+		img.onprogress = e => {
+			if (e.lengthComputable) {
+				hasProgressCalled = true
+				loadedWeight.value += ((e.loaded - lastLoaded) / e.total) * weight
+				lastLoaded = e.loaded
+			}
+		}
+
 		img.onload = () => {
-			console.error('loaded', src)
-			loadedWeight.value += weight
+			if (!hasProgressCalled) {
+				loadedWeight.value += weight
+			}
 			remainingTasks.value--
 		}
 		img.src = src

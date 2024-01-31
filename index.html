@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
 
 
 	<link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png">
@@ -41,7 +41,13 @@
 	<meta name="twitter:description" content="Interactive GIF Music Video by AC-bu" />
 	<meta name="twitter:image" content="https://g-a-l.jp/group_inou/happening/assets/ogp.png?20231204" />
 
+	<!-- Fetch Priority -->
+	<link rel="preload" href="./assets/sprash_ramp.webp" as="image" fetchpriority="high" />
+	<link rel="preload" href="./assets/cover_happening.webp" as="image" fetchpriority="high" />
+	<link rel="preload" href="./assets/cover_happy.webp" as="image" fetchpriority="high" />
+
 	<link rel="stylesheet" href="./src/style.styl" />
+
 	<title>HAPPENING by group_inou</title>
 </head>
 
