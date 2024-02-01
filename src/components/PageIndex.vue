@@ -38,7 +38,7 @@ const minimized = ref(true)
 					<i class="fa fa-brands fa-readme" />
 				</button>
 			</div>
-			<h1 class="title">Kindle</h1>
+			<h1 class="title">Kindolphin</h1>
 			<div class="right">
 				<button @click="settings.muted = !settings.muted">
 					<i
@@ -114,19 +114,13 @@ const minimized = ref(true)
 			</a>
 		</main>
 		<footer class="footer" />
-		<Suspense>
-			<template #default>
-				<MangaReader
-					class="reader"
-					:class="{minimized}"
-					@click="minimized = false"
-					v-model:minimized="minimized"
-				/>
-			</template>
-			<template #fallback>
-				<div class="reader">Loading...</div>
-			</template>
-		</Suspense>
+		<MangaReader
+			v-if="preload.progress == 1"
+			class="reader"
+			:class="{minimized}"
+			@click="minimized = false"
+			v-model:minimized="minimized"
+		/>
 		<div class="bg-overlay"></div>
 		<div class="ink-overlay"></div>
 		<div class="invert-overlay"></div>
@@ -154,7 +148,7 @@ const minimized = ref(true)
 	padding 0 var(--nav-margin-horiz)
 
 	.title
-		font-size 30rem
+		font-size 24rem
 
 	.left
 	.right

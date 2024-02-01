@@ -25,7 +25,7 @@ const subpageHeights: [src: string, height: number][] = [
 	['./assets/manga_subpage/manga_03_01.webp', 765],
 	['./assets/manga_subpage/manga_04_01.webp', 1211],
 	...mangaHeights
-		.slice(5)
+		.slice(10)
 		.map(
 			(height, i) =>
 				[

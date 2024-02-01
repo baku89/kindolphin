@@ -9,7 +9,7 @@ app.use(pinia)
 
 setTimeout(() => {
 	app.mount('#app')
-}, 1000)
+}, 10)
 
 window.addEventListener('touchmove', e => {
 	e.preventDefault()

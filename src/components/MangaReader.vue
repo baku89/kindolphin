@@ -17,7 +17,10 @@ import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, lookupTime, lookupValue, scrollTrack} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
 import {useDrag} from '@/use/useDrag'
+import {useLyrics} from '@/use/useLyrics'
 import {withTimeDelta} from '@/utils'
+
+useLyrics()
 
 const props = defineProps<{
 	minimized: boolean
@@ -31,6 +34,7 @@ const settings = useAppSettingsStore()
 
 const volume = computed(() => (settings.muted || props.minimized ? 0 : 1))
 
+// This is necessary to play audio on iOS
 watchOnce(
 	() => props.minimized,
 	() => {
@@ -187,6 +191,7 @@ useEventListener('wheel', e => {
 
 	isPlaying.value = false
 	scrollY.value = scalar.clamp(scrollY.value + e.deltaY, 0, maxScrollY.value)
+	dragSpeed = 0
 
 	showNav.value = e.deltaY < 0
 })

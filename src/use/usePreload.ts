@@ -40,6 +40,11 @@ export function usePreload() {
 			}
 		}
 
+		xhr.ontimeout = xhr.onerror = () => {
+			loadedWeight.value += weight
+			remainingTasks.value--
+		}
+
 		xhr.onload = () => {
 			remainingTasks.value--
 		}
@@ -47,33 +52,8 @@ export function usePreload() {
 		xhr.send()
 	}
 
-	async function fetchImage(src: string, weight: number) {
-		const img = new Image()
-		let lastLoaded = 0
-		let hasProgressCalled = false
-
-		img.onprogress = e => {
-			if (e.lengthComputable) {
-				hasProgressCalled = true
-				loadedWeight.value += ((e.loaded - lastLoaded) / e.total) * weight
-				lastLoaded = e.loaded
-			}
-		}
-
-		img.onload = () => {
-			if (!hasProgressCalled) {
-				loadedWeight.value += weight
-			}
-			remainingTasks.value--
-		}
-		img.src = src
-		weightsTotal.value += weight
-		remainingTasks.value++
-	}
-
 	return toReactive({
 		fetch: fetchResource,
-		fetchImage,
 		progress,
 		done,
 	})

@@ -24,14 +24,15 @@ const {width: pageWidth, height: pageHeight} = useElementSize($root)
 type ImgAttrs = ImgHTMLAttributes & ReservedProps & Record<string, unknown>
 
 // const {top: marginTop, bottom} = useElementBounding($root)
+
 const {height: windowHeight} = useWindowSize()
 
 // const marginBottom = computed(() => {
 // 	return windowHeight.value - bottom.value
 // })
 
-const marginTop = computed(() => windowHeight.value * 0.3)
-const marginBottom = computed(() => windowHeight.value * 0.3)
+const marginTop = computed(() => windowHeight.value * 0.5)
+const marginBottom = computed(() => windowHeight.value * 0.5)
 
 const pageAttrs = computed<ImgAttrs[]>(() => {
 	const scale = pageWidth.value / props.pages[0].width
