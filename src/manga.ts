@@ -41,6 +41,7 @@ const subpageHeights: [src: string, height: number][] = [
 	['./assets/manga_subpage/manga_07_02.webp', 941],
 
 	['./assets/manga_subpage/manga_08_00.webp', 163],
+	['./assets/manga_subpage/manga_08_01.webp', 364],
 
 	['./assets/manga_subpage/manga_09_00.webp', 217],
 	['./assets/manga_subpage/manga_09_01.webp', 611],
@@ -50,18 +51,17 @@ const subpageHeights: [src: string, height: number][] = [
 	['./assets/manga_subpage/manga_10_01.webp', 107],
 	['./assets/manga_subpage/manga_10_02.webp', 177],
 	['./assets/manga_subpage/manga_10_03.webp', 136],
+
 	...mangaHeights
 		.slice(11)
 		.map(
 			(height, i) =>
 				[
-					`./assets/manga_${(i + 10).toString().padStart(2, '0')}.webp`,
+					`./assets/manga_${(i + 11).toString().padStart(2, '0')}.webp`,
 					height,
 				] as [string, number]
 		),
 ]
-
-console.log(subpageHeights)
 
 export const mangaTotalHeight = subpageHeights.reduce((a, b) => a + b[1], 0)
 
