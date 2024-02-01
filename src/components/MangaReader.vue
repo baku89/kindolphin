@@ -278,7 +278,7 @@ const {dragging} = useDrag($scrollable, {
 				<div class="seekbar" :style="seekbarStyle" />
 			</div>
 		</main>
-		<footer class="footer" :class="{show: showNav, minimized}">
+		<footer class="footer" :class="{minimized}">
 			<button class="play" @click="togglePlay">
 				<i
 					class="fa fa-sharp fa-solid"
@@ -375,7 +375,6 @@ const {dragging} = useDrag($scrollable, {
 	display flex
 	align-items stretch
 	gap 16rem
-	transform translate3d(0, 100%, 0)
 
 .play
 	font-size 33rem

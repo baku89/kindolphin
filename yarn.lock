@@ -1235,6 +1235,11 @@
     magic-string "^0.25.0"
     string.prototype.matchall "^4.0.6"
 
+"@types/chroma-js@^2.4.3":
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/@types/chroma-js/-/chroma-js-2.4.3.tgz#2f10bd16483a87d8ead68764fc439550e9c4cbb6"
+  integrity sha512-1ly5ly/7S/YF8aD7MxUQnFOZxdegimuOunJl0xDsLlguu5JrwuSTVGVH3UpIUlh6YauI0RMNT4cqjBonhgbdIQ==
+
 "@types/createjs-lib@*":
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/@types/createjs-lib/-/createjs-lib-0.0.33.tgz#03b0d67f6ae33a4e3239ef2184ccbb4fe4a91844"
@@ -1704,6 +1709,16 @@ chalk@^4.0.0, chalk@^4.0.2:
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
+
+chroma-js@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/chroma-js/-/chroma-js-2.4.2.tgz#dffc214ed0c11fa8eefca2c36651d8e57cbfb2b0"
+  integrity sha512-U9eDw6+wt7V8z5NncY2jJfZa+hUH8XEj8FQHgFJTrUFnJfXYf4Ml4adI2vXZOjqRDpFWtYVWypDfZwnJ+HIR4A==
+
+chroma@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/chroma/-/chroma-0.0.1.tgz#a59132defa72113b9312fa98d2587c67d309f989"
+  integrity sha512-spXrvnDrn4IKEN/s0G9vri2+GGZhB15bDU22bbPRnOSEnkGgzGVSFoj/2TeRO5PBysOI4bcHor/8wIamocN09A==
 
 color-convert@^1.9.0:
   version "1.9.3"

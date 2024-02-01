@@ -31,7 +31,7 @@ const minimized = ref(true)
 </script>
 
 <template>
-	<div class="PageIndex">
+	<div class="PageIndex" :class="{invert: settings.currentTheme.invert}">
 		<header class="header">
 			<div class="left">
 				<button @click="minimized = false">
@@ -129,6 +129,7 @@ const minimized = ref(true)
 		</Suspense>
 		<div class="bg-overlay"></div>
 		<div class="ink-overlay"></div>
+		<div class="invert-overlay"></div>
 		<PaneSettings />
 	</div>
 </template>

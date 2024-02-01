@@ -24,7 +24,7 @@ const settings = useAppSettingsStore()
 				>
 					<span
 						class="fa fa-sharp fa-solid fa-circle preview"
-						:style="{color: theme.bg}"
+						:style="{color: theme.invert ? 'black' : theme.bg}"
 					/>
 				</button>
 			</div>
@@ -37,9 +37,16 @@ const settings = useAppSettingsStore()
 	position fixed
 	inset 0
 	z-index 99
-	background var(--color-bg)
-	mask-image url('data:image/webp;base64,UklGRlIAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSBMAAAABDzD/ERFCIJBQ5jTLxBH9jywDAFZQOCAYAAAAMAEAnQEqCAAIAAIANCWkAANwAP77lAAA')
-	mask-size 8rem 8rem
+	background black
+	background-image url('data:image/webp;base64,UklGRlIAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSBMAAAABDzD/ERFCIJBQ5jTLxBH9jywDAFZQOCAYAAAAMAEAnQEqCAAIAAIANCWkAANwAP77lAAA')
+	background-size 8rem 8rem
+
+	mix-blend-mode lighten
+	filter invert(1)
+
+	.invert &
+		filter invert(0)
+		mix-blend-mode darken
 
 .PaneSettings
 	position fixed
@@ -54,6 +61,12 @@ const settings = useAppSettingsStore()
 	padding calc(2 * var(--nav-margin-horiz))
 	transition transform 0.3s steps(5)
 	transform translate3d(0, 100%, 0)
+
+	.invert &
+		--color-ink white
+		color white
+		background black
+
 
 	&.show
 		transform translate3d(0, 0, 0)
