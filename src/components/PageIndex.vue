@@ -56,7 +56,7 @@ const showThemeSettings = ref(false)
 			</a>
 			<a class="book" @click="minimized = false">
 				<div class="thumb">
-					<img class="thumb-content" src="/assets/cover_happening.webp" />
+					<img class="thumb-content" src="/assets/cover_happening.png" />
 					<div
 						class="book-loading var(--white)-semitransparent"
 						v-if="preload.progress < 1"
@@ -90,7 +90,7 @@ const showThemeSettings = ref(false)
 			</a>
 			<a class="book" @click="minimized = false">
 				<div class="thumb">
-					<img class="thumb-content" src="/assets/cover_happening.webp" />
+					<img class="thumb-content" src="/assets/cover_happening_en.png" />
 					<div
 						class="book-loading var(--white)-semitransparent"
 						v-if="preload.progress < 1"
