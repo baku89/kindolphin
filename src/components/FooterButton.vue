@@ -2,14 +2,15 @@
 defineProps<{
 	icon: string
 	label: string
+	href?: string
 }>()
 </script>
 
 <template>
-	<button class="FooterButton">
+	<component :is="href ? 'a' : 'button'" class="FooterButton" :href="href">
 		<i class="fa fa-sharp fa-solid" :class="[`fa-${icon}`]" />
 		<span class="label">{{ label.toUpperCase() }}</span>
-	</button>
+	</component>
 </template>
 
 <style scoped lang="stylus">
@@ -22,7 +23,7 @@ defineProps<{
 
 .label
 	font-size 9em
-	font-family 'monaco', monospace
+	font-family var(--font-small)
 	letter-spacing 0.05em
 	height 9rem
 	line-height 9rem

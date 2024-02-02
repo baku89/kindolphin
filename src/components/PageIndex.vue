@@ -153,8 +153,9 @@ const minimized = ref(true)
 			<div class="spacer" />
 			<FooterButton
 				:label="ui.label.listen"
+				href="https://linkco.re/Mu9VcVt8"
+				target="_blank"
 				icon="music"
-				@click="settings.show = true"
 			/>
 			<FooterButton
 				:label="ui.label.help"
@@ -276,7 +277,7 @@ const minimized = ref(true)
 			background var(--white)
 			color var(--black)
 			font-size 10rem
-			font-family 'monaco', monospace
+			font-family var(--font-small)
 			letter-spacing 0.2em
 
 		.thumb-content
@@ -333,8 +334,16 @@ const minimized = ref(true)
 	border-radius 2rem
 	color var(--white)
 	margin-bottom 1em
-	font-family 'monaco', monospace
-
+	font-family var(--font-small)
+	HiraKakuProN-W3
+	游ゴシック
+	'Yu Gothic'
+	メイリオ
+	Meiryo
+	Verdana
+	Helvetica
+	Arial
+	sans-serif
 	.book:hover &
 		background var(--white)
 		color var(--black)

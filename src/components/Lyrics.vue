@@ -75,11 +75,6 @@ const seekbarStyle = computed(() => {
 			:style="lyric"
 		/>
 	</div>
-	<svg>
-		<filter id="tint">
-			<feColorMatrix type="matrix" :values="tintColorMatrix"></feColorMatrix>
-		</filter>
-	</svg>
 </template>
 
 <style lang="stylus" scoped>
@@ -92,9 +87,9 @@ const seekbarStyle = computed(() => {
 	right -30rem
 	height 60rem
 	margin-top -30rem
-	background-image url('/assets/seekbar_diffuse.gif')
-	background-size 60rem 60rem
-	filter url('#tint')
+	mask-image url('/assets/seekbar_diffuse.gif')
+	mask-size 60rem 60rem
+	background-color var(--theme-primary)
 
 
 
