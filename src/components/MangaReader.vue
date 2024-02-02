@@ -7,7 +7,7 @@ import {
 	whenever,
 } from '@vueuse/core'
 import {scalar} from 'linearly'
-import {computed, ref, watch, watchEffect} from 'vue'
+import {computed, ref, watch} from 'vue'
 
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
@@ -48,10 +48,6 @@ const scrollY = ref(0)
 const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 	width: 1,
 	height: 1,
-})
-
-watchEffect(() => {
-	console.log('viewHeight=', viewHeight.value)
 })
 
 const $navTop = ref<HTMLElement | null>(null)

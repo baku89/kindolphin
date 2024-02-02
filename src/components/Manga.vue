@@ -38,7 +38,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	const scale = pageWidth.value / props.pages[0].width
 	let top = 0
 
-	return props.pages.map((page, i) => {
+	return props.pages.flatMap((page, i) => {
 		const y = top - props.scroll
 		const height = page.height * scale
 
@@ -50,23 +50,19 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 			y > pageHeight.value + marginBottom.value ||
 			y < -height - marginTop.value
 		) {
-			return {
-				...props.pages[i],
-				key: props.pages[i].src,
-				src: 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
-				// src: props.pages[i].src,
-				style: {visibility: 'hidden', aspectRatio},
-			}
+			return []
 		}
 
-		return {
-			key: page.src,
-			src: page.src,
-			style: {
-				transform: `translate3d(0, ${y}px, 0)`,
-				aspectRatio,
+		return [
+			{
+				key: page.src,
+				src: page.src,
+				style: {
+					transform: `translate3d(0, ${y}px, 0)`,
+					aspectRatio,
+				},
 			},
-		}
+		]
 	})
 })
 </script>

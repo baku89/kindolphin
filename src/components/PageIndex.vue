@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineAsyncComponent, onMounted, ref, watchEffect} from 'vue'
+import {defineAsyncComponent, onMounted, ref} from 'vue'
 
 import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -17,10 +17,6 @@ onMounted(() => {
 			preload.fetch(page.src, page.height)
 		})
 	}, 250)
-})
-
-watchEffect(() => {
-	console.log('progress=', preload.progress)
 })
 
 const MangaReader = defineAsyncComponent(
