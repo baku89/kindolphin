@@ -2,6 +2,7 @@
 import {range} from 'lodash'
 import {onMounted, ref} from 'vue'
 
+import {mangaWidth} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 
 const $canvas = ref<HTMLCanvasElement | null>(null)
@@ -20,7 +21,7 @@ const bangs: Bang[] = []
 
 onMounted(() => {
 	const canvas = $canvas.value!
-	canvas.width = 324
+	canvas.width = mangaWidth
 	canvas.height = 120
 
 	ctx = canvas.getContext('2d')!
@@ -37,9 +38,14 @@ const sprites: Record<string, ImageBitmap[]> = {}
 Object.entries(spriteData).forEach(([key, {src, duration}]) => {
 	const img = new Image()
 	img.src = src
+
 	img.onload = async () => {
+		const spriteHeight = img.height / duration
+
 		sprites[key] = await Promise.all(
-			range(duration).map(i => createImageBitmap(img, 0, i * 120, 280, 120))
+			range(duration).map(i =>
+				createImageBitmap(img, 0, i * spriteHeight, img.width, spriteHeight)
+			)
 		)
 	}
 })
@@ -55,7 +61,7 @@ function bangAt(x: number) {
 function update() {
 	if (!ctx) return
 
-	ctx.clearRect(0, 0, 324, 120)
+	ctx.clearRect(0, 0, mangaWidth, ctx.canvas.height)
 	ctx.globalCompositeOperation = 'lighter'
 
 	for (const bang of bangs) {
@@ -69,12 +75,12 @@ function update() {
 		}
 
 		const img = sprite[frame]
-		ctx.drawImage(img, bang.x - 140, 0)
+		ctx.drawImage(img, bang.x - img.width / 2, 0)
 	}
 
 	ctx.globalCompositeOperation = 'source-in'
 	ctx.fillStyle = settings.currentTheme.primary
-	ctx.fillRect(0, 0, 324, 120)
+	ctx.fillRect(0, 0, mangaWidth, ctx.canvas.height)
 
 	requestAnimationFrame(update)
 }

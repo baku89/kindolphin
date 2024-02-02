@@ -7,7 +7,7 @@ import Lyrics from '@/components/Lyrics.vue'
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
-import {MangaPage, mangaTotalHeight, mangaWidth} from '@/manga'
+import {MangaPage, mangaWidth} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, Keyframe, lookupTime, lookupValue} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
@@ -59,8 +59,11 @@ const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 })
 
 const mangaScale = computed(() => viewWidth.value / mangaWidth)
+const mangaTotalHeight = computed(() => {
+	return props.mangaPages.reduce((acc, page) => acc + page.height, 0)
+})
 const maxScrollY = computed(
-	() => mangaTotalHeight * mangaScale.value - viewHeight.value
+	() => mangaTotalHeight.value * mangaScale.value - viewHeight.value
 )
 
 // 漫画座標系におけるシークバーの位置
