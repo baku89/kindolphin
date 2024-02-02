@@ -7,14 +7,16 @@ import Lyrics from '@/components/Lyrics.vue'
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
-import {mangaPages, mangaTotalHeight, mangaWidth} from '@/manga'
+import {MangaPage, mangaTotalHeight, mangaWidth} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
-import {FPS, lookupTime, lookupValue, scrollTrack} from '@/timeline'
+import {FPS, Keyframe, lookupTime, lookupValue} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
 import {useVirtualScroll} from '@/use/useVirtualScroll'
 
 const props = defineProps<{
 	minimized: boolean
+	mangaPages: MangaPage[]
+	scrollTrack: Keyframe<number>[]
 }>()
 
 defineEmits<{
@@ -73,11 +75,11 @@ const audioDuration = 164.4930612244898
 const currentTime = computed({
 	get() {
 		const mangaY = scrollY.value / mangaScale.value + seekbarPosition.value
-		return lookupTime(mangaY, scrollTrack) / FPS
+		return lookupTime(mangaY, props.scrollTrack) / FPS
 	},
 	set(time) {
 		const y =
-			lookupValue(time * FPS, scrollTrack) * mangaScale.value -
+			lookupValue(time * FPS, props.scrollTrack) * mangaScale.value -
 			seekbarPosition.value * mangaScale.value
 
 		scrollTo(y)
@@ -86,11 +88,11 @@ const currentTime = computed({
 
 // Timeline, Timecode = 上下のスクロール幅を加味した時間基準
 const inBlankDuration = computed(() => {
-	return -lookupTime(seekbarPosition.value, scrollTrack) / FPS
+	return -lookupTime(seekbarPosition.value, props.scrollTrack) / FPS
 })
 const outBlankDuration = computed(() => {
 	const mangaY = maxScrollY.value / mangaScale.value + seekbarPosition.value
-	return lookupTime(mangaY, scrollTrack) / FPS - audioDuration
+	return lookupTime(mangaY, props.scrollTrack) / FPS - audioDuration
 })
 
 const timelineDuration = computed(() => {
@@ -199,7 +201,7 @@ whenever(space, togglePlay)
 	<div class="MangaReader" :class="{minimized}">
 		<header class="header" :class="{show: showNav}">
 			<div class="left">
-				<button @click.stop="$emit('update:minimized', true)">
+				<button class="button" @click.stop="$emit('update:minimized', true)">
 					<i class="fa fa-sharp fa-solid fa-house" />
 				</button>
 			</div>
@@ -207,7 +209,7 @@ whenever(space, togglePlay)
 				group_inou / HAPPENING (1)
 			</h1>
 			<div class="right">
-				<button @click="settings.muted = !settings.muted">
+				<button class="button" @click="settings.muted = !settings.muted">
 					<i
 						class="fa fa-sharp fa-solid"
 						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
@@ -270,7 +272,7 @@ whenever(space, togglePlay)
 	background var(--white)
 	border-bottom 1rem solid var(--black)
 	transform translate3d(0, -100%, 0)
-	font-size 12rem
+	font-size 14rem
 	display grid
 	grid-template-columns 1fr auto 1fr
 	align-items center
@@ -284,8 +286,7 @@ whenever(space, togglePlay)
 	.right
 		flex-direction row-reverse
 
-
-	button
+	.button
 		display block
 		font-size 20rem
 
@@ -347,6 +348,6 @@ whenever(space, togglePlay)
 .timecode
 	width 3em
 	text-align right
-	font-size 12rem
+	font-size 16rem
 	line-height var(--header-height)
 </style>

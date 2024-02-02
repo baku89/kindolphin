@@ -94,8 +94,8 @@ defineExpose({
 	left 0
 	// opacity 0.4
 	right 0
-	margin-top -60rem
-	height 120rem
+	margin-top calc(-60 * var(--px))
+	height calc(120 * var(--px))
 	width var(--manga-width)
 	position absolute
 </style>

@@ -32,6 +32,10 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'READ NOW',
 			ja: '今すぐ読む',
 		},
+		loading: {
+			en: 'DOWNLOADING...',
+			ja: '読み込み中...',
+		},
 	}
 
 	const label = computed(() => {

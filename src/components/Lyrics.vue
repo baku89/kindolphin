@@ -41,17 +41,17 @@ const visibleLyrics = ref<Lyric[]>([])
 const visibleLyricsStyles = computed(() => {
 	return visibleLyrics.value.map(lyric => {
 		return {
-			left: `${lyric.offset[0]}rem`,
-			transform: `translate3d(0, calc(${lyric.offset[1]}rem - ${props.scroll}px), 0)`,
-			width: `${lyric.size[0]}rem`,
-			height: `${lyric.size[1]}rem`,
+			left: `calc(${lyric.offset[0]} * var(--px))`,
+			transform: `translate3d(0, calc(${lyric.offset[1]} * var(--px) - ${props.scroll}px), 0)`,
+			width: `calc(${lyric.size[0]} * var(--px))`,
+			height: `calc(${lyric.size[1]} * var(--px))`,
 		}
 	})
 })
 
 const seekbarStyle = computed(() => {
 	return {
-		top: `${props.seekbarPosition}rem`,
+		top: `calc(${props.seekbarPosition} * var(--px))`,
 	}
 })
 </script>
@@ -75,12 +75,12 @@ const seekbarStyle = computed(() => {
 
 .seekbar
 	position absolute
-	left -30rem
-	right -30rem
-	height 60rem
-	margin-top -30rem
+	left calc(-30 * var(--px))
+	right calc(-30 * var(--px))
+	height calc(60 * var(--px))
+	margin-top calc(-30 * var(--px))
 	mask-image url('/assets/seekbar_diffuse.gif')
-	mask-size 60rem 60rem
+	mask-size calc(60 * var(--px)) calc(60 * var(--px))
 	background-color var(--theme-primary)
 
 

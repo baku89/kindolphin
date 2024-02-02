@@ -1,13 +1,15 @@
 @import './reset.styl'
 
 :root
-	font-size var(--px)
+	// UI等の基準値
+	font-size 'clamp(0.8px, var(--px), 1.5px)' % null
 	--theme-bg #e5e0cf
 	--theme-ink #4b3876
 	--theme-primary #ff6338
 	--black black
 	--var(--white) var(--white)
-	--manga-width 'min(100vw, 70vh)' % null
+	--manga-width 'min(100vw, 60vh)' % null
+	// 漫画座標系の基準値
 	--px calc((var(--manga-width) / 324))
 	--nav-margin-vert 5rem
 	--nav-margin-horiz 10rem

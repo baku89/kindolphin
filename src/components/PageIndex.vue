@@ -4,6 +4,7 @@ import {defineAsyncComponent, onMounted, ref} from 'vue'
 import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
+import {scrollTrack} from '@/timeline'
 import {usePreload} from '@/use/usePreload'
 
 import FooterButton from './FooterButton.vue'
@@ -28,13 +29,20 @@ const MangaReader = defineAsyncComponent(
 
 const minimized = ref(true)
 const showThemeSettings = ref(false)
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function openBook(id: string) {
+	if (preload.progress < 1 || id === '') return
+
+	minimized.value = false
+}
 </script>
 
 <template>
 	<div class="PageIndex" :class="{invert: settings.currentTheme.invert}">
 		<header class="header">
 			<div class="left">
-				<button @click="minimized = false">
+				<button @click="openBook('happening-ja')">
 					<i class="fa fa-brands fa-readme" />
 				</button>
 			</div>
@@ -54,7 +62,7 @@ const showThemeSettings = ref(false)
 				<div>{{ ui.label.viewOnYouTube }}</div>
 				<i class="fa fa-solid fa-sort"></i>
 			</a>
-			<a class="book" @click="minimized = false">
+			<a class="book" @click="openBook('happening-ja')">
 				<div class="thumb">
 					<img class="thumb-content" src="/assets/cover_happening.png" />
 					<div
@@ -70,7 +78,9 @@ const showThemeSettings = ref(false)
 				<div class="info">
 					<h2>GIFマンガ <wbr />「HAPPENING」(1)</h2>
 					<h3>AC部</h3>
-					<div class="read-now">{{ ui.label.readNow }}</div>
+					<div class="read-now">
+						{{ preload.progress < 1 ? ui.label.loading : ui.label.readNow }}
+					</div>
 					<div class="reading-progress">
 						<i class="fa fa-sharp fa-solid fa-circle" />
 						<i class="fa fa-sharp fa-solid fa-circle" />
@@ -88,7 +98,7 @@ const showThemeSettings = ref(false)
 					</div>
 				</div>
 			</a>
-			<a class="book" @click="minimized = false">
+			<a class="book" @click="openBook('happening-en')">
 				<div class="thumb">
 					<img class="thumb-content" src="/assets/cover_happening_en.png" />
 					<div
@@ -108,7 +118,9 @@ const showThemeSettings = ref(false)
 						>
 					</h2>
 					<h3>AC-bu</h3>
-					<div class="read-now">{{ ui.label.readNow }}</div>
+					<div class="read-now">
+						{{ preload.progress < 1 ? ui.label.loading : ui.label.readNow }}
+					</div>
 					<div class="reading-progress">
 						<i class="fa fa-sharp fa-solid fa-circle" />
 						<i class="fa fa-sharp fa-solid fa-circle" />
@@ -164,7 +176,9 @@ const showThemeSettings = ref(false)
 			v-if="preload.progress == 1"
 			class="reader"
 			:class="{minimized}"
-			@click="minimized = false"
+			:mangaPages="mangaPages"
+			:scrollTrack="scrollTrack"
+			@click="openBook('happening-ja')"
 			v-model:minimized="minimized"
 		/>
 		<div class="bg-overlay"></div>

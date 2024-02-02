@@ -71,7 +71,7 @@ const settings = useAppSettingsStore()
 	border-radius 20rem 20rem 0 0
 	z-index 100
 	font-size 16rem
-	padding calc(2 * var(--nav-margin-horiz))
+	padding calc(2 * var(--nav-margin-horiz)) calc(2 * var(--nav-margin-horiz)) calc(2 * var(--nav-margin-horiz) + env(safe-area-inset-bottom))
 	transition transform 0.3s steps(5)
 	transform translate3d(0, 100%, 0)
 
