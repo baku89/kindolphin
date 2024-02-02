@@ -106,5 +106,4 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	object-fit fill
 	background-image url('/assets/scroll_effect_line.png')
 	background-size 100% 100%
-	filter url('#tint')
 </style>

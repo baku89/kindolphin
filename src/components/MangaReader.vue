@@ -3,6 +3,7 @@ import {useElementSize, useMagicKeys, watchOnce, whenever} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {computed, ref, watch} from 'vue'
 
+import Lyrics from '@/components/Lyrics.vue'
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
@@ -10,10 +11,7 @@ import {mangaPages, mangaTotalHeight, mangaWidth} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, lookupTime, lookupValue, scrollTrack} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
-import {useLyrics} from '@/use/useLyrics'
 import {useVirtualScroll} from '@/use/useVirtualScroll'
-
-useLyrics()
 
 const props = defineProps<{
 	minimized: boolean
@@ -65,26 +63,7 @@ const seekbarPosition = computed(() => {
 	return offsetY / mangaScale.value
 })
 
-const seekbarStyle = computed(() => {
-	return {
-		top: `${seekbarPosition.value}rem`,
-	}
-})
-
 const audioDuration = 164.4930612244898
-
-const inBlankDuration = computed(() => {
-	return -lookupTime(seekbarPosition.value, scrollTrack) / FPS
-})
-
-const outBlankDuration = computed(() => {
-	const mangaY = maxScrollY.value / mangaScale.value + seekbarPosition.value
-	return lookupTime(mangaY, scrollTrack) / FPS - audioDuration
-})
-
-const timelineDuration = computed(() => {
-	return audioDuration + inBlankDuration.value + outBlankDuration.value
-})
 
 // オーディオファイルを基準とした時間
 const currentTime = computed({
@@ -99,6 +78,20 @@ const currentTime = computed({
 
 		scrollTo(y)
 	},
+})
+
+// Timeline, Timecode = 上下のスクロール幅を加味した時間基準
+const inBlankDuration = computed(() => {
+	return -lookupTime(seekbarPosition.value, scrollTrack) / FPS
+})
+
+const outBlankDuration = computed(() => {
+	const mangaY = maxScrollY.value / mangaScale.value + seekbarPosition.value
+	return lookupTime(mangaY, scrollTrack) / FPS - audioDuration
+})
+
+const timelineDuration = computed(() => {
+	return audioDuration + inBlankDuration.value + outBlankDuration.value
 })
 
 const currentTimecode = computed(() => {
@@ -222,7 +215,11 @@ whenever(space, togglePlay)
 			/>
 			<div class="manga-content" ref="$mangaWrapper">
 				<Manga class="manga" :pages="mangaPages" :scroll="scrollY" />
-				<div class="seekbar" :style="seekbarStyle" />
+				<Lyrics
+					:seekbarPosition="seekbarPosition"
+					:scroll="scrollY"
+					:currentTime="currentTime"
+				/>
 			</div>
 		</main>
 		<footer class="footer" :class="{minimized}">
@@ -306,12 +303,7 @@ whenever(space, togglePlay)
 	width 100%
 	height 100%
 
-.seekbar
-	position absolute
-	left -30rem
-	right -30rem
-	height 2rem
-	background var(--color-primary)
+
 
 .footer
 	box-sizing content-box

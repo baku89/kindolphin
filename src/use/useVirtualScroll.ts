@@ -90,7 +90,6 @@ export function useVirtualScroll(
 
 	// Inertial scrolling
 	rafWithTimeDelta(dt => {
-		console.log('swipeSpeed', swipeSpeed, 'inertiaSpeed', inertiaSpeed)
 		// Lerp inertia speed to swipe speed
 		if (dt > 0) {
 			const directionChanged = swipeSpeed * inertiaSpeed < 0

@@ -1,17 +1,16 @@
 import {Lyrics} from '@/lyrics'
-import {binarySearchBound} from '@/utils'
+
+type ArrayElement<ArrayType extends readonly unknown[]> =
+	ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+
+export type Lyric = ArrayElement<typeof Lyrics>
 
 export function useLyrics() {
 	function getLyricsBetween(inTime: number, outTime: number) {
-		return binarySearchBound(
-			Lyrics,
-			inTime,
-			outTime,
-			(lyric, time) => lyric.time - time
-		)
+		return Lyrics.filter(lyric => inTime < lyric.time && lyric.time <= outTime)
 	}
-
 	return {
+		lyrics: Lyrics,
 		getLyricsBetween,
 	}
 }

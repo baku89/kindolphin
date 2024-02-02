@@ -6,7 +6,6 @@
 	--color-ink #4b3876
 	--color-primary #ff6338
 	--color-invert 0
-
 	--manga-width 'min(100vw, 70vh)' % null
 	--px calc((var(--manga-width) / 324))
 	--nav-margin-vert 5rem
@@ -68,7 +67,6 @@ button
 		span
 			padding 1rem
 
-
 .bg-overlay, .ink-overlay, .invert-overlay
 	position fixed
 	z-index 20
@@ -85,9 +83,8 @@ button
 
 .invert-overlay
 	background white
-	mix-blend-mode difference
 	opacity var(--color-invert)
-
+	mix-blend-mode difference
 
 .fa
 	display inline-block

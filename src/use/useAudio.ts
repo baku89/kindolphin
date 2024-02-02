@@ -103,11 +103,13 @@ export function useAudio(src: string, volume: Ref<number>) {
 		}
 
 		function createAndStartSource(buf: AudioBuffer, time: number) {
+			const delay = Math.max(0, -time)
+
 			source = audioContext.createBufferSource()
 			source.buffer = buf
 			source.loop = false
 			source.connect(scrubGain)
-			source.start(0, clamp(time, 0, buf.duration))
+			source.start(delay, clamp(time, 0, buf.duration))
 			return source
 		}
 
