@@ -280,6 +280,10 @@ const minimized = ref(true)
 	color white
 	margin-bottom 1em
 
+	.book:hover &
+		background white
+		color black
+
 .reading-progress
 	font-size 8rem
 
