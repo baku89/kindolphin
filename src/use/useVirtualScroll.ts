@@ -15,6 +15,7 @@ const MinInertiaScrollSpeed = 140
 
 interface UseVirtualScrollOptions {
 	onWheel: (e: WheelEvent) => void
+	onSwipe: (e: DragEvent) => void
 	mapScroll: (y: number) => number
 	targetSpeed: Ref<number>
 }
@@ -68,6 +69,8 @@ export function useVirtualScroll(
 		lastScrollDate = now
 
 		onLongPress()
+
+		options.onSwipe(e)
 	}
 
 	const onLongPress = debounce(

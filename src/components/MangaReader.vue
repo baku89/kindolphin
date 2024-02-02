@@ -47,8 +47,12 @@ const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 		showNav.value = e.deltaY < 0
 		isPlaying.value = false
 	},
+
 	mapScroll(y) {
 		return scalar.clamp(y, 0, maxScrollY.value)
+	},
+	onSwipe(e) {
+		showNav.value = e.movementY > 0
 	},
 })
 
