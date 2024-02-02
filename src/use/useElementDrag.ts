@@ -1,15 +1,17 @@
-import {MaybeRef, onMounted, unref} from 'vue'
+import {MaybeRef, onMounted, readonly, ref, unref} from 'vue'
 
 interface UseElementDragOptions {
-	onPointerdown: (e: PointerEvent) => void
-	onDrag: (e: PointerEvent) => void
-	onPointerup: (e: PointerEvent) => void
+	onPointerdown?: (e: PointerEvent) => void
+	onDrag?: (e: PointerEvent) => void
+	onPointerup?: (e: PointerEvent) => void
 }
 
 export function useElementDrag(
 	el: MaybeRef<HTMLElement | null>,
 	options: UseElementDragOptions
 ) {
+	const dragging = ref(false)
+
 	onMounted(() => {
 		const $el = unref(el)
 		if (!$el) return
@@ -18,7 +20,9 @@ export function useElementDrag(
 	})
 
 	function onPointerdown(e: PointerEvent) {
-		options.onPointerdown(e)
+		dragging.value = true
+
+		options.onPointerdown?.(e)
 
 		const target = e.target as HTMLElement
 
@@ -31,11 +35,12 @@ export function useElementDrag(
 	}
 
 	function onDrag(e: PointerEvent) {
-		options.onDrag(e)
+		options.onDrag?.(e)
 	}
 
 	function onPointerup(e: PointerEvent) {
-		options.onPointerup(e)
+		dragging.value = false
+		options.onPointerup?.(e)
 
 		const target = e.target as HTMLElement
 
@@ -45,5 +50,9 @@ export function useElementDrag(
 		target.removeEventListener('pointerup', onPointerup)
 		target.removeEventListener('pointercancel', onPointerup)
 		target.removeEventListener('pointerleave', onPointerup)
+	}
+
+	return {
+		dragging: readonly(dragging),
 	}
 }

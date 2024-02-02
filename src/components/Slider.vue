@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {scalar} from 'linearly'
-import {computed, ref} from 'vue'
+import {computed, ref, watchEffect} from 'vue'
+
+import {useElementDrag} from '@/use/useElementDrag'
 
 const props = defineProps<{
 	modelValue: number
@@ -17,49 +19,33 @@ const knobStyle = computed(() => {
 	}
 })
 
-const dragging = ref(false)
+const $slider = ref<HTMLElement | null>(null)
 
-function onKnobPointed(e: PointerEvent) {
-	const knob = e.currentTarget as HTMLElement
+const {dragging} = useElementDrag($slider, {
+	onPointerdown: onKnobMove,
+	onDrag: onKnobMove,
+})
 
-	dragging.value = true
-
-	onPointermove(e)
-
-	knob.setPointerCapture(e.pointerId)
-
-	knob.addEventListener('pointermove', onPointermove)
-	knob.addEventListener('pointerup', onPointerup)
-	knob.addEventListener('pointerleave', onPointerup)
-	knob.addEventListener('pointercancel', onPointerup)
-
-	function onPointermove(e: PointerEvent) {
-		e.preventDefault()
-		const {left, right} = knob.getBoundingClientRect()
-		const {clientX} = e
-
-		const newValue = scalar.fit(clientX, left, right, 0, props.duration)
-
-		emit('update:modelValue', newValue)
+watchEffect(() => {
+	if (dragging.value) {
+		$slider.value!.focus()
 	}
+})
 
-	function onPointerup() {
-		dragging.value = false
+function onKnobMove(e: PointerEvent) {
+	const {left, right} = $slider.value!.getBoundingClientRect()
+	const {clientX} = e
 
-		knob.removeEventListener('pointermove', onPointermove)
-		knob.removeEventListener('pointerup', onPointerup)
-		knob.removeEventListener('pointerleave', onPointerup)
-		knob.removeEventListener('pointercancel', onPointerup)
-	}
+	const newValue = scalar.fit(clientX, left, right, 0, props.duration)
+
+	emit('update:modelValue', newValue)
 }
 </script>
 
 <template>
-	<div class="Slider">
+	<div class="Slider" :class="{dragging}" ref="$slider">
 		<div class="track" />
-		<div class="knob-wrapper" :class="{dragging}" @pointerdown="onKnobPointed">
-			<button class="knob fa fa-regular fa-circle" :style="knobStyle" />
-		</div>
+		<button class="knob fa fa-regular fa-circle" :style="knobStyle" />
 	</div>
 </template>
 
@@ -74,15 +60,6 @@ function onKnobPointed(e: PointerEvent) {
 	width 100%
 	height 2rem
 	background black
-
-.knob-wrapper
-	position absolute
-	left 2vw
-	right 2vw
-	height 100%
-
-	&.dragging .knob
-		transform translate(-50%, -50%) scale(1.4)
 
 .knob
 	position absolute
@@ -99,4 +76,10 @@ function onKnobPointed(e: PointerEvent) {
 	transition transform 0.1s steps(3)
 	cursor ew-resize
 	will-change left, transform
+
+	.dragging &
+		transform translate(-50%, -50%) scale(1.4)
+
+	&:hover
+		transform translate(-50%, -50%) scale(1.2)
 </style>

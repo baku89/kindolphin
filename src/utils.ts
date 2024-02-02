@@ -14,13 +14,13 @@ export function getReversedAudioBuffer(
 }
 
 export function withTimeDelta<Args extends unknown[], ReturnType>(
-	fnWithTimeDelta: (delta: number | null, ...args: Args) => ReturnType
+	fnWithTimeDelta: (delta: number, ...args: Args) => ReturnType
 ): [fn: (...args: Args) => ReturnType, reset: () => void] {
 	let lastTime: null | number = null
 
 	const fn = (...args: Args) => {
 		const now = Date.now() / 1000
-		const delta = lastTime !== null ? now - lastTime : null
+		const delta = lastTime !== null ? now - lastTime : 0
 		lastTime = now
 		return fnWithTimeDelta(delta, ...args)
 	}

@@ -2,6 +2,8 @@ import {useEventListener} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {MaybeRef, readonly, Ref, ref} from 'vue'
 
+import {withTimeDelta} from '@/utils'
+
 import {useElementDrag} from './useElementDrag'
 
 interface UseVirtualScrollOptions {
@@ -20,12 +22,13 @@ export function useVirtualScroll(
 ) {
 	const scrollY = ref(0)
 	let swipeSpeed = 0
+	let inertiaSpeed = 0
 
 	useEventListener(el, 'wheel', onWheel)
 
 	// Scroll by wheel
 	function onWheel(e: WheelEvent) {
-		swipeSpeed = 0
+		swipeSpeed = inertiaSpeed = 0
 
 		scrollY.value = options.mapScroll(scrollY.value + e.deltaY)
 
@@ -35,14 +38,15 @@ export function useVirtualScroll(
 	// Scroll by swipe
 	let lastScrollDate = getNow()
 
-	useElementDrag(el, {
+	const {dragging} = useElementDrag(el, {
 		onPointerdown,
 		onDrag,
-		onPointerup,
+		onPointerup() {
+			swipeSpeed = 0
+		},
 	})
 
 	function onPointerdown() {
-		swipeSpeed = 0
 		lastScrollDate = getNow()
 	}
 
@@ -53,40 +57,41 @@ export function useVirtualScroll(
 		const dt = now - lastScrollDate
 
 		if (dt > 0) {
-			const currentSwipeSpeed = (swipeSpeed = e.movementY / dt)
-
-			swipeSpeed = currentSwipeSpeed
+			swipeSpeed = e.movementY / dt
 		}
 
 		lastScrollDate = now
-	}
-
-	function onPointerup() {
-		lastScrollDate = getNow()
-		requestAnimationFrame(scrollByInertia)
 	}
 
 	// Inertial scrolling
-	function scrollByInertia() {
-		if (Math.abs(swipeSpeed) < 1) return
-
-		const now = getNow()
-		const dt = now - lastScrollDate
-
+	const [scrollByInertia] = withTimeDelta(dt => {
+		// Lerp inertia speed to swipe speed
 		if (dt > 0) {
-			const ratio = 1 - 1 / (dt * 0.5 + 1)
-			swipeSpeed = scalar.lerp(swipeSpeed, options.targetSpeed.value, ratio)
+			const directionChanged = swipeSpeed * inertiaSpeed < 0
+			const swipeSpeedExceeded = Math.abs(swipeSpeed) > Math.abs(inertiaSpeed)
 
-			const delta = swipeSpeed * dt
+			if (directionChanged || swipeSpeedExceeded) {
+				inertiaSpeed = swipeSpeed
+			} else {
+				const lerpHalfLife = dragging.value ? 0.1 : 2
+				const lerpRatio = 1 - 1 / (dt / lerpHalfLife + 1)
+
+				inertiaSpeed = scalar.lerp(inertiaSpeed, swipeSpeed, lerpRatio)
+			}
+		}
+
+		if (!dragging.value && Math.abs(inertiaSpeed) > 1) {
+			const delta = inertiaSpeed * dt
 			scrollY.value = options.mapScroll(scrollY.value - delta)
 		}
 
-		lastScrollDate = now
 		requestAnimationFrame(scrollByInertia)
-	}
+	})
+
+	requestAnimationFrame(scrollByInertia)
 
 	function cancelInertia() {
-		swipeSpeed = 0
+		swipeSpeed = inertiaSpeed = 0
 	}
 
 	function scrollTo(y: number) {

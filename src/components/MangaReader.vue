@@ -339,7 +339,7 @@ whenever(space, togglePlay)
 		text-indent 0.2em
 
 .timecode
-	width 2.4em
+	width 3em
 	text-align right
 	font-size 12rem
 	line-height var(--header-height)
