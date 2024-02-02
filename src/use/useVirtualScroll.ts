@@ -2,7 +2,7 @@ import {useEventListener} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {MaybeRef, readonly, Ref, ref} from 'vue'
 
-import {withTimeDelta} from '@/utils'
+import {rafWithTimeDelta} from '@/utils'
 
 import {useElementDrag} from './useElementDrag'
 
@@ -64,7 +64,7 @@ export function useVirtualScroll(
 	}
 
 	// Inertial scrolling
-	const [scrollByInertia] = withTimeDelta(dt => {
+	rafWithTimeDelta(dt => {
 		// Lerp inertia speed to swipe speed
 		if (dt > 0) {
 			const directionChanged = swipeSpeed * inertiaSpeed < 0
@@ -84,11 +84,7 @@ export function useVirtualScroll(
 			const delta = inertiaSpeed * dt
 			scrollY.value = options.mapScroll(scrollY.value - delta)
 		}
-
-		requestAnimationFrame(scrollByInertia)
 	})
-
-	requestAnimationFrame(scrollByInertia)
 
 	function cancelInertia() {
 		swipeSpeed = inertiaSpeed = 0

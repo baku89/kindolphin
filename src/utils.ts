@@ -28,6 +28,20 @@ export function withTimeDelta<Args extends unknown[], ReturnType>(
 	return [fn, () => (lastTime = null)]
 }
 
+export function rafWithTimeDelta(fn: (delta: number) => void) {
+	let lastTime: null | number = null
+
+	const loop = () => {
+		const now = Date.now() / 1000
+		const delta = lastTime !== null ? now - lastTime : 0
+		lastTime = now
+		fn(delta)
+		requestAnimationFrame(loop)
+	}
+
+	requestAnimationFrame(loop)
+}
+
 export function binarySearchBound<T, U>(
 	arr: T[],
 	lower: U,
