@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import chroma from 'chroma-js'
 import {computed, ref, watch} from 'vue'
 
-import {useAppSettingsStore} from '@/store/appSettings'
 import {Lyric, useLyrics} from '@/use/useLyrics'
 
 const props = defineProps<{
@@ -41,21 +39,6 @@ const visibleLyricsStyles = computed(() => {
 			height: `${lyric.size[1]}rem`,
 		}
 	})
-})
-
-const appSettings = useAppSettingsStore()
-
-const tintColorMatrix = computed(() => {
-	const rgb = chroma(appSettings.currentTheme.primary).rgb()
-
-	const r = rgb[0] / 255
-	const g = rgb[1] / 255
-	const b = rgb[2] / 255
-
-	return `0 0 0 0 ${r}
-		0 0 0 0 ${g}
-		0 0 0 0 ${b}
-		0 0 0 1 0`
 })
 
 const seekbarStyle = computed(() => {

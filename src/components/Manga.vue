@@ -38,7 +38,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	const scale = pageWidth.value / props.pages[0].width
 	let top = 0
 
-	return props.pages.flatMap((page, i) => {
+	return props.pages.flatMap(page => {
 		const y = top - props.scroll
 		const height = page.height * scale
 
