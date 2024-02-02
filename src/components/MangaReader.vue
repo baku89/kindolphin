@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-	useElementSize,
-	useEventListener,
-	useMagicKeys,
-	watchOnce,
-	whenever,
-} from '@vueuse/core'
+import {useElementSize, useMagicKeys, watchOnce, whenever} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {computed, ref, watch} from 'vue'
 
@@ -16,9 +10,8 @@ import {mangaPages, mangaTotalHeight, mangaWidth} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, lookupTime, lookupValue, scrollTrack} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
-import {useDrag} from '@/use/useDrag'
 import {useLyrics} from '@/use/useLyrics'
-import {withTimeDelta} from '@/utils'
+import {useVirtualScroll} from '@/use/useVirtualScroll'
 
 useLyrics()
 
@@ -44,7 +37,18 @@ watchOnce(
 )
 
 const $mangaWrapper = ref<HTMLElement | null>(null)
-const scrollY = ref(0)
+
+const $scrollable = ref<HTMLElement | null>(null)
+
+const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
+	onWheel(e) {
+		showNav.value = e.deltaY > 0
+	},
+	mapScroll(y) {
+		return scalar.clamp(y, 0, maxScrollY.value)
+	},
+})
+
 const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 	width: 1,
 	height: 1,
@@ -91,12 +95,11 @@ const currentTime = computed({
 		return lookupTime(mangaY, scrollTrack) / FPS
 	},
 	set(time) {
-		scrollY.value = scalar.clamp(
+		const y =
 			lookupValue(time * FPS, scrollTrack) * mangaScale.value -
-				seekbarPosition.value * mangaScale.value,
-			0,
-			maxScrollY.value
-		)
+			seekbarPosition.value * mangaScale.value
+
+		scrollTo(y)
 	},
 })
 
@@ -120,6 +123,7 @@ watch(
 
 function togglePlay() {
 	isPlaying.value = !isPlaying.value
+	cancelInertia()
 
 	if (!isPlaying.value) {
 		audio.stop()
@@ -155,7 +159,7 @@ const showNav = ref(false)
 //------------------------------------------------------------------------------
 // Events
 function onPressManga() {
-	dragSpeed = 0
+	cancelInertia()
 	isPlaying.value = false
 	audio.stop()
 }
@@ -169,7 +173,7 @@ function onClickManga() {
 }
 
 function onScrubSlider(timecode: number) {
-	dragSpeed = 0
+	cancelInertia()
 	isPlaying.value = false
 	currentTime.value = timecode - inBlankDuration.value
 }
@@ -179,73 +183,15 @@ watch(
 	() => {
 		isPlaying.value = false
 		audio.stop()
-		dragSpeed = 0
+		cancelInertia()
 		showNav.value = true
 	}
 )
 
 //------------------------------------------------------------------------------
-// Wheel scrolling
-useEventListener('wheel', e => {
-	if (props.minimized) return
-
-	isPlaying.value = false
-	scrollY.value = scalar.clamp(scrollY.value + e.deltaY, 0, maxScrollY.value)
-	dragSpeed = 0
-
-	showNav.value = e.deltaY < 0
-})
-
-//------------------------------------------------------------------------------
 // Space to toggle
 const {space} = useMagicKeys()
-
 whenever(space, togglePlay)
-
-//------------------------------------------------------------------------------
-// Inertial dragging
-const $scrollable = ref<HTMLElement | null>(null)
-
-let dragSpeed = 0
-
-const [onDrag, resetDrag] = withTimeDelta((timeDelta, deltaY: number) => {
-	if (timeDelta !== null) {
-		dragSpeed = -deltaY / timeDelta
-	}
-	scrollY.value = scalar.clamp(scrollY.value - deltaY, 0, maxScrollY.value)
-
-	showNav.value = deltaY > 0
-})
-
-const [scrollByInertia, resetInertiaScroll] = withTimeDelta(timeDelta => {
-	if (isPlaying.value || dragging.value || Math.abs(dragSpeed) < 1) {
-		return
-	}
-	if (timeDelta !== null) {
-		dragSpeed *= 1 / (timeDelta * 0.1 + 1)
-
-		const delta = dragSpeed * timeDelta
-
-		scrollY.value = scalar.clamp(scrollY.value + delta, 0, maxScrollY.value)
-	}
-
-	requestAnimationFrame(scrollByInertia)
-})
-
-const {dragging} = useDrag($scrollable, {
-	disabled: computed(() => props.minimized),
-	onDragStart() {
-		dragSpeed = 0
-		resetDrag()
-	},
-	onDrag({delta}) {
-		onDrag(delta[1])
-	},
-	onDragEnd() {
-		resetInertiaScroll()
-		requestAnimationFrame(scrollByInertia)
-	},
-})
 </script>
 
 <template>
