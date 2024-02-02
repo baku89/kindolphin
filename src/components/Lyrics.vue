@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import chroma from 'chroma-js'
 import {computed, ref, watch} from 'vue'
 
+import {useAppSettingsStore} from '@/store/appSettings'
 import {Lyric, useLyrics} from '@/use/useLyrics'
 
 const props = defineProps<{
@@ -8,12 +10,6 @@ const props = defineProps<{
 	currentTime: number
 	seekbarPosition: number
 }>()
-
-const seekbarStyle = computed(() => {
-	return {
-		top: `${props.seekbarPosition}rem`,
-	}
-})
 
 const {getLyricsBetween} = useLyrics()
 
@@ -46,6 +42,27 @@ const visibleLyricsStyles = computed(() => {
 		}
 	})
 })
+
+const appSettings = useAppSettingsStore()
+
+const tintColorMatrix = computed(() => {
+	const rgb = chroma(appSettings.currentTheme.primary).rgb()
+
+	const r = rgb[0] / 255
+	const g = rgb[1] / 255
+	const b = rgb[2] / 255
+
+	return `0 0 0 0 ${r}
+		0 0 0 0 ${g}
+		0 0 0 0 ${b}
+		0 0 0 1 0`
+})
+
+const seekbarStyle = computed(() => {
+	return {
+		top: `${props.seekbarPosition}rem`,
+	}
+})
 </script>
 
 <template>
@@ -58,6 +75,11 @@ const visibleLyricsStyles = computed(() => {
 			:style="lyric"
 		/>
 	</div>
+	<svg>
+		<filter id="tint">
+			<feColorMatrix type="matrix" :values="tintColorMatrix"></feColorMatrix>
+		</filter>
+	</svg>
 </template>
 
 <style lang="stylus" scoped>
@@ -68,8 +90,13 @@ const visibleLyricsStyles = computed(() => {
 	position absolute
 	left -30rem
 	right -30rem
-	height 2rem
-	background var(--theme-primary)
+	height 60rem
+	margin-top -30rem
+	background-image url('/assets/seekbar_diffuse.gif')
+	background-size 60rem 60rem
+	filter url('#tint')
+
+
 
 .lyric-wrapper
 	position relative

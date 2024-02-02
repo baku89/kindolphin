@@ -102,19 +102,35 @@ export function useAudio(src: string, volume: Ref<number>) {
 			source.start(0, 0, 0.5)
 		}
 
+		let startTimer: ReturnType<typeof setTimeout>
+		let hasStarted = false
 		function createAndStartSource(buf: AudioBuffer, time: number) {
 			const delay = Math.max(0, -time)
+			hasStarted = false
 
 			source = audioContext.createBufferSource()
 			source.buffer = buf
 			source.loop = false
 			source.connect(scrubGain)
-			source.start(delay, clamp(time, 0, buf.duration))
+
+			if (time > 0) {
+				source.start(0, clamp(time, 0, buf.duration))
+				hasStarted = true
+			} else {
+				startTimer = setTimeout(() => {
+					hasStarted = true
+					source?.start(0, clamp(time, 0, buf.duration))
+				}, delay * 1000)
+			}
+
 			return source
 		}
 
 		function disposeSource() {
-			source?.stop()
+			clearTimeout(startTimer)
+			if (hasStarted) {
+				source?.stop()
+			}
 			source?.disconnect()
 			source = null
 		}

@@ -3,13 +3,16 @@ import {defineAsyncComponent, onMounted, ref} from 'vue'
 
 import {mangaPages} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
+import {useUIStore} from '@/store/ui'
 import {usePreload} from '@/use/usePreload'
 
+import FooterButton from './FooterButton.vue'
 import PaneSettings from './PaneSettings.vue'
 
 const preload = usePreload()
 
 const settings = useAppSettingsStore()
+const ui = useUIStore()
 
 onMounted(() => {
 	setTimeout(() => {
@@ -42,15 +45,12 @@ const minimized = ref(true)
 						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
 					/>
 				</button>
-				<button @click="settings.show = true">
-					<i class="fa fa-sharp fa-solid fa-font" />
-				</button>
 			</div>
 		</header>
 		<main class="main">
 			<a class="youtube" href="https://www.youtube.com/watch?v=JP2728BtJ34">
 				<i class="fa fa-brands fa-youtube"></i>
-				<div>View on YouTube</div>
+				<div>{{ ui.label.viewOnYouTube }}</div>
 				<i class="fa fa-solid fa-sort"></i>
 			</a>
 			<a class="book" @click="minimized = false">
@@ -60,18 +60,16 @@ const minimized = ref(true)
 						class="book-loading var(--white)-semitransparent"
 						v-if="preload.progress < 1"
 					>
-						<div class="message">
-							Downloading ({{ Math.round(preload.progress * 100) }}%)
-						</div>
+						<div class="message">{{ Math.round(preload.progress * 100) }}%</div>
 						<div class="progress">
 							<div class="bar" :style="{width: preload.progress * 100 + '%'}" />
 						</div>
 					</div>
 				</div>
 				<div class="info">
-					<h2>GIFマンガ <br /><span class="neg">「HAPPENING」(1)</span></h2>
+					<h2>GIFマンガ <wbr />「HAPPENING」(1)</h2>
 					<h3>AC部</h3>
-					<div class="badge">今すぐ読む</div>
+					<div class="read-now">{{ ui.label.readNow }}</div>
 					<div class="reading-progress">
 						<i class="fa fa-sharp fa-solid fa-circle" />
 						<i class="fa fa-sharp fa-solid fa-circle" />
@@ -86,7 +84,37 @@ const minimized = ref(true)
 						<i class="fa fa-sharp fa-regular fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
+					</div>
+				</div>
+			</a>
+			<a class="book" @click="minimized = false">
+				<div class="thumb">
+					<img class="thumb-content" src="/assets/cover_happening.webp" />
+					<div
+						class="book-loading var(--white)-semitransparent"
+						v-if="preload.progress < 1"
+					>
+						<div class="message">{{ Math.round(preload.progress * 100) }}%</div>
+						<div class="progress">
+							<div class="bar" :style="{width: preload.progress * 100 + '%'}" />
+						</div>
+					</div>
+				</div>
+				<div class="info">
+					<h2>
+						GIF Manga “HAPPENING”<wbr /><span style="font-size: 1em"
+							>[English Edition]</span
+						>
+					</h2>
+					<h3>AC-bu</h3>
+					<div class="read-now">{{ ui.label.readNow }}</div>
+					<div class="reading-progress">
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
+						<i class="fa fa-sharp fa-solid fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
 						<i class="fa fa-sharp fa-regular fa-circle" />
@@ -94,7 +122,9 @@ const minimized = ref(true)
 				</div>
 			</a>
 			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank">
-				<img class="thumb album" src="/assets/cover_happy.webp" />
+				<div class="thumb album">
+					<img class="thumb-content" src="/assets/cover_happy.webp" />
+				</div>
 				<div class="info">
 					<h2>2nd EP “HAPPY”</h2>
 					<h3>group_inou (2024)</h3>
@@ -109,7 +139,29 @@ const minimized = ref(true)
 				</div>
 			</a>
 		</main>
-		<footer class="footer" />
+		<footer class="footer">
+			<FooterButton
+				:label="ui.label.theme"
+				icon="palette"
+				@click="settings.show = true"
+			/>
+			<FooterButton
+				:label="ui.label.lang"
+				icon="language"
+				@click="settings.lang = settings.lang === 'en' ? 'ja' : 'en'"
+			/>
+			<div class="spacer" />
+			<FooterButton
+				:label="ui.label.listen"
+				icon="music"
+				@click="settings.show = true"
+			/>
+			<FooterButton
+				:label="ui.label.help"
+				icon="circle-question"
+				@click="settings.show = true"
+			/>
+		</footer>
 		<MangaReader
 			v-if="preload.progress == 1"
 			class="reader"
@@ -224,6 +276,8 @@ const minimized = ref(true)
 			background var(--white)
 			color var(--black)
 			font-size 10rem
+			font-family 'monaco', monospace
+			letter-spacing 0.2em
 
 		.thumb-content
 			width 100%
@@ -257,8 +311,9 @@ const minimized = ref(true)
 		text-indent -0.5em
 
 	h2
-		font-size 16rem
+		font-size 14rem
 		margin-bottom 0.2em
+		text-wrap balance
 
 	h3
 		margin-bottom 0.5em
@@ -269,7 +324,7 @@ const minimized = ref(true)
 		display flex
 		flex-direction column
 
-.badge
+.read-now
 	letter-spacing 0.1em
 	background var(--black)
 	font-size 10rem
@@ -278,6 +333,7 @@ const minimized = ref(true)
 	border-radius 2rem
 	color var(--white)
 	margin-bottom 1em
+	font-family 'monaco', monospace
 
 	.book:hover &
 		background var(--white)
@@ -302,10 +358,11 @@ const minimized = ref(true)
 .footer
 	box-sizing content-box
 	height var(--header-height)
-	padding var(--nav-margin-vert) var(--nav-margin-horiz) env(safe-area-inset-bottom)
+	padding var(--nav-margin-vert) 0 var(--footer-padding-bottom)
 	background var(--white)
 	border-top 1rem solid var(--black)
-	display flex
+	display grid
+	grid-template-columns 1fr 1fr calc(var(--manga-width) * 0.2 + 30rem) 1fr 1fr
 	align-items stretch
-	gap 16rem
+	justify-content space-between
 </style>

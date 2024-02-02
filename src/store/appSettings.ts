@@ -12,6 +12,11 @@ interface Theme {
 export const useAppSettingsStore = defineStore('appSettings', () => {
 	const muted = useLocalStorage('jp.g-a-l.happening.muted', false)
 
+	const lang = useLocalStorage(
+		'jp.g-a-l.happening.lang',
+		navigator.language === 'ja' ? 'ja' : 'en'
+	)
+
 	const themes = ref<Theme[]>([
 		{
 			bg: '#ffffff',
@@ -72,5 +77,5 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 
 	const show = ref(false)
 
-	return {muted, themes, show, themeIndex, currentTheme}
+	return {muted, themes, show, themeIndex, currentTheme, lang}
 })

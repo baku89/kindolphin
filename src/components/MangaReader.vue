@@ -59,7 +59,7 @@ const maxScrollY = computed(
 
 // 漫画座標系におけるシークバーの位置
 const seekbarPosition = computed(() => {
-	const offsetY = viewHeight.value * 0.7
+	const offsetY = viewHeight.value * 0.8
 	return offsetY / mangaScale.value
 })
 
@@ -84,7 +84,6 @@ const currentTime = computed({
 const inBlankDuration = computed(() => {
 	return -lookupTime(seekbarPosition.value, scrollTrack) / FPS
 })
-
 const outBlankDuration = computed(() => {
 	const mangaY = maxScrollY.value / mangaScale.value + seekbarPosition.value
 	return lookupTime(mangaY, scrollTrack) / FPS - audioDuration
@@ -112,12 +111,23 @@ watch(
 	{flush: 'sync'}
 )
 
+watch(
+	isPlaying,
+	playing => {
+		if (playing) {
+			audio.play(currentTime.value)
+		} else {
+			audio.stop()
+		}
+	},
+	{flush: 'sync'}
+)
+
 function togglePlay() {
 	isPlaying.value = !isPlaying.value
 	cancelInertia()
 
 	if (!isPlaying.value) {
-		audio.stop()
 		return
 	}
 
@@ -125,8 +135,6 @@ function togglePlay() {
 
 	const dateAtStart = Date.now() / 1000
 	const timeAtStart = currentTime.value
-
-	audio.play(timeAtStart)
 
 	updateTime()
 
@@ -185,7 +193,7 @@ whenever(space, togglePlay)
 
 <template>
 	<div class="MangaReader" :class="{minimized}">
-		<header class="header" :class="{show: showNav, minimized}">
+		<header class="header" :class="{show: showNav}">
 			<div class="left">
 				<button @click.stop="$emit('update:minimized', true)">
 					<i class="fa fa-sharp fa-solid fa-house" />
@@ -200,9 +208,6 @@ whenever(space, togglePlay)
 						class="fa fa-sharp fa-solid"
 						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
 					/>
-				</button>
-				<button @click.stop="settings.show = true">
-					<i class="fa fa-sharp fa-solid fa-font" />
 				</button>
 			</div>
 		</header>
@@ -222,7 +227,7 @@ whenever(space, togglePlay)
 				/>
 			</div>
 		</main>
-		<footer class="footer" :class="{minimized}">
+		<footer class="footer">
 			<button class="play" @click="togglePlay">
 				<i
 					class="fa fa-sharp fa-solid"
@@ -288,7 +293,7 @@ whenever(space, togglePlay)
 	&.show
 		transform translate3d(0, 0, 0)
 
-	&.minimized
+	.minimized &
 		transform translate3d(0, 0, 0)
 		opacity 0
 
@@ -299,6 +304,8 @@ whenever(space, togglePlay)
 	z-index 1
 	cursor grab
 
+	.minimized &
+		display none
 
 .manga-content
 	pointer-events none
