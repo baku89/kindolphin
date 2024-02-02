@@ -37,25 +37,22 @@ watchOnce(
 )
 
 const $mangaWrapper = ref<HTMLElement | null>(null)
-
-const $scrollable = ref<HTMLElement | null>(null)
-
-const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
-	targetSpeed: computed(() => (isPlaying.value ? 100 : 0)),
-	onWheel(e) {
-		showNav.value = e.deltaY > 0
-	},
-	mapScroll(y) {
-		return scalar.clamp(y, 0, maxScrollY.value)
-	},
-})
-
 const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 	width: 1,
 	height: 1,
 })
 
-const $navTop = ref<HTMLElement | null>(null)
+const $scrollable = ref<HTMLElement | null>(null)
+const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
+	targetSpeed: computed(() => (isPlaying.value ? 100 : 0)),
+	onWheel(e) {
+		showNav.value = e.deltaY > 0
+		isPlaying.value = false
+	},
+	mapScroll(y) {
+		return scalar.clamp(y, 0, maxScrollY.value)
+	},
+})
 
 const mangaScale = computed(() => viewWidth.value / mangaWidth)
 const maxScrollY = computed(
@@ -197,7 +194,7 @@ whenever(space, togglePlay)
 
 <template>
 	<div class="MangaReader">
-		<header class="header" :class="{show: showNav, minimized}" ref="$navTop">
+		<header class="header" :class="{show: showNav, minimized}">
 			<div class="left">
 				<button @click.stop="$emit('update:minimized', true)">
 					<i class="fa fa-sharp fa-solid fa-house" />
