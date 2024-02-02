@@ -159,7 +159,6 @@ const showNav = ref(false)
 function onPressManga() {
 	cancelInertia()
 	isPlaying.value = false
-	audio.stop()
 }
 
 function onClickManga() {
@@ -180,7 +179,6 @@ watch(
 	() => props.minimized,
 	() => {
 		isPlaying.value = false
-		audio.stop()
 		cancelInertia()
 		showNav.value = true
 	}

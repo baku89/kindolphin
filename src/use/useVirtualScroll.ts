@@ -1,10 +1,17 @@
 import {useEventListener} from '@vueuse/core'
 import {scalar} from 'linearly'
+import {debounce} from 'lodash'
 import {MaybeRef, readonly, Ref, ref} from 'vue'
 
 import {rafWithTimeDelta} from '@/utils'
 
 import {useElementDrag} from './useElementDrag'
+
+// 慣性スクロールを無効化するまでの指を動かさないでいる時間 (sec)
+const InertiaCancelDuration = 0.25
+
+// 慣性スクロールが効き始める最低速度 (px/sec)
+const MinInertiaScrollSpeed = 140
 
 interface UseVirtualScrollOptions {
 	onWheel: (e: WheelEvent) => void
@@ -41,9 +48,7 @@ export function useVirtualScroll(
 	const {dragging} = useElementDrag(el, {
 		onPointerdown,
 		onDrag,
-		onPointerup() {
-			swipeSpeed = 0
-		},
+		onPointerup,
 	})
 
 	function onPointerdown() {
@@ -61,10 +66,31 @@ export function useVirtualScroll(
 		}
 
 		lastScrollDate = now
+
+		onLongPress()
+	}
+
+	const onLongPress = debounce(
+		() => {
+			if (!dragging.value) return
+
+			inertiaSpeed = swipeSpeed = 0
+		},
+		InertiaCancelDuration * 1000,
+		{}
+	)
+
+	function onPointerup() {
+		if (Math.abs(inertiaSpeed) < MinInertiaScrollSpeed) {
+			inertiaSpeed = swipeSpeed = 0
+		}
+
+		swipeSpeed = 0
 	}
 
 	// Inertial scrolling
 	rafWithTimeDelta(dt => {
+		console.log('swipeSpeed', swipeSpeed, 'inertiaSpeed', inertiaSpeed)
 		// Lerp inertia speed to swipe speed
 		if (dt > 0) {
 			const directionChanged = swipeSpeed * inertiaSpeed < 0
