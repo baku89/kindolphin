@@ -69,14 +69,17 @@ const visibleLyricsStyles = computed(() => {
 	left -30rem
 	right -30rem
 	height 2rem
-	background var(--color-primary)
+	background var(--theme-primary)
 
 .lyric-wrapper
 	position relative
 	mix-blend-mode lighten
 
+	body.invert &
+		mix-blend-mode darken
+
 .lyric
-	background var(--color-primary)
+	background var(--theme-primary)
 	position absolute
 	top 0
 </style>

@@ -184,7 +184,7 @@ whenever(space, togglePlay)
 </script>
 
 <template>
-	<div class="MangaReader">
+	<div class="MangaReader" :class="{minimized}">
 		<header class="header" :class="{show: showNav, minimized}">
 			<div class="left">
 				<button @click.stop="$emit('update:minimized', true)">
@@ -241,17 +241,25 @@ whenever(space, togglePlay)
 
 <style scoped lang="stylus">
 .MangaReader
-	background white
+	background var(--white)
 	position fixed
-	inset 0
+	top 0
+	bottom 0
+	left 0
+	right 0
 	overflow hidden
 	display grid
 	grid-template-rows min-content 1fr min-content
+	width 100%
+
+	&.minimized
+		left calc(50vw - var(--manga-width) / 2)
+		width var(--manga-width)
 
 .header
 	height var(--header-height)
-	background white
-	border-bottom 1rem solid black
+	background var(--white)
+	border-bottom 1rem solid var(--black)
 	transform translate3d(0, -100%, 0)
 	font-size 12rem
 	display grid
@@ -309,8 +317,8 @@ whenever(space, togglePlay)
 	box-sizing content-box
 	height var(--header-height)
 	padding var(--nav-margin-vert) var(--nav-margin-horiz) var(--footer-padding-bottom)
-	background white
-	border-top 1rem solid black
+	background var(--white)
+	border-top 1rem solid var(--black)
 	display flex
 	align-items stretch
 	gap 16rem

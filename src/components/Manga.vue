@@ -85,7 +85,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 .Manga
 	position absolute
 	inset 0
-	background white
+	background var(--white)
 
 .bottom-ink
 	position absolute
@@ -93,7 +93,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	left 0
 	right 0
 	bottom calc(-1 * var(--footer-height))
-	background black
+	background var(--black)
 
 .page
 	position absolute

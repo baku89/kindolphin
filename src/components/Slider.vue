@@ -77,7 +77,7 @@ function onDrag(e: PointerEvent) {
 .track
 	width 100%
 	height 2rem
-	background black
+	background var(--black)
 
 .knob
 	position absolute
@@ -88,7 +88,7 @@ function onDrag(e: PointerEvent) {
 	line-height calc(0.5 * var(--header-height))
 	width calc(0.5 * var(--header-height))
 	height calc(0.5 * var(--header-height))
-	background white
+	background var(--white)
 	border-radius 50%
 	transition scale 0.1s steps(3)
 	cursor ew-resize

@@ -57,7 +57,7 @@ const minimized = ref(true)
 				<div class="thumb">
 					<img class="thumb-content" src="/assets/cover_happening.webp" />
 					<div
-						class="book-loading white-semitransparent"
+						class="book-loading var(--white)-semitransparent"
 						v-if="preload.progress < 1"
 					>
 						<div class="message">
@@ -119,7 +119,6 @@ const minimized = ref(true)
 		/>
 		<div class="bg-overlay"></div>
 		<div class="ink-overlay"></div>
-		<div class="invert-overlay"></div>
 		<PaneSettings />
 	</div>
 </template>
@@ -134,7 +133,7 @@ const minimized = ref(true)
 
 .header
 	height var(--header-height)
-	border-bottom 1rem solid black
+	border-bottom 1rem solid var(--black)
 	font-size 12rem
 	text-align center
 	line-height var(--header-height)
@@ -171,7 +170,7 @@ const minimized = ref(true)
 	font-size 12rem
 	height 35rem
 	line-height 30rem
-	border-bottom 1rem solid black
+	border-bottom 1rem solid var(--black)
 	display flex
 	align-items center
 	justify-content space-between
@@ -181,8 +180,8 @@ const minimized = ref(true)
 		font-size 16rem
 
 	&:hover
-		background black
-		color white
+		background var(--black)
+		color var(--white)
 
 
 
@@ -198,18 +197,18 @@ const minimized = ref(true)
 		border-top 1rem solid transparent
 
 	&:hover
-		background black
-		color white
-		border-top-color black
+		background var(--black)
+		color var(--white)
+		border-top-color var(--black)
 
 	&:not(:last-child)
-		border-bottom 1rem dotted black
+		border-bottom 1rem dotted var(--black)
 
 	.thumb
 		position relative
 		width 120rem
 		aspect-ratio 3 / 4
-		border 1rem solid black
+		border 1rem solid var(--black)
 
 		.book-loading
 			position absolute
@@ -222,8 +221,8 @@ const minimized = ref(true)
 			gap 5rem
 
 		.message
-			background white
-			color black
+			background var(--white)
+			color var(--black)
 			font-size 10rem
 
 		.thumb-content
@@ -234,14 +233,14 @@ const minimized = ref(true)
 		.progress
 			height 10rem
 			width 80%
-			background white
+			background var(--white)
 			position relative
-			border 1rem solid black
+			border 1rem solid var(--black)
 
 		.bar
 			position absolute
 			inset 0
-			background black
+			background var(--black)
 
 
 		&.album
@@ -272,17 +271,17 @@ const minimized = ref(true)
 
 .badge
 	letter-spacing 0.1em
-	background black
+	background var(--black)
 	font-size 10rem
 	padding 0.1em 0.2em
 	display inline-block
 	border-radius 2rem
-	color white
+	color var(--white)
 	margin-bottom 1em
 
 	.book:hover &
-		background white
-		color black
+		background var(--white)
+		color var(--black)
 
 .reading-progress
 	font-size 8rem
@@ -291,25 +290,21 @@ const minimized = ref(true)
 		margin-right 2rem
 
 .reader
-	position fixed
-	inset 0
-	overflow hidden
 	z-index 10
 	transform-origin 50% 98svh
-	transition transform 0.2s steps(8), outline 0.2s steps(8)
-
+	transition all 0.2s steps(8)
 
 	&.minimized
 		transform scale(0.2)
-		outline 5rem solid black
+		outline 5rem solid var(--black)
 
 
 .footer
 	box-sizing content-box
 	height var(--header-height)
 	padding var(--nav-margin-vert) var(--nav-margin-horiz) env(safe-area-inset-bottom)
-	background white
-	border-top 1rem solid black
+	background var(--white)
+	border-top 1rem solid var(--black)
 	display flex
 	align-items stretch
 	gap 16rem

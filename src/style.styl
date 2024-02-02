@@ -2,10 +2,11 @@
 
 :root
 	font-size var(--px)
-	--color-bg #e5e0cf
-	--color-ink #4b3876
-	--color-primary #ff6338
-	--color-invert 0
+	--theme-bg #e5e0cf
+	--theme-ink #4b3876
+	--theme-primary #ff6338
+	--black black
+	--var(--white) var(--white)
 	--manga-width 'min(100vw, 70vh)' % null
 	--px calc((var(--manga-width) / 324))
 	--nav-margin-vert 5rem
@@ -22,8 +23,8 @@ html
 body
 	position fixed
 	overflow hidden
-	background var(--color-bg)
-	color var(--color-ink)
+	background var(--theme-bg)
+	color var(--theme-ink)
 	touch-action manipulation
 
 *, button
@@ -37,7 +38,7 @@ button
 
 .splash
 	position fixed
-	background white
+	background var(--white)
 	inset 0
 
 	.kindle-ish-tree
@@ -60,31 +61,32 @@ button
 	.loading-text
 		position relative
 		top 24vh
-		color black
+		color var(--black)
 		text-align center
 		font-size 30rem
 
 		span
 			padding 1rem
 
-.bg-overlay, .ink-overlay, .invert-overlay
+.bg-overlay, .ink-overlay
 	position fixed
 	z-index 20
 	pointer-events none
 	inset 0
 
 .bg-overlay
-	background var(--color-bg)
+	background var(--theme-bg)
 	mix-blend-mode darken
 
+	body.invert &
+		mix-blend-mode lighten
+
 .ink-overlay
-	background var(--color-ink)
+	background var(--theme-ink)
 	mix-blend-mode lighten
 
-.invert-overlay
-	background white
-	opacity var(--color-invert)
-	mix-blend-mode difference
+	body.invert &
+		mix-blend-mode darken
 
 .fa
 	display inline-block
@@ -99,6 +101,9 @@ button
 a
 	text-decoration none
 
-.white-semitransparent
+.var(--white)-semitransparent
 	background-image url('data:image/webp;base64,UklGRlIAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSBMAAAABDzD/ERFCIJBQ5jTLxBH9jywDAFZQOCAYAAAAMAEAnQEqCAAIAAIANCWkAANwAP77lAAA')
 	background-size 8rem 8rem
+
+body.invert img
+	filter invert(1)
