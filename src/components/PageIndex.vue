@@ -27,6 +27,7 @@ const MangaReader = defineAsyncComponent(
 )
 
 const minimized = ref(true)
+const showThemeSettings = ref(false)
 </script>
 
 <template>
@@ -143,7 +144,7 @@ const minimized = ref(true)
 			<FooterButton
 				:label="ui.label.theme"
 				icon="palette"
-				@click="settings.show = true"
+				@click="showThemeSettings = true"
 			/>
 			<FooterButton
 				:label="ui.label.lang"
@@ -157,11 +158,7 @@ const minimized = ref(true)
 				target="_blank"
 				icon="music"
 			/>
-			<FooterButton
-				:label="ui.label.help"
-				icon="circle-question"
-				@click="settings.show = true"
-			/>
+			<FooterButton :label="ui.label.help" icon="circle-question" />
 		</footer>
 		<MangaReader
 			v-if="preload.progress == 1"
@@ -172,7 +169,7 @@ const minimized = ref(true)
 		/>
 		<div class="bg-overlay"></div>
 		<div class="ink-overlay"></div>
-		<PaneSettings />
+		<PaneSettings v-model:show="showThemeSettings" />
 	</div>
 </template>
 

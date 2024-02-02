@@ -75,7 +75,5 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		}
 	})
 
-	const show = ref(false)
-
-	return {muted, themes, show, themeIndex, currentTheme, lang}
+	return {muted, themes, themeIndex, currentTheme, lang}
 })
