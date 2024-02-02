@@ -3,6 +3,8 @@ import {computed, ref, watch} from 'vue'
 
 import {Lyric, useLyrics} from '@/use/useLyrics'
 
+import Bang from './Bang.vue'
+
 const props = defineProps<{
 	scroll: number
 	currentTime: number
@@ -10,6 +12,8 @@ const props = defineProps<{
 }>()
 
 const {getLyricsBetween} = useLyrics()
+
+const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
 watch(
 	() => props.currentTime,
@@ -24,6 +28,10 @@ watch(
 		const lyrics = getLyricsBetween(prevTime, time)
 
 		visibleLyrics.value.push(...lyrics)
+
+		for (const lyric of lyrics) {
+			$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
+		}
 	},
 	{flush: 'sync'}
 )
@@ -50,6 +58,7 @@ const seekbarStyle = computed(() => {
 
 <template>
 	<div class="seekbar" :style="seekbarStyle" />
+	<Bang ref="$bang" :style="seekbarStyle" />
 	<div class="lyric-wrapper">
 		<div
 			class="lyric"
