@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {scalar} from 'linearly'
-import {computed, ref, watchEffect} from 'vue'
+import {computed, ref} from 'vue'
 
 import {useElementDrag} from '@/use/useElementDrag'
 
@@ -22,21 +22,39 @@ const knobStyle = computed(() => {
 const $slider = ref<HTMLElement | null>(null)
 
 const {dragging} = useElementDrag($slider, {
-	onPointerdown: onKnobMove,
-	onDrag: onKnobMove,
+	onPointerdown,
+	onDrag,
 })
 
-watchEffect(() => {
-	if (dragging.value) {
-		$slider.value!.focus()
+let knobOffset = 0
+
+function onPointerdown(e: PointerEvent) {
+	const target = e.target as HTMLElement
+
+	const isKnobPressed = target.classList.contains('knob')
+
+	if (isKnobPressed) {
+		const {left, right} = target.getBoundingClientRect()
+		const center = (left + right) / 2
+		knobOffset = center - e.clientX
+	} else {
+		knobOffset = 0
 	}
-})
 
-function onKnobMove(e: PointerEvent) {
+	onDrag(e)
+}
+
+function onDrag(e: PointerEvent) {
 	const {left, right} = $slider.value!.getBoundingClientRect()
 	const {clientX} = e
 
-	const newValue = scalar.fit(clientX, left, right, 0, props.duration)
+	const newValue = scalar.fit(
+		clientX + knobOffset,
+		left,
+		right,
+		0,
+		props.duration
+	)
 
 	emit('update:modelValue', newValue)
 }
@@ -72,14 +90,16 @@ function onKnobMove(e: PointerEvent) {
 	height calc(0.5 * var(--header-height))
 	background white
 	border-radius 50%
-	transform translate(-50%, -50%)
-	transition transform 0.1s steps(3)
+	transition scale 0.1s steps(3)
 	cursor ew-resize
-	will-change left, transform
+	scale 1
+	translate -50% -50%
+	will-change left, scale
+
+	@media (hover: hover)
+		&:hover
+			scale 1.2
 
 	.dragging &
-		transform translate(-50%, -50%) scale(1.4)
-
-	&:hover
-		transform translate(-50%, -50%) scale(1.2)
+		scale 1.4
 </style>

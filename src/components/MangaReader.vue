@@ -46,7 +46,7 @@ const $scrollable = ref<HTMLElement | null>(null)
 const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 	targetSpeed: computed(() => (isPlaying.value ? 100 : 0)),
 	onWheel(e) {
-		showNav.value = e.deltaY > 0
+		showNav.value = e.deltaY < 0
 		isPlaying.value = false
 	},
 	mapScroll(y) {
