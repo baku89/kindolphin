@@ -104,6 +104,6 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	pointer-events none
 	will-change visibility, transform
 	object-fit fill
-	background-image url('/assets/scroll_effect_line.png')
+	background-image url('/assets/scroll_effect_line.webp')
 	background-size 100% 100%
 </style>
