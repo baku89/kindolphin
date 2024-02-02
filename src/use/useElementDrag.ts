@@ -1,9 +1,17 @@
 import {MaybeRef, onMounted, readonly, ref, unref} from 'vue'
 
+export interface DragEvent {
+	clientX: number
+	clientY: number
+	movementX: number
+	movementY: number
+	target: HTMLElement
+}
+
 interface UseElementDragOptions {
-	onPointerdown?: (e: PointerEvent) => void
-	onDrag?: (e: PointerEvent) => void
-	onPointerup?: (e: PointerEvent) => void
+	onPointerdown?: (e: DragEvent) => void
+	onDrag?: (e: DragEvent) => void
+	onPointerup?: (e: DragEvent) => void
 }
 
 export function useElementDrag(
@@ -16,40 +24,85 @@ export function useElementDrag(
 		const $el = unref(el)
 		if (!$el) return
 
-		$el.addEventListener('pointerdown', onPointerdown)
+		$el.addEventListener('mousedown', onPointerdown)
+		$el.addEventListener('touchstart', onPointerdown)
 	})
 
-	function onPointerdown(e: PointerEvent) {
+	let prevX = 0,
+		prevY = 0
+
+	function onPointerdown(e: MouseEvent | TouchEvent) {
 		dragging.value = true
 
-		options.onPointerdown?.(e)
+		const clientX = 'clientX' in e ? e.clientX : e.touches[0].clientX
+		const clientY = 'clientY' in e ? e.clientY : e.touches[0].clientY
 
-		const target = e.target as HTMLElement
+		const event: DragEvent = {
+			clientX,
+			clientY,
+			movementX: 0,
+			movementY: 0,
+			target: e.target as HTMLElement,
+		}
 
-		target.setPointerCapture(e.pointerId)
+		prevX = clientX
+		prevY = clientY
 
-		target.addEventListener('pointermove', onDrag)
-		target.addEventListener('pointerup', onPointerup)
-		target.addEventListener('pointercancel', onPointerup)
-		target.addEventListener('pointerleave', onPointerup)
+		options.onPointerdown?.(event)
+
+		window.addEventListener('mousemove', onDrag)
+		window.addEventListener('touchmove', onDrag)
+
+		window.addEventListener('mouseup', onPointerup)
+		window.addEventListener('mouseleave', onPointerup)
+		window.addEventListener('touchcancel', onPointerup)
+		window.addEventListener('touchend', onPointerup)
 	}
 
-	function onDrag(e: PointerEvent) {
-		options.onDrag?.(e)
+	function onDrag(e: MouseEvent | TouchEvent) {
+		const clientX = 'clientX' in e ? e.clientX : e.touches[0].clientX
+		const clientY = 'clientY' in e ? e.clientY : e.touches[0].clientY
+
+		const movementX = clientX - prevX
+		const movementY = clientY - prevY
+
+		const event: DragEvent = {
+			clientX,
+			clientY,
+			movementX,
+			movementY,
+			target: e.target as HTMLElement,
+		}
+
+		prevX = clientX
+		prevY = clientY
+
+		options.onDrag?.(event)
 	}
 
-	function onPointerup(e: PointerEvent) {
+	function onPointerup(e: MouseEvent | TouchEvent) {
 		dragging.value = false
-		options.onPointerup?.(e)
 
-		const target = e.target as HTMLElement
+		const clientX = 'clientX' in e ? e.clientX : prevX
+		const clientY = 'clientY' in e ? e.clientY : prevY
 
-		target.releasePointerCapture(e.pointerId)
+		const event: DragEvent = {
+			clientX,
+			clientY,
+			movementX: 0,
+			movementY: 0,
+			target: e.target as HTMLElement,
+		}
 
-		target.removeEventListener('pointermove', onDrag)
-		target.removeEventListener('pointerup', onPointerup)
-		target.removeEventListener('pointercancel', onPointerup)
-		target.removeEventListener('pointerleave', onPointerup)
+		options.onPointerup?.(event)
+
+		window.removeEventListener('mousemove', onDrag)
+		window.removeEventListener('touchmove', onDrag)
+
+		window.removeEventListener('mouseup', onPointerup)
+		window.removeEventListener('mouseleave', onPointerup)
+		window.removeEventListener('touchcancel', onPointerup)
+		window.removeEventListener('touchend', onPointerup)
 	}
 
 	return {

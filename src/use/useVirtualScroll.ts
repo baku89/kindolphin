@@ -5,7 +5,7 @@ import {MaybeRef, readonly, Ref, ref} from 'vue'
 
 import {rafWithTimeDelta} from '@/utils'
 
-import {useElementDrag} from './useElementDrag'
+import {DragEvent, useElementDrag} from './useElementDrag'
 
 // 慣性スクロールを無効化するまでの指を動かさないでいる時間 (sec)
 const InertiaCancelDuration = 0.25
@@ -55,7 +55,7 @@ export function useVirtualScroll(
 		lastScrollDate = getNow()
 	}
 
-	function onDrag(e: PointerEvent) {
+	function onDrag(e: DragEvent) {
 		scrollY.value = options.mapScroll(scrollY.value - e.movementY)
 
 		const now = getNow()

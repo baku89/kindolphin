@@ -2,7 +2,7 @@
 import {scalar} from 'linearly'
 import {computed, ref} from 'vue'
 
-import {useElementDrag} from '@/use/useElementDrag'
+import {DragEvent, useElementDrag} from '@/use/useElementDrag'
 
 const props = defineProps<{
 	modelValue: number
@@ -28,13 +28,11 @@ const {dragging} = useElementDrag($slider, {
 
 let knobOffset = 0
 
-function onPointerdown(e: PointerEvent) {
-	const target = e.target as HTMLElement
-
-	const isKnobPressed = target.classList.contains('knob')
+function onPointerdown(e: DragEvent) {
+	const isKnobPressed = e.target.classList.contains('knob')
 
 	if (isKnobPressed) {
-		const {left, right} = target.getBoundingClientRect()
+		const {left, right} = e.target.getBoundingClientRect()
 		const center = (left + right) / 2
 		knobOffset = center - e.clientX
 	} else {
@@ -44,7 +42,7 @@ function onPointerdown(e: PointerEvent) {
 	onDrag(e)
 }
 
-function onDrag(e: PointerEvent) {
+function onDrag(e: DragEvent) {
 	const {left, right} = $slider.value!.getBoundingClientRect()
 	const {clientX} = e
 
