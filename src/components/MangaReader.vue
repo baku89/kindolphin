@@ -41,6 +41,7 @@ const $mangaWrapper = ref<HTMLElement | null>(null)
 const $scrollable = ref<HTMLElement | null>(null)
 
 const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
+	targetSpeed: computed(() => (isPlaying.value ? 100 : 0)),
 	onWheel(e) {
 		showNav.value = e.deltaY > 0
 	},

@@ -1,8 +1,13 @@
-import {MaybeRef, onMounted, readonly, ref, unref} from 'vue'
+import {useEventListener} from '@vueuse/core'
+import {scalar} from 'linearly'
+import {MaybeRef, readonly, Ref, ref} from 'vue'
+
+import {useElementDrag} from './useElementDrag'
 
 interface UseVirtualScrollOptions {
 	onWheel: (e: WheelEvent) => void
 	mapScroll: (y: number) => number
+	targetSpeed: Ref<number>
 }
 
 function getNow() {
@@ -16,15 +21,9 @@ export function useVirtualScroll(
 	const scrollY = ref(0)
 	let swipeSpeed = 0
 
-	onMounted(() => {
-		const $el = unref(el)
+	useEventListener(el, 'wheel', onWheel)
 
-		if (!$el) return
-
-		$el.addEventListener('wheel', onWheel)
-		$el.addEventListener('pointerdown', onPointerdown)
-	})
-
+	// Scroll by wheel
 	function onWheel(e: WheelEvent) {
 		swipeSpeed = 0
 
@@ -33,20 +32,18 @@ export function useVirtualScroll(
 		options.onWheel(e)
 	}
 
+	// Scroll by swipe
 	let lastScrollDate = getNow()
 
-	function onPointerdown(e: PointerEvent) {
+	useElementDrag(el, {
+		onPointerdown,
+		onDrag,
+		onPointerup,
+	})
+
+	function onPointerdown() {
 		swipeSpeed = 0
 		lastScrollDate = getNow()
-
-		const target = e.target as HTMLElement
-
-		target.setPointerCapture(e.pointerId)
-
-		target.addEventListener('pointermove', onDrag)
-		target.addEventListener('pointerup', onPointerup)
-		target.addEventListener('pointercancel', onPointerup)
-		target.addEventListener('pointerleave', onPointerup)
 	}
 
 	function onDrag(e: PointerEvent) {
@@ -56,21 +53,29 @@ export function useVirtualScroll(
 		const dt = now - lastScrollDate
 
 		if (dt > 0) {
-			swipeSpeed = e.movementY / dt
+			const currentSwipeSpeed = (swipeSpeed = e.movementY / dt)
+
+			swipeSpeed = currentSwipeSpeed
 		}
 
 		lastScrollDate = now
 	}
 
+	function onPointerup() {
+		lastScrollDate = getNow()
+		requestAnimationFrame(scrollByInertia)
+	}
+
+	// Inertial scrolling
 	function scrollByInertia() {
-		console.log('scrollByInertia', swipeSpeed, scrollY.value)
 		if (Math.abs(swipeSpeed) < 1) return
 
 		const now = getNow()
 		const dt = now - lastScrollDate
 
 		if (dt > 0) {
-			swipeSpeed *= 1 / (dt * 0.6 + 1)
+			const ratio = 1 - 1 / (dt * 0.5 + 1)
+			swipeSpeed = scalar.lerp(swipeSpeed, options.targetSpeed.value, ratio)
 
 			const delta = swipeSpeed * dt
 			scrollY.value = options.mapScroll(scrollY.value - delta)
@@ -78,18 +83,6 @@ export function useVirtualScroll(
 
 		lastScrollDate = now
 		requestAnimationFrame(scrollByInertia)
-	}
-
-	function onPointerup(e: PointerEvent) {
-		const target = e.target as HTMLElement
-
-		lastScrollDate = getNow()
-
-		requestAnimationFrame(scrollByInertia)
-
-		target.removeEventListener('pointermove', onDrag)
-		target.removeEventListener('pointerup', onPointerup)
-		target.removeEventListener('pointercancel', onPointerup)
 	}
 
 	function cancelInertia() {
