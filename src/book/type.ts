@@ -11,6 +11,7 @@ export interface Lyric {
 	duration: number
 	offset: vec2
 	size: vec2
+	src: string
 }
 
 export interface Book {

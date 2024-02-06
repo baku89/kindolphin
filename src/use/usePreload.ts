@@ -1,4 +1,3 @@
-import {toReactive} from '@vueuse/core'
 import {computed, ref, watch} from 'vue'
 
 export function usePreload() {
@@ -52,9 +51,9 @@ export function usePreload() {
 		xhr.send()
 	}
 
-	return toReactive({
+	return {
 		fetch: fetchResource,
 		progress,
 		done,
-	})
+	}
 }

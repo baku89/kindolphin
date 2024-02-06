@@ -5,22 +5,18 @@ import {BookHappeningJa} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
-import {usePreload} from '@/use/usePreload'
+import {usePreloadBook} from '@/use/usePreloadBook'
 
 import FooterButton from './FooterButton.vue'
 import PaneSettings from './PaneSettings.vue'
 
-const preload = usePreload()
+const preloadJa = usePreloadBook(BookHappeningJa)
 
 const settings = useAppSettingsStore()
 const ui = useUIStore()
 
 onMounted(() => {
-	setTimeout(() => {
-		BookHappeningJa.pages.forEach(page => {
-			preload.fetch(page.src, page.height)
-		})
-	}, 250)
+	setTimeout(preloadJa.load, 250)
 })
 
 const MangaReader = defineAsyncComponent(
@@ -32,7 +28,7 @@ const showThemeSettings = ref(false)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function openBook(id: string) {
-	if (preload.progress < 1 || id === '') return
+	if (preloadJa.progress < 1 || id === '') return
 
 	minimized.value = false
 }
@@ -67,11 +63,16 @@ function openBook(id: string) {
 					<img class="thumb-content" src="/assets/cover_happening.png" />
 					<div
 						class="book-loading var(--white)-semitransparent"
-						v-if="preload.progress < 1"
+						v-if="preloadJa.progress < 1"
 					>
-						<div class="message">{{ Math.round(preload.progress * 100) }}%</div>
+						<div class="message">
+							{{ Math.round(preloadJa.progress * 100) }}%
+						</div>
 						<div class="progress">
-							<div class="bar" :style="{width: preload.progress * 100 + '%'}" />
+							<div
+								class="bar"
+								:style="{width: preloadJa.progress * 100 + '%'}"
+							/>
 						</div>
 					</div>
 				</div>
@@ -79,7 +80,7 @@ function openBook(id: string) {
 					<h2>GIFマンガ <wbr />「HAPPENING」(1)</h2>
 					<h3>AC部</h3>
 					<div class="read-now">
-						{{ preload.progress < 1 ? ui.label.loading : ui.label.readNow }}
+						{{ preloadJa.progress < 1 ? ui.label.loading : ui.label.readNow }}
 					</div>
 					<div class="reading-progress">
 						<i class="fa fa-sharp fa-solid fa-circle" />
@@ -103,11 +104,16 @@ function openBook(id: string) {
 					<img class="thumb-content" src="/assets/cover_happening_en.png" />
 					<div
 						class="book-loading var(--white)-semitransparent"
-						v-if="preload.progress < 1"
+						v-if="preloadJa.progress < 1"
 					>
-						<div class="message">{{ Math.round(preload.progress * 100) }}%</div>
+						<div class="message">
+							{{ Math.round(preloadJa.progress * 100) }}%
+						</div>
 						<div class="progress">
-							<div class="bar" :style="{width: preload.progress * 100 + '%'}" />
+							<div
+								class="bar"
+								:style="{width: preloadJa.progress * 100 + '%'}"
+							/>
 						</div>
 					</div>
 				</div>
@@ -119,7 +125,7 @@ function openBook(id: string) {
 					</h2>
 					<h3>AC-bu</h3>
 					<div class="read-now">
-						{{ preload.progress < 1 ? ui.label.loading : ui.label.readNow }}
+						{{ preloadJa.progress < 1 ? ui.label.loading : ui.label.readNow }}
 					</div>
 					<div class="reading-progress">
 						<i class="fa fa-sharp fa-solid fa-circle" />
@@ -173,7 +179,7 @@ function openBook(id: string) {
 			<FooterButton :label="ui.label.help" icon="circle-question" />
 		</footer>
 		<MangaReader
-			v-if="preload.progress == 1"
+			v-if="preloadJa.progress == 1"
 			class="reader"
 			:class="{minimized}"
 			:book="BookHappeningJa"
