@@ -2,7 +2,7 @@
 import {range} from 'lodash'
 import {onMounted, ref} from 'vue'
 
-import {mangaWidth} from '@/manga'
+import {mangaWidth} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
 
 const $canvas = ref<HTMLCanvasElement | null>(null)

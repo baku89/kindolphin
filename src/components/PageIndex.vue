@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {defineAsyncComponent, onMounted, ref} from 'vue'
 
-import {mangaPages} from '@/manga'
+import {BookHappeningJa} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
@@ -17,7 +17,7 @@ const ui = useUIStore()
 
 onMounted(() => {
 	setTimeout(() => {
-		mangaPages.forEach(page => {
+		BookHappeningJa.pages.forEach(page => {
 			preload.fetch(page.src, page.height)
 		})
 	}, 250)
@@ -176,7 +176,7 @@ function openBook(id: string) {
 			v-if="preload.progress == 1"
 			class="reader"
 			:class="{minimized}"
-			:mangaPages="mangaPages"
+			:book="BookHappeningJa"
 			:scrollTrack="scrollTrack"
 			@click="openBook('happening-ja')"
 			v-model:minimized="minimized"

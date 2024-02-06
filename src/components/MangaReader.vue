@@ -3,11 +3,11 @@ import {useElementSize, useMagicKeys, watchOnce, whenever} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {computed, ref, watch} from 'vue'
 
+import {Book, mangaWidth} from '@/book'
 import Lyrics from '@/components/Lyrics.vue'
 import Manga from '@/components/Manga.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
-import {MangaPage, mangaWidth} from '@/manga'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, Keyframe, lookupTime, lookupValue} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
@@ -15,7 +15,7 @@ import {useVirtualScroll} from '@/use/useVirtualScroll'
 
 const props = defineProps<{
 	minimized: boolean
-	mangaPages: MangaPage[]
+	book: Book
 	scrollTrack: Keyframe<number>[]
 }>()
 
@@ -60,7 +60,7 @@ const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 
 const mangaScale = computed(() => viewWidth.value / mangaWidth)
 const mangaTotalHeight = computed(() => {
-	return props.mangaPages.reduce((acc, page) => acc + page.height, 0)
+	return props.book.pages.reduce((acc, page) => acc + page.height, 0)
 })
 const maxScrollY = computed(
 	() => mangaTotalHeight.value * mangaScale.value - viewHeight.value
@@ -228,8 +228,9 @@ whenever(space, togglePlay)
 				@click="onClickManga"
 			/>
 			<div class="manga-content" ref="$mangaWrapper">
-				<Manga class="manga" :pages="mangaPages" :scroll="scrollY" />
+				<Manga class="manga" :pages="book.pages" :scroll="scrollY" />
 				<Lyrics
+					:lyrics="book.lyrics"
 					:seekbarPosition="seekbarPosition"
 					:scroll="scrollY"
 					:currentTime="currentTime"

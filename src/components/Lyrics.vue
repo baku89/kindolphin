@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
 
-import {Lyric, useLyrics} from '@/use/useLyrics'
+import {Lyric} from '@/book'
+import {useLyrics} from '@/use/useLyrics'
 
 import Bang from './Bang.vue'
 
 const props = defineProps<{
+	lyrics: Lyric[]
 	scroll: number
 	currentTime: number
 	seekbarPosition: number
 }>()
 
-const {getLyricsBetween} = useLyrics()
+const {getLyricsBetween} = useLyrics(computed(() => props.lyrics))
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 

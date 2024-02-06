@@ -1,16 +1,14 @@
-import {Lyrics} from '@/lyrics'
+import {Ref} from 'vue'
 
-type ArrayElement<ArrayType extends readonly unknown[]> =
-	ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+import {Lyric} from '@/book'
 
-export type Lyric = ArrayElement<typeof Lyrics>
-
-export function useLyrics() {
+export function useLyrics(lyrics: Ref<Lyric[]>) {
 	function getLyricsBetween(inTime: number, outTime: number) {
-		return Lyrics.filter(lyric => inTime < lyric.time && lyric.time <= outTime)
+		return lyrics.value.filter(
+			lyric => inTime < lyric.time && lyric.time <= outTime
+		)
 	}
 	return {
-		lyrics: Lyrics,
 		getLyricsBetween,
 	}
 }
