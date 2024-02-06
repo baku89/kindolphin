@@ -80,7 +80,7 @@ function getURLOfSprite(src: string, frame: number) {
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
-		if (prevTime < time && Math.abs(time - prevTime) < 1 / 30) {
+		if (prevTime < time && Math.abs(time - prevTime) < 1 / 2) {
 			// Add new lyrics that have just became visible
 			const newLyrics = getLyricsBetween(prevTime, time)
 
