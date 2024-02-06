@@ -17,7 +17,11 @@ const props = defineProps<{
 
 const {getLyricsBetween} = useLyrics(computed(() => props.lyrics))
 
-const LyricAnimationDuration = 5
+const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(
+	i => i * 255
+)
+
+const LyricAnimationDuration = thresholds.length - 1
 const settings = useAppSettingsStore()
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
@@ -46,16 +50,24 @@ function getURLOfSprite(src: string, frame: number) {
 	if (!spriteCache.get(src)!.has(frame)) {
 		const img = images.value.get(src)!
 
-		const b = [0.6, 1.2, 1, 0.85, 0.6, 0.51][frame]
+		const threshold = thresholds[frame]
 
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-		ctx.filter = `brightness(${b}) contrast(100)`
+		ctx.globalCompositeOperation = 'source-over'
 		ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height)
 
-		ctx.filter = 'none'
+		const pix = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+		for (let i = 0; i < pix.data.length; i += 4) {
+			pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
+			// pix.data[i] = pix.data[i + 1] = pix.data[i + 2] = 255
+		}
+
+		ctx.putImageData(pix, 0, 0)
+
 		ctx.fillStyle = settings.currentTheme.primary
-		ctx.globalCompositeOperation = 'multiply'
+		ctx.globalCompositeOperation = 'source-in'
 		ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
 		const url = ctx.canvas.toDataURL()
@@ -68,7 +80,7 @@ function getURLOfSprite(src: string, frame: number) {
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
-		if (prevTime < time) {
+		if (prevTime < time && Math.abs(time - prevTime) < 1 / 30) {
 			// Add new lyrics that have just became visible
 			const newLyrics = getLyricsBetween(prevTime, time)
 
@@ -159,8 +171,6 @@ useRafFn(() => {
 .lyric
 	position absolute
 	display block
-	background-color transparent
-	mask-type luminance
 	// opacity 0.5
 	// mix-blend-mode lighten
 	top 0
