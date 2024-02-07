@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {useRafFn} from '@vueuse/core'
 import chroma from 'chroma-js'
-import {computed, ref, watch} from 'vue'
+import {computed, ref, watch, watchEffect} from 'vue'
 
 import {Lyric} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -31,53 +31,49 @@ const primaryRGB = computed(() => {
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
-const images = computed(() => {
-	return new Map<string, HTMLImageElement>(
+let images: Map<string, HTMLImageElement> = new Map()
+watchEffect(() => {
+	images = new Map(
 		props.lyrics.map(lyric => {
 			const img = new Image()
 			img.src = lyric.src
-			return [lyric.src, img] as const
+			return [lyric.src, img]
 		})
 	)
 })
 
-const ctx = document.createElement('canvas').getContext('2d')!
+const lastDrawnLyric = new WeakMap<
+	CanvasRenderingContext2D,
+	{src: string; frame: number}
+>()
 
-ctx.canvas.width = 145
-ctx.canvas.height = 229
-
-const spriteCache = new Map<string, Map<number, string>>()
-function getURLOfSprite(src: string, frame: number) {
-	if (!spriteCache.has(src)) {
-		spriteCache.set(src, new Map())
+function drawLyric(ctx: CanvasRenderingContext2D, src: string, frame: number) {
+	const lastDrawn = lastDrawnLyric.get(ctx)
+	if (lastDrawn && lastDrawn.src === src && lastDrawn.frame === frame) {
+		return
 	}
 
-	if (!spriteCache.get(src)!.has(frame)) {
-		const img = images.value.get(src)!
+	const img = images.get(src)!
+	const threshold = thresholds[frame]
+	const [r, g, b] = primaryRGB.value
 
-		const threshold = thresholds[frame]
-		const [r, g, b] = primaryRGB.value
+	ctx.canvas.width = 145
+	ctx.canvas.height = 229
+	ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height)
 
-		ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height)
+	const pix = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-		const pix = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-		for (let i = 0; i < pix.data.length; i += 4) {
-			pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
-			pix.data[i] = r
-			pix.data[i + 1] = g
-			pix.data[i + 2] = b
-		}
-
-		ctx.putImageData(pix, 0, 0)
-
-		const url = ctx.canvas.toDataURL()
-		spriteCache.get(src)!.set(frame, url)
+	for (let i = 0; i < pix.data.length; i += 4) {
+		pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
+		pix.data[i] = r
+		pix.data[i + 1] = g
+		pix.data[i + 2] = b
 	}
 
-	return spriteCache.get(src)!.get(frame)
+	ctx.putImageData(pix, 0, 0)
+
+	lastDrawnLyric.set(ctx, {src, frame})
 }
-
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
@@ -106,12 +102,9 @@ const visibleLyrics = ref<(Lyric & {start: number})[]>([])
 
 const visibleLyricSprites = computed(() => {
 	return visibleLyrics.value.map(lyric => {
-		const elapsed = now.value - lyric.start
-		const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
-		const src = getURLOfSprite(lyric.src, frame)
-
 		return {
-			src,
+			start: lyric.start,
+			src: lyric.src,
 			style: {
 				left: `calc(${lyric.offset[0]} * var(--px))`,
 				transform: `translate3d(0, calc(${lyric.offset[1]} * var(--px) - ${props.scroll}px), 0)`,
@@ -128,9 +121,35 @@ const seekbarStyle = computed(() => {
 	}
 })
 
-const now = ref(Date.now() / 1000)
+const $canvases = ref<HTMLCanvasElement[]>([])
+
+const contexts = new WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>()
+
 useRafFn(() => {
-	now.value = Date.now() / 1000
+	const now = Date.now() / 1000
+
+	for (let i = 0; i < $canvases.value.length; i++) {
+		const canvas = $canvases.value[i]
+
+		let ctx: CanvasRenderingContext2D | undefined = contexts.get(canvas)
+
+		if (!ctx) {
+			ctx = canvas.getContext('2d') ?? undefined
+			if (!ctx) {
+				throw new Error('Failed to get 2d context')
+			}
+			contexts.set(canvas, ctx)
+		}
+
+		const sprite = visibleLyricSprites.value.find(
+			sprite => sprite.src === canvas.dataset.src
+		)!
+
+		const elapsed = now - sprite.start
+		const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
+
+		drawLyric(ctx, canvas.dataset.src!, frame)
+	}
 })
 </script>
 
@@ -138,11 +157,12 @@ useRafFn(() => {
 	<div class="seekbar" :style="seekbarStyle" />
 	<Bang ref="$bang" :style="seekbarStyle" />
 	<div class="lyric-wrapper" ref="$lyrics">
-		<img
+		<canvas
 			class="lyric"
 			v-for="(sprite, i) in visibleLyricSprites"
+			:data-src="sprite.src"
 			:key="i"
-			:src="sprite.src"
+			ref="$canvases"
 			:style="sprite.style"
 		/>
 	</div>
