@@ -133,7 +133,7 @@ const currentTimecode = computed(() => {
 
 const isPlaying = ref(false)
 
-const audio = useAudio('./assets/happening.mp3', volume)
+const audio = useAudio('./assets/happening.mp3', {volume})
 
 watch(
 	currentTime,

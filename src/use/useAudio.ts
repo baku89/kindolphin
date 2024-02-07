@@ -9,7 +9,7 @@ function getNowSeconds() {
 	return Date.now() / 1000
 }
 
-export function useAudio(src: string, volume: Ref<number>) {
+export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 	const maxRate = 1
 
 	const scratch = ref<(time: number) => void>(() => {})
