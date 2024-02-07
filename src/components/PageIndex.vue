@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {defineAsyncComponent, onMounted, ref} from 'vue'
 
-import {BookHappeningJa} from '@/book'
+import {Book, BookHappeningEn, BookHappeningJa} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
@@ -11,12 +11,23 @@ import FooterButton from './FooterButton.vue'
 import PaneSettings from './PaneSettings.vue'
 
 const preloadJa = usePreloadBook(BookHappeningJa)
+const preloadEn = usePreloadBook(BookHappeningEn)
 
 const settings = useAppSettingsStore()
 const ui = useUIStore()
 
+const shelf: Record<string, Book> = {
+	'happening-ja': BookHappeningJa,
+	'happening-en': BookHappeningEn,
+}
+
+const currentBookId = ref(
+	settings.lang === 'ja' ? 'happening-ja' : 'happening-en'
+)
+
 onMounted(() => {
 	setTimeout(preloadJa.load, 250)
+	setTimeout(preloadEn.load, 250)
 })
 
 const MangaReader = defineAsyncComponent(
@@ -30,6 +41,7 @@ const showThemeSettings = ref(false)
 function openBook(id: string) {
 	if (preloadJa.progress < 1 || id === '') return
 
+	currentBookId.value = id
 	minimized.value = false
 }
 </script>
@@ -38,7 +50,7 @@ function openBook(id: string) {
 	<div class="PageIndex" :class="{invert: settings.currentTheme.invert}">
 		<header class="header">
 			<div class="left">
-				<button @click="openBook('happening-ja')">
+				<button @click="minimized = false">
 					<i class="fa fa-brands fa-readme" />
 				</button>
 			</div>
@@ -182,9 +194,9 @@ function openBook(id: string) {
 			v-if="preloadJa.progress == 1"
 			class="reader"
 			:class="{minimized}"
-			:book="BookHappeningJa"
+			:book="shelf[currentBookId]"
 			:scrollTrack="scrollTrack"
-			@click="openBook('happening-ja')"
+			@click="minimized = false"
 			v-model:minimized="minimized"
 		/>
 		<div class="bg-overlay"></div>
