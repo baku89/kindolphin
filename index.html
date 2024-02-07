@@ -47,6 +47,26 @@
 	<link rel="stylesheet" href="./src/style.styl" />
 
 	<title>HAPPENING by group_inou</title>
+
+	<script>
+		const cssVars = JSON.parse(localStorage.getItem('jp.g-a-l.happening.cssVars') || '{}')
+		const invert = JSON.parse(localStorage.getItem('jp.g-a-l.happening.invert') || 'false')
+
+		const html = document.documentElement
+		for (const key in cssVars) {
+			html.style.setProperty(key, cssVars[key])
+		}
+
+		html.classList.toggle('invert', invert)
+		html.style.setProperty('--black', invert ? 'white' : 'black')
+		html.style.setProperty('--white', invert ? 'black' : 'white')
+
+		const metaThemeColor = document.querySelector('meta[name=theme-color]')
+		if (metaThemeColor) {
+			metaThemeColor.setAttribute('content', cssVars['--theme-bg'])
+		}
+	</script>
+	
 </head>
 
 <body>

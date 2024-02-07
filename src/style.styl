@@ -1,7 +1,7 @@
 @import './reset.styl'
 
 :root
-	// UI等の基準値
+	//UI等の基準値
 	font-size 'clamp(0.8px, var(--px), 1.5px)' % null
 	--theme-bg #e5e0cf
 	--theme-ink #4b3876
@@ -9,7 +9,7 @@
 	--black black
 	--var(--white) var(--white)
 	--manga-width 'min(100vw, 60vh)' % null
-	// 漫画座標系の基準値
+	//漫画座標系の基準値
 	--px calc((var(--manga-width) / 324))
 	--nav-margin-vert 5rem
 	--nav-margin-horiz 10rem
@@ -82,14 +82,14 @@ button
 	background var(--theme-bg)
 	mix-blend-mode darken
 
-	body.invert &
+	html.invert &
 		mix-blend-mode lighten
 
 .ink-overlay
 	background var(--theme-ink)
 	mix-blend-mode lighten
 
-	body.invert &
+	html.invert &
 		mix-blend-mode darken
 
 .fa
@@ -109,5 +109,5 @@ a
 	background-image url('data:image/webp;base64,UklGRlIAAABXRUJQVlA4WAoAAAAQAAAABwAABwAAQUxQSBMAAAABDzD/ERFCIJBQ5jTLxBH9jywDAFZQOCAYAAAAMAEAnQEqCAAIAAIANCWkAANwAP77lAAA')
 	background-size 8rem 8rem
 
-body.invert img
+html.invert :is(img, .ramp)
 	filter invert(1)

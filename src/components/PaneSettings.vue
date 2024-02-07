@@ -57,7 +57,7 @@ const settings = useAppSettingsStore()
 		background var(--theme-bg)
 		mix-blend-mode darken
 
-		body.invert &
+		html.invert &
 			mix-blend-mode lighten
 
 .PaneSettings

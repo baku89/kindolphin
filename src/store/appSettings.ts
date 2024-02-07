@@ -57,16 +57,24 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 	watchEffect(() => {
 		const {invert} = currentTheme.value
 
+		const lsCache: Record<string, string> = {}
+
+		const html = document.documentElement
+
 		for (const [key, value] of Object.entries(currentTheme.value)) {
 			if (typeof value === 'boolean') continue
 
 			const varName = '--theme-' + key
-			document.body.style.setProperty(varName, value)
+			html.style.setProperty(varName, value)
+			lsCache[varName] = value
 		}
 
-		document.body.classList.toggle('invert', invert)
-		document.body.style.setProperty('--black', invert ? 'white' : 'black')
-		document.body.style.setProperty('--white', invert ? 'black' : 'white')
+		html.classList.toggle('invert', invert)
+		html.style.setProperty('--black', invert ? 'white' : 'black')
+		html.style.setProperty('--white', invert ? 'black' : 'white')
+
+		localStorage.setItem('jp.g-a-l.happening.cssVars', JSON.stringify(lsCache))
+		localStorage.setItem('jp.g-a-l.happening.invert', JSON.stringify(invert))
 
 		// Change the theme-color in the meta tag
 		const metaThemeColor = document.querySelector('meta[name=theme-color]')
