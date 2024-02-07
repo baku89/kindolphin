@@ -61,6 +61,7 @@ function drawLyric(ctx: CanvasRenderingContext2D, src: string, frame: number) {
 
 	ctx.canvas.width = width
 	ctx.canvas.height = height
+
 	ctx.drawImage(img, 0, 0, width, height)
 
 	const pix = ctx.getImageData(0, 0, width, height)
@@ -80,6 +81,8 @@ function drawLyric(ctx: CanvasRenderingContext2D, src: string, frame: number) {
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
+		const lyrics = [...visibleLyrics.value]
+
 		const doAnimate = prevTime < time && time - prevTime < 1 / 10
 		let timeLower: number, timeUpper: number
 
@@ -96,16 +99,15 @@ watch(
 
 		const start = doAnimate ? Date.now() / 1000 : -1
 
-		visibleLyrics.value.push(...newLyrics.map(l => ({...l, start})))
+		lyrics.push(...newLyrics.map(l => ({...l, start})))
 
 		if (doAnimate) {
 			for (const lyric of newLyrics) {
 				$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
 			}
 		}
-
 		// Remove lyrics that are no longer visible
-		visibleLyrics.value = visibleLyrics.value.filter(
+		visibleLyrics.value = lyrics.filter(
 			lyric => time - 8 <= lyric.time && lyric.time <= time
 		)
 	},
