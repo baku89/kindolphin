@@ -13,35 +13,6 @@ export function getReversedAudioBuffer(
 	return revBuf
 }
 
-export function withTimeDelta<Args extends unknown[], ReturnType>(
-	fnWithTimeDelta: (delta: number, ...args: Args) => ReturnType
-): [fn: (...args: Args) => ReturnType, reset: () => void] {
-	let lastTime: null | number = null
-
-	const fn = (...args: Args) => {
-		const now = Date.now() / 1000
-		const delta = lastTime !== null ? now - lastTime : 0
-		lastTime = now
-		return fnWithTimeDelta(delta, ...args)
-	}
-
-	return [fn, () => (lastTime = null)]
-}
-
-export function rafWithTimeDelta(fn: (delta: number) => void) {
-	let lastTime: null | number = null
-
-	const loop = () => {
-		const now = Date.now() / 1000
-		const delta = lastTime !== null ? now - lastTime : 0
-		lastTime = now
-		fn(delta)
-		requestAnimationFrame(loop)
-	}
-
-	requestAnimationFrame(loop)
-}
-
 export function binarySearchBound<T, U>(
 	arr: T[],
 	lower: U,

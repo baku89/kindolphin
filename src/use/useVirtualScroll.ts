@@ -1,9 +1,7 @@
-import {useEventListener} from '@vueuse/core'
+import {useEventListener, useRafFn} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {debounce} from 'lodash'
 import {MaybeRef, readonly, Ref, ref} from 'vue'
-
-import {rafWithTimeDelta} from '@/utils'
 
 import {DragEvent, useElementDrag} from './useElementDrag'
 
@@ -92,7 +90,9 @@ export function useVirtualScroll(
 	}
 
 	// Inertial scrolling
-	rafWithTimeDelta(dt => {
+	useRafFn(({delta}) => {
+		const dt = delta / 1000
+
 		// Lerp inertia speed to swipe speed
 		if (dt > 0) {
 			const directionChanged = swipeSpeed * inertiaSpeed < 0
