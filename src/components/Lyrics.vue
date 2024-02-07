@@ -76,17 +76,29 @@ function drawLyric(ctx: CanvasRenderingContext2D, src: string, frame: number) {
 
 	lastDrawnLyric.set(ctx, {src, frame})
 }
+
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
-		if (prevTime < time) {
-			// Add new lyrics that have just became visible
-			const newLyrics = getLyricsBetween(prevTime, time)
+		const doAnimate = prevTime < time && time - prevTime < 1 / 10
+		let timeLower: number, timeUpper: number
 
-			const start = Date.now() / 1000
+		if (time > prevTime) {
+			timeLower = Math.max(prevTime, time - 8)
+			timeUpper = time
+		} else {
+			timeLower = time - 8
+			timeUpper = Math.max(prevTime, time - 8) - 8
+		}
 
-			visibleLyrics.value.push(...newLyrics.map(l => ({...l, start})))
+		// Add new lyrics that have just became visible
+		const newLyrics = getLyricsBetween(timeLower, timeUpper)
 
+		const start = doAnimate ? Date.now() / 1000 : -1
+
+		visibleLyrics.value.push(...newLyrics.map(l => ({...l, start})))
+
+		if (doAnimate) {
 			for (const lyric of newLyrics) {
 				$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
 			}

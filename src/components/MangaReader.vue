@@ -327,8 +327,6 @@ whenever(space, togglePlay)
 	width 100%
 	height 100%
 
-
-
 .footer
 	box-sizing content-box
 	height var(--header-height)
