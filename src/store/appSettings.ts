@@ -54,6 +54,8 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 
 	const currentTheme = computed(() => themes.value[themeIndex.value])
 
+	const lastPlayedTime = useLocalStorage('jp.g-a-l.happening.lastPlayedTime', 0)
+
 	watchEffect(() => {
 		const {invert} = currentTheme.value
 
@@ -83,5 +85,5 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		}
 	})
 
-	return {muted, themes, themeIndex, currentTheme, lang}
+	return {muted, themes, themeIndex, currentTheme, lang, lastPlayedTime}
 })

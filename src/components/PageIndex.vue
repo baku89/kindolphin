@@ -8,11 +8,14 @@ import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
 import {usePreloadBook} from '@/use/usePreloadBook'
 
+import CircleProgress from './CircleProgress.vue'
 import FooterButton from './FooterButton.vue'
 import PaneSettings from './PaneSettings.vue'
 
 const preloadJa = usePreloadBook(BookHappeningJa)
 const preloadEn = usePreloadBook(BookHappeningEn)
+
+const audioDuration = 164.4930612244898
 
 const settings = useAppSettingsStore()
 const ui = useUIStore()
@@ -116,21 +119,11 @@ onMounted(async () => {
 					<div class="read-now">
 						{{ preloadJa.progress < 1 ? ui.label.loading : ui.label.readNow }}
 					</div>
-					<div class="reading-progress">
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-					</div>
+					<CircleProgress
+						class="reading-progress"
+						:progress="settings.lastPlayedTime"
+						:total="audioDuration"
+					/>
 				</div>
 			</a>
 			<a class="book" @click="openBook('happening-en')" v-hover>
@@ -161,17 +154,11 @@ onMounted(async () => {
 					<div class="read-now">
 						{{ preloadJa.progress < 1 ? ui.label.loading : ui.label.readNow }}
 					</div>
-					<div class="reading-progress">
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-solid fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-						<i class="fa fa-sharp fa-regular fa-circle" />
-					</div>
+					<CircleProgress
+						class="reading-progress"
+						:progress="settings.lastPlayedTime"
+						:total="audioDuration"
+					/>
 				</div>
 			</a>
 			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank" v-hover>

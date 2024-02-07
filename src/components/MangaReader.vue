@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import {useElementSize, useMagicKeys, watchOnce, whenever} from '@vueuse/core'
+import {
+	useElementSize,
+	useMagicKeys,
+	watchOnce,
+	watchThrottled,
+	whenever,
+} from '@vueuse/core'
 import {scalar} from 'linearly'
-import {computed, ref, watch} from 'vue'
+import {clamp} from 'lodash'
+import {computed, onMounted, ref, watch} from 'vue'
 
 import {Book, mangaWidth} from '@/book'
 import Lyrics from '@/components/Lyrics.vue'
@@ -84,9 +91,27 @@ const currentTime = computed({
 		const y =
 			lookupValue(time * FPS, props.scrollTrack) * mangaScale.value -
 			seekbarPosition.value * mangaScale.value
-
 		scrollTo(y)
 	},
+})
+
+// Restore scroll position
+onMounted(() => {
+	if (
+		0 < settings.lastPlayedTime &&
+		settings.lastPlayedTime < audioDuration - 10
+	) {
+		currentTime.value = settings.lastPlayedTime
+	}
+
+	// Save it
+	watchThrottled(
+		currentTime,
+		time => {
+			settings.lastPlayedTime = clamp(time, 0, audioDuration)
+		},
+		{throttle: 500}
+	)
 })
 
 // Timeline, Timecode = 上下のスクロール幅を加味した時間基準
