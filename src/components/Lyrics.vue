@@ -54,14 +54,16 @@ function drawLyric(ctx: CanvasRenderingContext2D, src: string, frame: number) {
 	}
 
 	const img = images.get(src)!
+
 	const threshold = thresholds[frame]
 	const [r, g, b] = primaryRGB.value
+	const {width, height} = img
 
-	ctx.canvas.width = 145
-	ctx.canvas.height = 229
-	ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height)
+	ctx.canvas.width = width
+	ctx.canvas.height = height
+	ctx.drawImage(img, 0, 0, width, height)
 
-	const pix = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
+	const pix = ctx.getImageData(0, 0, width, height)
 
 	for (let i = 0; i < pix.data.length; i += 4) {
 		pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
@@ -115,57 +117,67 @@ const visibleLyricSprites = computed(() => {
 	})
 })
 
+watch(visibleLyricSprites, updateLyrics, {flush: 'sync'})
+
 const seekbarStyle = computed(() => {
 	return {
 		top: `calc(${props.seekbarPosition} * var(--px))`,
 	}
 })
 
-const $canvases = ref<HTMLCanvasElement[]>([])
+const $lyrics = ref<HTMLElement | null>(null)
+const contexts: CanvasRenderingContext2D[] = []
 
-const contexts = new WeakMap<HTMLCanvasElement, CanvasRenderingContext2D>()
+function updateLyrics() {
+	if ($lyrics.value === null) return
 
-useRafFn(() => {
 	const now = Date.now() / 1000
 
-	for (let i = 0; i < $canvases.value.length; i++) {
-		const canvas = $canvases.value[i]
+	for (let i = 0; i < visibleLyricSprites.value.length; i++) {
+		const sprite = visibleLyricSprites.value[i]
 
-		let ctx: CanvasRenderingContext2D | undefined = contexts.get(canvas)
+		let ctx
+		if (i >= contexts.length) {
+			const canvas = document.createElement('canvas')
+			canvas.classList.add('lyric')
+			$lyrics.value.appendChild(canvas)
 
-		if (!ctx) {
 			ctx = canvas.getContext('2d') ?? undefined
 			if (!ctx) {
 				throw new Error('Failed to get 2d context')
 			}
-			contexts.set(canvas, ctx)
+
+			contexts.push(ctx)
+		} else {
+			ctx = contexts[i]
 		}
 
-		const sprite = visibleLyricSprites.value.find(
-			sprite => sprite.src === canvas.dataset.src
-		)!
+		const {canvas} = ctx
 
 		const elapsed = now - sprite.start
 		const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
 
-		drawLyric(ctx, canvas.dataset.src!, frame)
+		canvas.style.left = sprite.style.left
+		canvas.style.transform = sprite.style.transform
+		canvas.style.width = sprite.style.width
+		canvas.style.height = sprite.style.height
+		canvas.style.visibility = 'visible'
+
+		drawLyric(ctx, sprite.src, frame)
 	}
-})
+
+	for (let i = visibleLyricSprites.value.length; i < contexts.length; i++) {
+		contexts[i].canvas.style.visibility = 'hidden'
+	}
+}
+
+useRafFn(updateLyrics)
 </script>
 
 <template>
 	<div class="seekbar" :style="seekbarStyle" />
 	<Bang ref="$bang" :style="seekbarStyle" />
-	<div class="lyric-wrapper" ref="$lyrics">
-		<canvas
-			class="lyric"
-			v-for="(sprite, i) in visibleLyricSprites"
-			:data-src="sprite.src"
-			:key="i"
-			ref="$canvases"
-			:style="sprite.style"
-		/>
-	</div>
+	<div class="lyric-wrapper" ref="$lyrics" />
 </template>
 
 <style lang="stylus" scoped>
@@ -186,7 +198,7 @@ useRafFn(() => {
 .lyric-wrapper
 	position relative
 
-.lyric
+:deep(.lyric)
 	position absolute
 	display block
 	top 0

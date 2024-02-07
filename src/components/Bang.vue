@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import {useRafFn} from '@vueuse/core'
 import {range} from 'lodash'
 import {onMounted, ref} from 'vue'
 
@@ -25,8 +26,6 @@ onMounted(() => {
 	canvas.height = 120
 
 	ctx = canvas.getContext('2d')!
-
-	update()
 })
 
 const spriteData = {
@@ -58,7 +57,7 @@ function bangAt(x: number) {
 	})
 }
 
-function update() {
+useRafFn(() => {
 	if (!ctx) return
 
 	ctx.clearRect(0, 0, mangaWidth, ctx.canvas.height)
@@ -81,9 +80,7 @@ function update() {
 	ctx.globalCompositeOperation = 'source-in'
 	ctx.fillStyle = settings.currentTheme.primary
 	ctx.fillRect(0, 0, mangaWidth, ctx.canvas.height)
-
-	requestAnimationFrame(update)
-}
+})
 
 defineExpose({
 	bangAt,
