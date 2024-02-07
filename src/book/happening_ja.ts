@@ -592,7 +592,7 @@ export const BookHappeningJa: Book = {
 			...l,
 			offset,
 			size,
-			src: `./assets/lyrics_ja/lyrics_ja_${i.toString().padStart(3, '0')}.webp`,
+			src: `/assets/lyrics_ja/lyrics_ja_${i.toString().padStart(3, '0')}.webp`,
 		}
 	}),
 }

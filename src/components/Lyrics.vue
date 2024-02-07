@@ -9,6 +9,10 @@ import {useLyrics} from '@/use/useLyrics'
 
 import Bang from './Bang.vue'
 
+const worker = new Worker(new URL('./Lyrics.worker.ts', import.meta.url), {
+	type: 'module',
+})
+
 const props = defineProps<{
 	lyrics: Lyric[]
 	scroll: number
@@ -25,58 +29,21 @@ const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 const LyricAnimationDuration = thresholds.length - 1
 const settings = useAppSettingsStore()
 
-const primaryRGB = computed(() => {
-	return chroma(settings.currentTheme.primary).rgb()
-})
-
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
-let images: Map<string, HTMLImageElement> = new Map()
 watchEffect(() => {
-	images = new Map(
-		props.lyrics.map(lyric => {
-			const img = new Image()
-			img.src = lyric.src
-			return [lyric.src, img]
-		})
-	)
+	worker.postMessage({
+		type: 'preloadImages',
+		data: props.lyrics.map(lyric => lyric.src),
+	})
 })
 
-const lastDrawnLyric = new WeakMap<
-	CanvasRenderingContext2D,
-	{src: string; frame: number}
->()
-
-function drawLyric(ctx: CanvasRenderingContext2D, src: string, frame: number) {
-	const lastDrawn = lastDrawnLyric.get(ctx)
-	if (lastDrawn && lastDrawn.src === src && lastDrawn.frame === frame) {
-		return
-	}
-
-	const img = images.get(src)!
-
-	const threshold = thresholds[frame]
-	const [r, g, b] = primaryRGB.value
-	const {width, height} = img
-
-	ctx.canvas.width = width
-	ctx.canvas.height = height
-
-	ctx.drawImage(img, 0, 0, width, height)
-
-	const pix = ctx.getImageData(0, 0, width, height)
-
-	for (let i = 0; i < pix.data.length; i += 4) {
-		pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
-		pix.data[i] = r
-		pix.data[i + 1] = g
-		pix.data[i + 2] = b
-	}
-
-	ctx.putImageData(pix, 0, 0)
-
-	lastDrawnLyric.set(ctx, {src, frame})
-}
+watchEffect(() => {
+	worker.postMessage({
+		type: 'setPrimaryColor',
+		data: chroma(settings.currentTheme.primary).rgb(),
+	})
+})
 
 watch(
 	() => props.currentTime,
@@ -121,6 +88,7 @@ const visibleLyricSprites = computed(() => {
 		return {
 			start: lyric.start,
 			src: lyric.src,
+			size: lyric.size,
 			style: {
 				left: `calc(${lyric.offset[0]} * var(--px))`,
 				transform: `translate3d(0, calc(${lyric.offset[1]} * var(--px) - ${props.scroll}px), 0)`,
@@ -140,33 +108,33 @@ const seekbarStyle = computed(() => {
 })
 
 const $lyrics = ref<HTMLElement | null>(null)
-const contexts: CanvasRenderingContext2D[] = []
+const canvases: HTMLCanvasElement[] = []
 
 function updateLyrics() {
 	if ($lyrics.value === null) return
 
 	const now = Date.now() / 1000
 
-	for (let i = 0; i < visibleLyricSprites.value.length; i++) {
-		const sprite = visibleLyricSprites.value[i]
+	for (let id = 0; id < visibleLyricSprites.value.length; id++) {
+		const sprite = visibleLyricSprites.value[id]
 
-		let ctx
-		if (i >= contexts.length) {
-			const canvas = document.createElement('canvas')
+		let canvas: HTMLCanvasElement
+		if (id >= canvases.length) {
+			canvas = document.createElement('canvas')
 			canvas.classList.add('lyric')
 			$lyrics.value.appendChild(canvas)
 
-			ctx = canvas.getContext('2d') ?? undefined
-			if (!ctx) {
-				throw new Error('Failed to get 2d context')
-			}
+			const offscreenCanvas = canvas.transferControlToOffscreen()
 
-			contexts.push(ctx)
+			worker.postMessage(
+				{type: 'sendOffscreenCanvas', data: {id, canvas: offscreenCanvas}},
+				[offscreenCanvas]
+			)
+
+			canvases.push(canvas)
 		} else {
-			ctx = contexts[i]
+			canvas = canvases[id]
 		}
-
-		const {canvas} = ctx
 
 		const elapsed = now - sprite.start
 		const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
@@ -177,11 +145,14 @@ function updateLyrics() {
 		canvas.style.height = sprite.style.height
 		canvas.style.visibility = 'visible'
 
-		drawLyric(ctx, sprite.src, frame)
+		worker.postMessage({
+			type: 'drawLyric',
+			data: {id, src: sprite.src, frame},
+		})
 	}
 
-	for (let i = visibleLyricSprites.value.length; i < contexts.length; i++) {
-		contexts[i].canvas.style.visibility = 'hidden'
+	for (let i = visibleLyricSprites.value.length; i < canvases.length; i++) {
+		canvases[i].style.visibility = 'hidden'
 	}
 }
 
