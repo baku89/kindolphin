@@ -111,6 +111,7 @@ onMounted(() => {
 				const emptyId = visibleLyrics.findIndex(lyric => !lyric.visible)
 
 				if (emptyId === -1) {
+					// eslint-disable-next-line no-console
 					console.error('No empty lyric found')
 					continue
 				}

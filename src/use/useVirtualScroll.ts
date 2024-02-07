@@ -26,7 +26,7 @@ export function useVirtualScroll(
 	el: MaybeRef<HTMLElement | null>,
 	options: UseVirtualScrollOptions
 ) {
-	const scrollY = ref(0)
+	const scroll = ref(0)
 	let swipeSpeed = 0
 	let inertiaSpeed = 0
 
@@ -36,7 +36,7 @@ export function useVirtualScroll(
 	function onWheel(e: WheelEvent) {
 		swipeSpeed = inertiaSpeed = 0
 
-		scrollY.value = options.mapScroll(scrollY.value + e.deltaY)
+		scroll.value = options.mapScroll(scroll.value + e.deltaY)
 
 		options.onWheel(e)
 	}
@@ -55,7 +55,7 @@ export function useVirtualScroll(
 	}
 
 	function onDrag(e: DragEvent) {
-		scrollY.value = options.mapScroll(scrollY.value - e.movementY)
+		scroll.value = options.mapScroll(scroll.value - e.movementY)
 
 		const now = getNow()
 		const dt = now - lastScrollDate
@@ -110,7 +110,7 @@ export function useVirtualScroll(
 
 		if (!dragging.value && Math.abs(inertiaSpeed) > 1) {
 			const delta = inertiaSpeed * dt
-			scrollY.value = options.mapScroll(scrollY.value - delta)
+			scroll.value = options.mapScroll(scroll.value - delta)
 		}
 	})
 
@@ -119,11 +119,11 @@ export function useVirtualScroll(
 	}
 
 	function scrollTo(y: number) {
-		scrollY.value = options.mapScroll(y)
+		scroll.value = options.mapScroll(y)
 	}
 
 	return {
-		scrollY: readonly(scrollY),
+		scroll: readonly(scroll),
 		scrollTo,
 		cancelInertia,
 	}

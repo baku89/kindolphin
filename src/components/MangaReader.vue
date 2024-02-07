@@ -50,7 +50,7 @@ const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 })
 
 const $scrollable = ref<HTMLElement | null>(null)
-const {scrollY, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
+const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 	targetSpeed: computed(() => (isPlaying.value ? 100 : 0)),
 	onWheel(e) {
 		showNav.value = e.deltaY < 0
@@ -84,7 +84,7 @@ const audioDuration = 164.4930612244898
 // オーディオファイルを基準とした時間
 const currentTime = computed({
 	get() {
-		const mangaY = scrollY.value / mangaScale.value + seekbarPosition.value
+		const mangaY = scroll.value / mangaScale.value + seekbarPosition.value
 		return lookupTime(mangaY, props.scrollTrack) / FPS
 	},
 	set(time) {
@@ -253,11 +253,11 @@ whenever(space, togglePlay)
 				@click="onClickManga"
 			/>
 			<div class="manga-content" ref="$mangaWrapper">
-				<Manga class="manga" :pages="book.pages" :scroll="scrollY" />
+				<Manga class="manga" :pages="book.pages" :scroll="scroll" />
 				<Lyrics
 					:lyrics="book.lyrics"
 					:seekbarPosition="seekbarPosition"
-					:scroll="scrollY"
+					:scroll="scroll"
 					:currentTime="currentTime"
 				/>
 			</div>
