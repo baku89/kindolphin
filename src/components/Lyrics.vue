@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useRafFn} from '@vueuse/core'
+import chroma from 'chroma-js'
 import {computed, ref, watch} from 'vue'
 
 import {Lyric} from '@/book'
@@ -17,12 +18,16 @@ const props = defineProps<{
 
 const {getLyricsBetween} = useLyrics(computed(() => props.lyrics))
 
-const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(
-	i => i * 255
+const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
+	Math.round(i * 255)
 )
 
 const LyricAnimationDuration = thresholds.length - 1
 const settings = useAppSettingsStore()
+
+const primaryRGB = computed(() => {
+	return chroma(settings.currentTheme.primary).rgb()
+})
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
@@ -51,24 +56,20 @@ function getURLOfSprite(src: string, frame: number) {
 		const img = images.value.get(src)!
 
 		const threshold = thresholds[frame]
+		const [r, g, b] = primaryRGB.value
 
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-
-		ctx.globalCompositeOperation = 'source-over'
 		ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height)
 
 		const pix = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
 
 		for (let i = 0; i < pix.data.length; i += 4) {
 			pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
-			// pix.data[i] = pix.data[i + 1] = pix.data[i + 2] = 255
+			pix.data[i] = r
+			pix.data[i + 1] = g
+			pix.data[i + 2] = b
 		}
 
 		ctx.putImageData(pix, 0, 0)
-
-		ctx.fillStyle = settings.currentTheme.primary
-		ctx.globalCompositeOperation = 'source-in'
-		ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
 		const url = ctx.canvas.toDataURL()
 		spriteCache.get(src)!.set(frame, url)
@@ -80,7 +81,7 @@ function getURLOfSprite(src: string, frame: number) {
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
-		if (prevTime < time && Math.abs(time - prevTime) < 1 / 2) {
+		if (prevTime < time) {
 			// Add new lyrics that have just became visible
 			const newLyrics = getLyricsBetween(prevTime, time)
 
@@ -165,13 +166,8 @@ useRafFn(() => {
 .lyric-wrapper
 	position relative
 
-	// body.invert &
-	// 	mix-blend-mode darken
-
 .lyric
 	position absolute
 	display block
-	// opacity 0.5
-	// mix-blend-mode lighten
 	top 0
 </style>
