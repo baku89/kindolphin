@@ -6,7 +6,7 @@ const props = withDefaults(
 	defineProps<{
 		progress: number
 		total: number
-		count: number
+		count?: number
 	}>(),
 	{
 		count: 14,

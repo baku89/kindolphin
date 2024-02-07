@@ -8,6 +8,7 @@ self.addEventListener('message', ({data: {type, data}}) => {
 
 		case 'setPrimaryColor':
 			primaryRGB = data
+			lastDrawn.forEach(({src, frame}, id) => drawLyric(id, src, frame))
 			break
 
 		case 'sendOffscreenCanvas':
@@ -30,9 +31,7 @@ function preloadImages(srcs: string[]) {
 		fetch(src)
 			.then(res => res.blob())
 			.then(createImageBitmap)
-			.then(img => {
-				images.set(src, img)
-			})
+			.then(img => images.set(src, img))
 	}
 }
 
@@ -45,34 +44,40 @@ function onReceiveOffscreenCanvas(id: number, canvas: OffscreenCanvas) {
 	contexts.set(id, ctx)
 }
 
+const lastDrawn = new Map<number, {src: string; frame: number}>()
+
 function drawLyric(id: number, src: string, frame: number) {
 	const ctx = contexts.get(id)!
 
 	if (src === '') {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 	} else {
-		const img = images.get(src)!
+		const img = images.get(src)
 
-		ctx.canvas.width = img.width
-		ctx.canvas.height = img.height
+		if (img) {
+			ctx.canvas.width = img.width
+			ctx.canvas.height = img.height
 
-		const threshold = thresholds[frame]
-		const [r, g, b] = primaryRGB
-		const {width, height} = img
+			const threshold = thresholds[frame]
+			const [r, g, b] = primaryRGB
+			const {width, height} = img
 
-		ctx.drawImage(img, 0, 0, width, height)
+			ctx.drawImage(img, 0, 0, width, height)
 
-		const pix = ctx.getImageData(0, 0, width, height)
+			const pix = ctx.getImageData(0, 0, width, height)
 
-		for (let i = 0; i < pix.data.length; i += 4) {
-			pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
-			pix.data[i] = r
-			pix.data[i + 1] = g
-			pix.data[i + 2] = b
+			for (let i = 0; i < pix.data.length; i += 4) {
+				pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
+				pix.data[i] = r
+				pix.data[i + 1] = g
+				pix.data[i + 2] = b
+			}
+
+			ctx.putImageData(pix, 0, 0)
 		}
-
-		ctx.putImageData(pix, 0, 0)
 	}
+
+	lastDrawn.set(id, {src, frame})
 
 	self.postMessage({type: 'lyricDrawn', data: id})
 }

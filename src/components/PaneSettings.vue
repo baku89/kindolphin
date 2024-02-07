@@ -16,11 +16,7 @@ const settings = useAppSettingsStore()
 
 <template>
 	<Transition>
-		<FadeBg
-			class="PaneSettings__outside"
-			v-if="show"
-			@click="$emit('update:show', false)"
-		/>
+		<FadeBg v-if="show" @click="$emit('update:show', false)" />
 	</Transition>
 	<div class="PaneSettings" ref="$root" :class="{show}">
 		<section class="property">
@@ -45,11 +41,6 @@ const settings = useAppSettingsStore()
 </template>
 
 <style lang="stylus" scoped>
-.PaneSettings__outside
-	position fixed
-	inset 0
-	z-index 99
-
 .PaneSettings
 	position fixed
 	bottom 0

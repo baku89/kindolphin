@@ -50,6 +50,11 @@ watchEffect(() => {
 const $lyrics = ref<HTMLElement | null>(null)
 const canvases: HTMLCanvasElement[] = []
 
+// Update visibleLyrics
+const visibleLyrics: (Lyric & {start: number; visible: boolean})[] = []
+
+const LyricDuration = 8
+
 onMounted(() => {
 	if ($lyrics.value === null) return
 
@@ -76,59 +81,54 @@ onMounted(() => {
 			visible: false,
 		})
 	}
-})
 
-// Update visibleLyrics
-const visibleLyrics: (Lyric & {start: number; visible: boolean})[] = []
-
-const LyricDuration = 8
-
-watch(
-	() => props.currentTime,
-	(time, prevTime) => {
-		for (let i = 0; i < visibleLyrics.length; i++) {
-			const lyric = visibleLyrics[i]
-			visibleLyrics[i].visible =
-				time - LyricDuration <= lyric.time && lyric.time <= time
-		}
-
-		const doAnimate = prevTime < time && time - prevTime < 1 / 10
-		let timeLower: number, timeUpper: number
-
-		if (time > prevTime) {
-			timeLower = Math.max(prevTime, time - LyricDuration)
-			timeUpper = time
-		} else {
-			timeLower = time - LyricDuration
-			timeUpper = Math.max(prevTime, time - LyricDuration) - LyricDuration
-		}
-
-		// Add new lyrics that have just became visible
-		const newLyrics = getLyricsBetween(timeLower, timeUpper)
-
-		const start = doAnimate ? Date.now() / 1000 : -1
-
-		for (const lyric of newLyrics) {
-			const emptyId = visibleLyrics.findIndex(lyric => !lyric.visible)
-
-			if (emptyId === -1) {
-				console.error('No empty lyric found')
-				return
+	watch(
+		() => props.currentTime,
+		(time, prevTime) => {
+			for (let i = 0; i < visibleLyrics.length; i++) {
+				const lyric = visibleLyrics[i]
+				visibleLyrics[i].visible =
+					time - LyricDuration <= lyric.time && lyric.time <= time
 			}
 
-			visibleLyrics[emptyId] = {...lyric, start, visible: true}
-		}
+			const doAnimate = prevTime < time && time - prevTime < 1 / 10
+			let timeLower: number, timeUpper: number
 
-		if (doAnimate) {
+			if (time > prevTime) {
+				timeLower = Math.max(prevTime, time - LyricDuration)
+				timeUpper = time
+			} else {
+				timeLower = time - LyricDuration
+				timeUpper = Math.min(prevTime, time + LyricDuration) - LyricDuration
+			}
+
+			// Add new lyrics that have just became visible
+			const newLyrics = getLyricsBetween(timeLower, timeUpper)
+
+			const start = doAnimate ? Date.now() / 1000 : -1
+
 			for (const lyric of newLyrics) {
-				$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
-			}
-		}
+				const emptyId = visibleLyrics.findIndex(lyric => !lyric.visible)
 
-		updateLyrics()
-	},
-	{flush: 'sync'}
-)
+				if (emptyId === -1) {
+					console.error('No empty lyric found')
+					continue
+				}
+
+				visibleLyrics[emptyId] = {...lyric, start, visible: true}
+			}
+
+			if (doAnimate) {
+				for (const lyric of newLyrics) {
+					$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
+				}
+			}
+
+			updateLyrics()
+		},
+		{flush: 'sync'}
+	)
+})
 
 const seekbarStyle = computed(() => {
 	return {

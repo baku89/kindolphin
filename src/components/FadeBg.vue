@@ -33,7 +33,7 @@ onBeforeUnmount(() => {
 		background-size 8px 8px
 		background-position 0 0
 		background-repeat repeat
-		background-image url('data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAADwBgCdASoQABAAAgA0JaQARAD8ANsA/ADeAPwA3gH4AZv+MAfwDVAvwD8qv3////ZY/wD+AeoB////+T75ZsEAAP734fC1CZ3lsEO2oTO8tgh21CZ3lsEO2oTO8tkfcBGokzSDYbam4FGNCSddTorCUPUY2R9cfS3wKmmPT/EIfJgPk+F62mK10eBuHFfkMlP69bTWczanDh/L/tR8XRcEjTy5o+QAAAA=')
+		background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
 
 
 	// overlay
@@ -72,16 +72,20 @@ onBeforeUnmount(() => {
 @keyframes dither
 	0%
 		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
-	32%
+	19%
 		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
-	33%
+	20%
 		background-image url('data:image/webp;base64,UklGRp4AAABXRUJQVlA4IJIAAABQBACdASoQABAAAgA0JaQAMgAzwEaAcIB5gX4Bymf9w9QAzYJLddRJmdeuAP7+oEb/xA4DFX4N1Q7nT/xA4DFX4N1Q8edTvxf56Ft96BdQ/h4m4TBpzl12D2iY7kf/FBef6StZNaihmKDtWDdf+RQhejyKJ7o/SdsuhzW/z0Lb70C6h/DxNwmIr/Dpmf1WcfEEAA==')
-	65%
+	39%
 		background-image url('data:image/webp;base64,UklGRp4AAABXRUJQVlA4IJIAAABQBACdASoQABAAAgA0JaQAMgAzwEaAcIB5gX4Bymf9w9QAzYJLddRJmdeuAP7+oEb/xA4DFX4N1Q7nT/xA4DFX4N1Q8edTvxf56Ft96BdQ/h4m4TBpzl12D2iY7kf/FBef6StZNaihmKDtWDdf+RQhejyKJ7o/SdsuhzW/z0Lb70C6h/DxNwmIr/Dpmf1WcfEEAA==')
-	66%
+	40%
 		background-image url('data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAQBQCdASoQABAAAgA0JaQATgDkAvQCYAfi681XzAvwD8segw/p/qAGbBJKqfTnzyAAAP7+oEb/wzwuD/m2+l9nf/lzxu//Nt9L9jj3L//PWAf0jhuCndBJEStSSJeX/MQQ91tPcXzuqDShGhyFAFAH/igcp/z40c7BMV0eF5Llaa7WsKq5/nrAP6Rw3BTugkiJWpJE2h/9L3iRkdM1jPPNTZK8ZEU5vNsAAA==')
-	99%
+	59%
 		background-image url('data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAQBQCdASoQABAAAgA0JaQATgDkAvQCYAfi681XzAvwD8segw/p/qAGbBJKqfTnzyAAAP7+oEb/wzwuD/m2+l9nf/lzxu//Nt9L9jj3L//PWAf0jhuCndBJEStSSJeX/MQQ91tPcXzuqDShGhyFAFAH/igcp/z40c7BMV0eF5Llaa7WsKq5/nrAP6Rw3BTugkiJWpJE2h/9L3iRkdM1jPPNTZK8ZEU5vNsAAA==')
-	100%
+	60%
 		background-image url('data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAADwBgCdASoQABAAAgA0JaQARAD8ANsA/ADeAPwA3gH4AZv+MAfwDVAvwD8qv3////ZY/wD+AeoB////+T75ZsEAAP734fC1CZ3lsEO2oTO8tgh21CZ3lsEO2oTO8tkfcBGokzSDYbam4FGNCSddTorCUPUY2R9cfS3wKmmPT/EIfJgPk+F62mK10eBuHFfkMlP69bTWczanDh/L/tR8XRcEjTy5o+QAAAA=')
+	79%
+		background-image url('data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAADwBgCdASoQABAAAgA0JaQARAD8ANsA/ADeAPwA3gH4AZv+MAfwDVAvwD8qv3////ZY/wD+AeoB////+T75ZsEAAP734fC1CZ3lsEO2oTO8tgh21CZ3lsEO2oTO8tkfcBGokzSDYbam4FGNCSddTorCUPUY2R9cfS3wKmmPT/EIfJgPk+F62mK10eBuHFfkMlP69bTWczanDh/L/tR8XRcEjTy5o+QAAAA=')
+	80%
+		background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
 </style>

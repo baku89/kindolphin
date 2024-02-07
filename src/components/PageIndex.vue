@@ -10,6 +10,7 @@ import {usePreloadBook} from '@/use/usePreloadBook'
 
 import CircleProgress from './CircleProgress.vue'
 import FooterButton from './FooterButton.vue'
+import PaneHelp from './PaneHelp.vue'
 import PaneSettings from './PaneSettings.vue'
 
 const preloadJa = usePreloadBook(BookHappeningJa)
@@ -38,10 +39,10 @@ const MangaReader = defineAsyncComponent(
 	() => import('@/components/MangaReader.vue')
 )
 
+const showHelp = ref(false)
 const minimized = ref(true)
 const showThemeSettings = ref(false)
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function openBook(id: string) {
 	if (preloadJa.progress < 1 || id === '') return
 
@@ -49,6 +50,7 @@ function openBook(id: string) {
 	minimized.value = false
 }
 
+// Fade in animation
 const fadeInStatus = ref<'before' | 'in' | 'out'>('before')
 
 onMounted(async () => {
@@ -197,7 +199,11 @@ onMounted(async () => {
 				target="_blank"
 				icon="music"
 			/>
-			<FooterButton :label="ui.label.help" icon="circle-question" />
+			<FooterButton
+				:label="ui.label.help"
+				icon="circle-question"
+				@click="showHelp = true"
+			/>
 		</footer>
 		<MangaReader
 			v-if="preloadJa.progress == 1"
@@ -212,6 +218,7 @@ onMounted(async () => {
 	<Transition>
 		<div class="PageIndex__fade-in" v-if="fadeInStatus === 'in'" />
 	</Transition>
+	<PaneHelp v-model:show="showHelp" />
 	<div class="bg-overlay"></div>
 	<div class="ink-overlay"></div>
 	<PaneSettings v-model:show="showThemeSettings" />
