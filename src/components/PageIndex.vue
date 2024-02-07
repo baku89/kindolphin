@@ -91,6 +91,7 @@ onMounted(async () => {
 			<a
 				class="youtube"
 				href="https://www.youtube.com/watch?v=JP2728BtJ34"
+				target="_blank"
 				v-hover
 			>
 				<i class="fa fa-brands fa-youtube"></i>
@@ -400,7 +401,7 @@ onMounted(async () => {
 
 .reader
 	z-index 10
-	transform-origin 50% 98svh
+	transform-origin 50% calc(98svh - env(safe-area-inset-bottom))
 	transition all 0.2s steps(8)
 
 	&.minimized

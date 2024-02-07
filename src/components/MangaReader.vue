@@ -76,7 +76,7 @@ const maxScrollY = computed(
 // 漫画座標系におけるシークバーの位置
 const seekbarPosition = computed(() => {
 	const offsetY = viewHeight.value * 0.8
-	return offsetY / mangaScale.value
+	return Math.min(offsetY / mangaScale.value, 630)
 })
 
 const audioDuration = 164.4930612244898
@@ -259,6 +259,7 @@ whenever(space, togglePlay)
 					:seekbarPosition="seekbarPosition"
 					:scroll="scroll"
 					:currentTime="currentTime"
+					:mangaScale="mangaScale"
 				/>
 			</div>
 		</main>

@@ -2,7 +2,7 @@
 import {useRafFn} from '@vueuse/core'
 import chroma from 'chroma-js'
 import {vec2} from 'linearly'
-import {range} from 'lodash'
+import {clamp, range} from 'lodash'
 import {computed, onMounted, ref, watch, watchEffect} from 'vue'
 
 import {Lyric} from '@/book'
@@ -20,6 +20,7 @@ const props = defineProps<{
 	scroll: number
 	currentTime: number
 	seekbarPosition: number
+	mangaScale: number
 }>()
 
 const {getLyricsBetween} = useLyrics(computed(() => props.lyrics))
@@ -132,8 +133,14 @@ onMounted(() => {
 })
 
 const seekbarStyle = computed(() => {
+	const top = clamp(
+		props.seekbarPosition * props.mangaScale,
+		630 * props.mangaScale - props.scroll,
+		33184 * props.mangaScale - props.scroll
+	)
+
 	return {
-		top: `calc(${props.seekbarPosition} * var(--px))`,
+		top: `${top}px`,
 	}
 })
 
@@ -205,10 +212,15 @@ function updateLyrics() {
 			const elapsed = now - lyric.start
 			const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
 
-			canvas.style.left = `calc(${lyric.offset[0]} * var(--px))`
-			canvas.style.transform = `translate3d(0, calc(${lyric.offset[1]} * var(--px) - ${props.scroll}px), 0)`
-			canvas.style.width = `calc(${lyric.size[0]} * var(--px))`
-			canvas.style.height = `calc(${lyric.size[1]} * var(--px))`
+			const left = lyric.offset[0] * props.mangaScale
+			const top = lyric.offset[1] * props.mangaScale - props.scroll
+			const width = lyric.size[0] * props.mangaScale
+			const height = lyric.size[1] * props.mangaScale
+
+			canvas.style.left = `${left}px`
+			canvas.style.transform = `translate3d(0, ${top}px, 0)`
+			canvas.style.width = `${width}px`
+			canvas.style.height = `${height}px`
 
 			drawLyric(id, lyric.src, frame)
 		} else {
@@ -232,8 +244,8 @@ useRafFn(updateLyrics)
 
 .seekbar
 	position absolute
-	left calc(-30 * var(--px))
-	right calc(-30 * var(--px))
+	left 0
+	right 0
 	height calc(60 * var(--px))
 	margin-top calc(-30 * var(--px))
 	mask-image url('/assets/seekbar_diffuse.gif')
