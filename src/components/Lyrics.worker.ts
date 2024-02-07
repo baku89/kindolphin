@@ -43,7 +43,7 @@ const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 const lastDrawnLyric = new Map<number, {src: string; frame: number}>()
 
 function onReceiveOffscreenCanvas(id: number, canvas: OffscreenCanvas) {
-	const ctx = canvas.getContext('2d')!
+	const ctx = canvas.getContext('2d', {willReadFrequently: true})!
 	contexts.set(id, ctx)
 }
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {useRafFn} from '@vueuse/core'
 import chroma from 'chroma-js'
-import {computed, ref, watch, watchEffect} from 'vue'
+import {vec2} from 'linearly'
+import {range} from 'lodash'
+import {computed, onMounted, ref, watch, watchEffect} from 'vue'
 
 import {Lyric} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -45,20 +47,60 @@ watchEffect(() => {
 	})
 })
 
+const $lyrics = ref<HTMLElement | null>(null)
+const canvases: HTMLCanvasElement[] = []
+
+onMounted(() => {
+	if ($lyrics.value === null) return
+
+	for (const id of range(100)) {
+		const canvas = document.createElement('canvas')
+		canvas.classList.add('lyric')
+		$lyrics.value.appendChild(canvas)
+		canvases.push(canvas)
+
+		const offscreenCanvas = canvas.transferControlToOffscreen()
+
+		worker.postMessage(
+			{type: 'sendOffscreenCanvas', data: {id, canvas: offscreenCanvas}},
+			[offscreenCanvas]
+		)
+
+		visibleLyrics.push({
+			time: -Infinity,
+			duration: 0,
+			src: '',
+			offset: vec2.zero,
+			size: vec2.zero,
+			start: -1,
+			visible: false,
+		})
+	}
+})
+
+// Update visibleLyrics
+const visibleLyrics: (Lyric & {start: number; visible: boolean})[] = []
+
+const LyricDuration = 8
+
 watch(
 	() => props.currentTime,
 	(time, prevTime) => {
-		const lyrics = [...visibleLyrics.value]
+		for (let i = 0; i < visibleLyrics.length; i++) {
+			const lyric = visibleLyrics[i]
+			visibleLyrics[i].visible =
+				time - LyricDuration <= lyric.time && lyric.time <= time
+		}
 
 		const doAnimate = prevTime < time && time - prevTime < 1 / 10
 		let timeLower: number, timeUpper: number
 
 		if (time > prevTime) {
-			timeLower = Math.max(prevTime, time - 8)
+			timeLower = Math.max(prevTime, time - LyricDuration)
 			timeUpper = time
 		} else {
-			timeLower = time - 8
-			timeUpper = Math.max(prevTime, time - 8) - 8
+			timeLower = time - LyricDuration
+			timeUpper = Math.max(prevTime, time - LyricDuration) - LyricDuration
 		}
 
 		// Add new lyrics that have just became visible
@@ -66,40 +108,26 @@ watch(
 
 		const start = doAnimate ? Date.now() / 1000 : -1
 
-		lyrics.push(...newLyrics.map(l => ({...l, start})))
+		for (const lyric of newLyrics) {
+			const emptyId = visibleLyrics.findIndex(lyric => !lyric.visible)
+
+			if (emptyId === -1) {
+				throw new Error('No empty lyric found')
+			}
+
+			visibleLyrics[emptyId] = {...lyric, start, visible: true}
+		}
 
 		if (doAnimate) {
 			for (const lyric of newLyrics) {
 				$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
 			}
 		}
-		// Remove lyrics that are no longer visible
-		visibleLyrics.value = lyrics.filter(
-			lyric => time - 8 <= lyric.time && lyric.time <= time
-		)
+
+		updateLyrics()
 	},
 	{flush: 'sync'}
 )
-
-const visibleLyrics = ref<(Lyric & {start: number})[]>([])
-
-const visibleLyricSprites = computed(() => {
-	return visibleLyrics.value.map(lyric => {
-		return {
-			start: lyric.start,
-			src: lyric.src,
-			size: lyric.size,
-			style: {
-				left: `calc(${lyric.offset[0]} * var(--px))`,
-				transform: `translate3d(0, calc(${lyric.offset[1]} * var(--px) - ${props.scroll}px), 0)`,
-				width: `calc(${lyric.size[0]} * var(--px))`,
-				height: `calc(${lyric.size[1]} * var(--px))`,
-			},
-		}
-	})
-})
-
-watch(visibleLyricSprites, updateLyrics, {flush: 'sync'})
 
 const seekbarStyle = computed(() => {
 	return {
@@ -107,52 +135,32 @@ const seekbarStyle = computed(() => {
 	}
 })
 
-const $lyrics = ref<HTMLElement | null>(null)
-const canvases: HTMLCanvasElement[] = []
-
 function updateLyrics() {
 	if ($lyrics.value === null) return
 
 	const now = Date.now() / 1000
 
-	for (let id = 0; id < visibleLyricSprites.value.length; id++) {
-		const sprite = visibleLyricSprites.value[id]
+	for (let id = 0; id < visibleLyrics.length; id++) {
+		const lyric = visibleLyrics[id]
 
-		let canvas: HTMLCanvasElement
-		if (id >= canvases.length) {
-			canvas = document.createElement('canvas')
-			canvas.classList.add('lyric')
-			$lyrics.value.appendChild(canvas)
+		const canvas = canvases[id]
 
-			const offscreenCanvas = canvas.transferControlToOffscreen()
+		canvas.style.visibility = lyric.visible ? 'visible' : 'hidden'
 
-			worker.postMessage(
-				{type: 'sendOffscreenCanvas', data: {id, canvas: offscreenCanvas}},
-				[offscreenCanvas]
-			)
+		if (lyric.visible) {
+			const elapsed = now - lyric.start
+			const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
 
-			canvases.push(canvas)
-		} else {
-			canvas = canvases[id]
+			canvas.style.left = `calc(${lyric.offset[0]} * var(--px))`
+			canvas.style.transform = `translate3d(0, calc(${lyric.offset[1]} * var(--px) - ${props.scroll}px), 0)`
+			canvas.style.width = `calc(${lyric.size[0]} * var(--px))`
+			canvas.style.height = `calc(${lyric.size[1]} * var(--px))`
+
+			worker.postMessage({
+				type: 'drawLyric',
+				data: {id, src: lyric.src, frame},
+			})
 		}
-
-		const elapsed = now - sprite.start
-		const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
-
-		canvas.style.left = sprite.style.left
-		canvas.style.transform = sprite.style.transform
-		canvas.style.width = sprite.style.width
-		canvas.style.height = sprite.style.height
-		canvas.style.visibility = 'visible'
-
-		worker.postMessage({
-			type: 'drawLyric',
-			data: {id, src: sprite.src, frame},
-		})
-	}
-
-	for (let i = visibleLyricSprites.value.length; i < canvases.length; i++) {
-		canvases[i].style.visibility = 'hidden'
 	}
 }
 
