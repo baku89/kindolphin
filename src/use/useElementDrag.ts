@@ -32,6 +32,9 @@ export function useElementDrag(
 		prevY = 0
 
 	function onPointerdown(e: MouseEvent | TouchEvent) {
+		e.stopPropagation()
+		e.preventDefault()
+
 		dragging.value = true
 
 		const clientX = 'clientX' in e ? e.clientX : e.touches[0].clientX

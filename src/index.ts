@@ -11,10 +11,6 @@ setTimeout(() => {
 	app.mount('#app')
 }, 10)
 
-window.addEventListener('touchmove', e => {
-	e.preventDefault()
-})
-
 const env = (import.meta as any).env
 
 // eslint-disable-next-line no-console
