@@ -14,3 +14,12 @@ setTimeout(() => {
 window.addEventListener('touchmove', e => {
 	e.preventDefault()
 })
+
+const env = (import.meta as any).env
+
+// eslint-disable-next-line no-console
+console.info(
+	'group_inou / HAPPENING\nVersion: %s\nCommit: %s',
+	env.VITE_NPM_VERSION,
+	env.VITE_GIT_COMMIT_HASH
+)
