@@ -141,7 +141,7 @@ const canvasStatus = new Map<
 	{drawing: boolean; queue?: {src: string; frame: number}}
 >()
 
-worker.onmessage = e => {
+worker.addEventListener('message', e => {
 	const {type, data} = e.data
 
 	if (type === 'lyricDrawn') {
@@ -161,7 +161,7 @@ worker.onmessage = e => {
 
 		canvasStatus.set(id, {drawing, queue})
 	}
-}
+})
 
 const lastDrawnLyric = new Map<number, {src: string; frame: number}>()
 
