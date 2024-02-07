@@ -65,12 +65,16 @@ function openBook(id: string) {
 			</div>
 		</header>
 		<main class="main">
-			<a class="youtube" href="https://www.youtube.com/watch?v=JP2728BtJ34">
+			<a
+				class="youtube"
+				href="https://www.youtube.com/watch?v=JP2728BtJ34"
+				v-hover
+			>
 				<i class="fa fa-brands fa-youtube"></i>
 				<div>{{ ui.label.viewOnYouTube }}</div>
 				<i class="fa fa-solid fa-sort"></i>
 			</a>
-			<a class="book" @click="openBook('happening-ja')">
+			<a class="book" @click="openBook('happening-ja')" v-hover>
 				<div class="thumb">
 					<img class="thumb-content" src="/assets/cover_happening.png" />
 					<div
@@ -111,7 +115,7 @@ function openBook(id: string) {
 					</div>
 				</div>
 			</a>
-			<a class="book" @click="openBook('happening-en')">
+			<a class="book" @click="openBook('happening-en')" v-hover>
 				<div class="thumb">
 					<img class="thumb-content" src="/assets/cover_happening_en.png" />
 					<div
@@ -152,7 +156,7 @@ function openBook(id: string) {
 					</div>
 				</div>
 			</a>
-			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank">
+			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank" v-hover>
 				<div class="thumb album">
 					<img class="thumb-content" src="/assets/cover_happy.webp" />
 				</div>
@@ -261,7 +265,7 @@ function openBook(id: string) {
 	i
 		font-size 16rem
 
-	&:hover
+	&.hover
 		background var(--black)
 		color var(--white)
 
@@ -278,7 +282,7 @@ function openBook(id: string) {
 		margin-top -1rem
 		border-top 1rem solid transparent
 
-	&:hover
+	&.hover
 		background var(--black)
 		color var(--white)
 		border-top-color var(--black)
@@ -373,7 +377,7 @@ function openBook(id: string) {
 	Helvetica
 	Arial
 	sans-serif
-	.book:hover &
+	.book.hover &
 		background var(--white)
 		color var(--black)
 

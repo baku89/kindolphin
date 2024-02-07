@@ -61,7 +61,7 @@ function onDrag(e: DragEvent) {
 <template>
 	<div class="Slider" :class="{dragging}" ref="$slider">
 		<div class="track" />
-		<button class="knob fa fa-regular fa-circle" :style="knobStyle" />
+		<button class="knob fa fa-regular fa-circle" :style="knobStyle" v-hover />
 	</div>
 </template>
 
@@ -94,9 +94,9 @@ function onDrag(e: DragEvent) {
 	translate -50% -50%
 	will-change left, scale
 
-	@media (hover: hover)
-		&:hover
-			scale 1.2
+
+	&.hover
+		scale 1.2
 
 	.dragging &
 		scale 1.4

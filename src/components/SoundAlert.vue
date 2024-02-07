@@ -20,10 +20,10 @@ defineEmits<{
 			</div>
 
 			<div class="buttons">
-				<button @click="$emit('update:modelValue', true)">
+				<button @click="$emit('update:modelValue', true)" v-hover>
 					はい (<u>Y</u>)
 				</button>
-				<button @click="$emit('update:modelValue', false)">
+				<button @click="$emit('update:modelValue', false)" v-hover>
 					いいえ (<u>N</u>)
 				</button>
 			</div>
@@ -83,7 +83,7 @@ defineEmits<{
 		color var(--black)
 		border 1rem solid var(--black)
 
-		&:hover
+		&.hover
 			color var(--white)
 			background var(--black)
 </style>

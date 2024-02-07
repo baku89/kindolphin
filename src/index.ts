@@ -7,6 +7,23 @@ const pinia = createPinia()
 const app = createApp(PageIndex)
 app.use(pinia)
 
+app.directive('hover', {
+	mounted(el) {
+		function onHover() {
+			el.classList.add('hover')
+		}
+		function offHover() {
+			el.classList.remove('hover')
+		}
+
+		el.addEventListener('mouseenter', onHover)
+		el.addEventListener('mouseleave', offHover)
+		el.addEventListener('touchstart', onHover)
+		el.addEventListener('touchend', offHover)
+		el.addEventListener('touchcancel', offHover)
+	},
+})
+
 setTimeout(() => {
 	app.mount('#app')
 }, 10)
