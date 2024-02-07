@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {useAppSettingsStore} from '@/store/appSettings'
 
+import FadeBg from './FadeBg.vue'
+
 defineProps<{
 	show: boolean
 }>()
@@ -13,11 +15,13 @@ const settings = useAppSettingsStore()
 </script>
 
 <template>
-	<div
-		class="PaneSettings__outside"
-		v-if="show"
-		@click="$emit('update:show', false)"
-	/>
+	<Transition>
+		<FadeBg
+			class="PaneSettings__outside"
+			v-if="show"
+			@click="$emit('update:show', false)"
+		/>
+	</Transition>
 	<div class="PaneSettings" ref="$root" :class="{show}">
 		<section class="property">
 			<h2 class="name">
@@ -45,20 +49,6 @@ const settings = useAppSettingsStore()
 	position fixed
 	inset 0
 	z-index 99
-	background var(--theme-bg)
-	mask-image url('data:image/webp;base64,UklGRlQDAABXRUJQVlA4WAoAAAAEAAAABwAABwAAVlA4TBwAAAAvB8ABAA8w//M///MfeBAIJP5MO62QRkT/Y1kAWE1QIBIDAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/PiA8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJBZG9iZSBYTVAgQ29yZSA5LjEtYzAwMiA3OS5mMzU0ZWZjNzAsIDIwMjMvMTEvMDktMTI6MDU6NTMgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNS40IChNYWNpbnRvc2gpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkNDNUZEOUZEQjk5QTExRUU5OEI1QkFCNzYxQUE1MUQ4IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkNDNUZEOUZFQjk5QTExRUU5OEI1QkFCNzYxQUE1MUQ4Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6Q0M1RkQ5RkJCOTlBMTFFRTk4QjVCQUI3NjFBQTUxRDgiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6Q0M1RkQ5RkNCOTlBMTFFRTk4QjVCQUI3NjFBQTUxRDgiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4=')
-	mask-mode luminance
-	mask-size 8rem 8rem
-	image-rendering pixelated
-
-	.overlay
-		position absolute
-		inset 0
-		background var(--theme-bg)
-		mix-blend-mode darken
-
-		html.invert &
-			mix-blend-mode lighten
 
 .PaneSettings
 	position fixed

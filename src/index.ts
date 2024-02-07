@@ -21,12 +21,11 @@ app.directive('hover', {
 		el.addEventListener('touchstart', onHover)
 		el.addEventListener('touchend', offHover)
 		el.addEventListener('touchcancel', offHover)
+		window.addEventListener('touchcancel', offHover)
 	},
 })
 
-setTimeout(() => {
-	app.mount('#app')
-}, 10)
+app.mount('#app')
 
 const env = (import.meta as any).env
 
