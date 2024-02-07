@@ -17,22 +17,22 @@
 	<meta name="theme-color" content="#e5e0cf">
 
 	<!-- OGP, Site Description -->
-	<meta name="keywords" content="group_inou,AC部,HAPPENING,GIF漫画,GIFマンガ" />
-	<meta name="description" content="Interactive GIF Music Video by AC-bu" />
+	<meta name="keywords" content="%VITE_OG_KEYWORDS%" />
+	<meta name="description" content="%VITE_OG_DESCRIPTION%" />
 
-	<meta property="og:url" content="https://g-a-l.jp/group_inou/happening/" />
+	<meta property="og:url" content="%VITE_OG_URL%" />
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="group_inou / HAPPENING" />
-	<meta property="og:site_name" content="group_inou / HAPPENING" />
-	<meta property="og:description" content="Interactive GIF Music Video by AC-bu" />
-	<meta property="og:image" content="https://g-a-l.jp/group_inou/happening/assets/ogp.png?20231204" />
+	<meta property="og:title" content="%VITE_OG_TITLE%" />
+	<meta property="og:site_name" content="%VITE_OG_TITLE%" />
+	<meta property="og:description" content="%VITE_OG_DESCRIPTION%" />
+	<meta property="og:image" content="%VITE_OG_URL%%VITE_OG_IMAGE%" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@SailToArchipel" />
-	<meta name="twitter:player" content="@SailToArchipel" />
-	<meta name="twitter:creator" content="@SailToArchipel" />
-	<meta name="twitter:title" content="group_inou / HAPPENING" />
-	<meta name="twitter:description" content="Interactive GIF Music Video by AC-bu" />
-	<meta name="twitter:image" content="https://g-a-l.jp/group_inou/happening/assets/ogp.png?20231204" />
+	<meta name="twitter:site" content="%VITE_OG_TWITTER%" />
+	<meta name="twitter:player" content="%VITE_OG_TWITTER%" />
+	<meta name="twitter:creator" content="%VITE_OG_TWITTER%" />
+	<meta name="twitter:title" content="%VITE_OG_TITLE%" />
+	<meta name="twitter:description" content="%VITE_OG_DESCRIPTION%" />
+	<meta name="twitter:image" content="%VITE_OG_URL%%VITE_OG_IMAGE%" />
 
 	<!-- Fetch Priority -->
 	<link rel="preload" href="./assets/splash_ramp.webp" as="image" fetchpriority="high" />
@@ -72,7 +72,7 @@
 <body>
 	<div id="app">
 		<div class="splash">
-			<div class="ramp"></div>
+			<div class="ramp img"></div>
 			<div class="loading-text"><span>Kindolphin<span></div>
 			<img class="kindle-ish-tree" src="./assets/kindle_ish_tree.webp" />
 		</div>
