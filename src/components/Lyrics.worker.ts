@@ -40,19 +40,12 @@ const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 	Math.round(i * 255)
 )
 
-const lastDrawnLyric = new Map<number, {src: string; frame: number}>()
-
 function onReceiveOffscreenCanvas(id: number, canvas: OffscreenCanvas) {
 	const ctx = canvas.getContext('2d', {willReadFrequently: true})!
 	contexts.set(id, ctx)
 }
 
 function drawLyric(id: number, src: string, frame: number) {
-	const lastDrawn = lastDrawnLyric.get(id)
-	if (lastDrawn && lastDrawn.src === src && lastDrawn.frame === frame) {
-		return
-	}
-
 	const ctx = contexts.get(id)!
 	const img = images.get(src)!
 
@@ -76,5 +69,5 @@ function drawLyric(id: number, src: string, frame: number) {
 
 	ctx.putImageData(pix, 0, 0)
 
-	lastDrawnLyric.set(id, {src, frame})
+	self.postMessage({type: 'lyricDrawn', data: id})
 }

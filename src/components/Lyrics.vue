@@ -112,7 +112,8 @@ watch(
 			const emptyId = visibleLyrics.findIndex(lyric => !lyric.visible)
 
 			if (emptyId === -1) {
-				throw new Error('No empty lyric found')
+				console.error('No empty lyric found')
+				return
 			}
 
 			visibleLyrics[emptyId] = {...lyric, start, visible: true}
@@ -135,6 +136,58 @@ const seekbarStyle = computed(() => {
 	}
 })
 
+const canvasStatus = new Map<
+	number,
+	{drawing: boolean; queue?: {src: string; frame: number}}
+>()
+
+worker.onmessage = e => {
+	const {type, data} = e.data
+
+	if (type === 'lyricDrawn') {
+		const id = data as number
+
+		let {drawing, queue} = canvasStatus.get(id) ?? {drawing: false}
+
+		if (queue) {
+			worker.postMessage({
+				type: 'drawLyric',
+				data: {id, src: queue.src, frame: queue.frame},
+			})
+			queue = undefined
+		} else {
+			drawing = false
+		}
+
+		canvasStatus.set(id, {drawing, queue})
+	}
+}
+
+const lastDrawnLyric = new Map<number, {src: string; frame: number}>()
+
+function drawLyric(id: number, src: string, frame: number) {
+	const lastDrawn = lastDrawnLyric.get(id)
+	if (lastDrawn && lastDrawn.src === src && lastDrawn.frame === frame) {
+		return
+	}
+
+	const {drawing} = canvasStatus.get(id) || {drawing: false}
+
+	if (drawing) {
+		canvasStatus.set(id, {drawing, queue: {src, frame}})
+		return
+	}
+
+	canvasStatus.set(id, {drawing: true})
+
+	worker.postMessage({
+		type: 'drawLyric',
+		data: {id, src, frame},
+	})
+
+	lastDrawnLyric.set(id, {src, frame})
+}
+
 function updateLyrics() {
 	if ($lyrics.value === null) return
 
@@ -156,10 +209,7 @@ function updateLyrics() {
 			canvas.style.width = `calc(${lyric.size[0]} * var(--px))`
 			canvas.style.height = `calc(${lyric.size[1]} * var(--px))`
 
-			worker.postMessage({
-				type: 'drawLyric',
-				data: {id, src: lyric.src, frame},
-			})
+			drawLyric(id, lyric.src, frame)
 		}
 	}
 }
