@@ -210,6 +210,8 @@ function updateLyrics() {
 			canvas.style.height = `calc(${lyric.size[1]} * var(--px))`
 
 			drawLyric(id, lyric.src, frame)
+		} else {
+			drawLyric(id, '', Infinity)
 		}
 	}
 }

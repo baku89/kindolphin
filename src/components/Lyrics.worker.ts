@@ -47,27 +47,32 @@ function onReceiveOffscreenCanvas(id: number, canvas: OffscreenCanvas) {
 
 function drawLyric(id: number, src: string, frame: number) {
 	const ctx = contexts.get(id)!
-	const img = images.get(src)!
 
-	ctx.canvas.width = img.width
-	ctx.canvas.height = img.height
+	if (src === '') {
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+	} else {
+		const img = images.get(src)!
 
-	const threshold = thresholds[frame]
-	const [r, g, b] = primaryRGB
-	const {width, height} = img
+		ctx.canvas.width = img.width
+		ctx.canvas.height = img.height
 
-	ctx.drawImage(img, 0, 0, width, height)
+		const threshold = thresholds[frame]
+		const [r, g, b] = primaryRGB
+		const {width, height} = img
 
-	const pix = ctx.getImageData(0, 0, width, height)
+		ctx.drawImage(img, 0, 0, width, height)
 
-	for (let i = 0; i < pix.data.length; i += 4) {
-		pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
-		pix.data[i] = r
-		pix.data[i + 1] = g
-		pix.data[i + 2] = b
+		const pix = ctx.getImageData(0, 0, width, height)
+
+		for (let i = 0; i < pix.data.length; i += 4) {
+			pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
+			pix.data[i] = r
+			pix.data[i + 1] = g
+			pix.data[i + 2] = b
+		}
+
+		ctx.putImageData(pix, 0, 0)
 	}
-
-	ctx.putImageData(pix, 0, 0)
 
 	self.postMessage({type: 'lyricDrawn', data: id})
 }
