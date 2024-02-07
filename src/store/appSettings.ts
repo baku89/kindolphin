@@ -21,7 +21,7 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		{
 			bg: '#ffffff',
 			ink: '#000000',
-			primary: '#ff6338',
+			primary: '#ff3838',
 			invert: false,
 		},
 		{
@@ -33,7 +33,7 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		{
 			bg: '#c0eac1',
 			ink: '#3d4519',
-			primary: '#17db90',
+			primary: '#16dc90',
 			invert: false,
 		},
 		{
@@ -50,7 +50,7 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		},
 	])
 
-	const themeIndex = useLocalStorage('jp.g-a-l.happening.themeIndex', 0)
+	const themeIndex = useLocalStorage('jp.g-a-l.happening.themeIndex', 1)
 
 	const currentTheme = computed(() => themes.value[themeIndex.value])
 

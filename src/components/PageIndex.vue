@@ -219,66 +219,12 @@ onMounted(async () => {
 		<div class="PageIndex__fade-in" v-if="fadeInStatus === 'in'" />
 	</Transition>
 	<PaneHelp v-model:show="showHelp" />
-	<div class="bg-overlay"></div>
-	<div class="ink-overlay"></div>
+	<div class="bg-overlay" />
+	<div class="ink-overlay" />
 	<PaneSettings v-model:show="showThemeSettings" />
 </template>
 
 <style lang="stylus" scoped>
-.PageIndex__fade-in
-	position fixed
-	inset 0
-	z-index 19
-	background-size 8px 8px
-	background-position 0 0
-	background-repeat repeat
-	background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QVDRcoAAAAASUVORK5CYII=')
-	mix-blend-mode lighten
-
-
-	&.v-enter-active
-		animation page-fade 0.6s
-
-	&.v-leave-active
-		animation page-fade 0.6s reverse
-
-@keyframes page-fade
-	0%
-		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
-	16.5%
-		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
-
-	16.6%
-		background-image url('data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADQAgCdASoQABAAAgA0JaQAEOA/gHIAeoAa4RwPTWUAAP7+n80ZcVfv89/xH+ogrG3/cr8QdPGKv/5uIg46v/icyXDbt5v89/xH+ogrG3/cr8QdPGKv/5uIg4qgAA==')
-	33.2%
-		background-image url('data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADQAgCdASoQABAAAgA0JaQAEOA/gHIAeoAa4RwPTWUAAP7+n80ZcVfv89/xH+ogrG3/cr8QdPGKv/5uIg46v/icyXDbt5v89/xH+ogrG3/cr8QdPGKv/5uIg4qgAA==')
-
-	33.3%
-		background-image url('data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAQBQCdASoQABAAAgA0JaQATgDkAvQCYAfi681XzAvwD8segw/p/qAGbBJKqfTnzyAAAP7+oEb/wzwuD/m2+l9nf/lzxu//Nt9L9jj3L//PWAf0jhuCndBJEStSSJeX/MQQ91tPcXzuqDShGhyFAFAH/igcp/z40c7BMV0eF5Llaa7WsKq5/nrAP6Rw3BTugkiJWpJE2h/9L3iRkdM1jPPNTZK8ZEU5vNsAAA==')
-	49.9%
-		background-image url('data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAQBQCdASoQABAAAgA0JaQATgDkAvQCYAfi681XzAvwD8segw/p/qAGbBJKqfTnzyAAAP7+oEb/wzwuD/m2+l9nf/lzxu//Nt9L9jj3L//PWAf0jhuCndBJEStSSJeX/MQQ91tPcXzuqDShGhyFAFAH/igcp/z40c7BMV0eF5Llaa7WsKq5/nrAP6Rw3BTugkiJWpJE2h/9L3iRkdM1jPPNTZK8ZEU5vNsAAA==')
-
-	50%
-		background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
-	66.5%
-		background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
-
-	66.6%
-		background-image url('data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQBACdASoQABAAAgA0JaQAMwB+AGeA/ACRAvwD+AaoF+AflV04H6AeoAcjt/SAYAD+9VQXCPdR6PB/+0hzhB36PvHgfjBHuo9F69tpDnCDv0bv/lrXvTHcdqeB+MEe6j0G73rkqn+ZqRp/yLI8uEHfn4AAAA==')
-	83.2%
-		background-image url('data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQBACdASoQABAAAgA0JaQAMwB+AGeA/ACRAvwD+AaoF+AflV04H6AeoAcjt/SAYAD+9VQXCPdR6PB/+0hzhB36PvHgfjBHuo9F69tpDnCDv0bv/lrXvTHcdqeB+MEe6j0G73rkqn+ZqRp/yLI8uEHfn4AAAA==')
-
-	83.3%
-		background-image url('data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAwCdASoQABAAAgA0JaQAJkAkAD+AaoF+AflVzgHqAHI7f0gGAAD+9WPvX3ET8hJ7r9/6cnvx56KUrUfZ/7Y1sCLLHXcfq/8yLzTAZO/lQAAA')
-	99.9%
-		background-image url('data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAwCdASoQABAAAgA0JaQAJkAkAD+AaoF+AflVzgHqAHI7f0gGAAD+9WPvX3ET8hJ7r9/6cnvx56KUrUfZ/7Y1sCLLHXcfq/8yLzTAZO/lQAAA')
-
-	100%
-		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QVDRcoAAAAASUVORK5CYII=')
-
-
-
-
 .PageIndex
 	position fixed
 	inset 0
@@ -440,16 +386,8 @@ onMounted(async () => {
 	border-radius 2rem
 	color var(--white)
 	margin-bottom 1em
-	font-family var(--font-small)
-	HiraKakuProN-W3
-	游ゴシック
-	'Yu Gothic'
-	メイリオ
-	Meiryo
-	Verdana
-	Helvetica
-	Arial
-	sans-serif
+	font-family "var(--font-small), HiraKakuProN-W3, 游ゴシック, 'Yu Gothic', メイリオ, Meiryo, Verdana, Helvetica, Arial, sans-serif" % null
+
 	.book.hover &
 		background var(--white)
 		color var(--black)
@@ -469,7 +407,6 @@ onMounted(async () => {
 		transform scale(0.2)
 		outline 5rem solid var(--black)
 
-
 .footer
 	box-sizing content-box
 	height var(--header-height)
@@ -480,4 +417,58 @@ onMounted(async () => {
 	grid-template-columns 1fr 1fr calc(var(--manga-width) * 0.2 + 30rem) 1fr 1fr
 	align-items stretch
 	justify-content space-between
+
+.PageIndex__fade-in
+	position fixed
+	inset 0
+	z-index 19
+	background-size 8px 8px
+	background-position 0 0
+	background-repeat repeat
+	background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QVDRcoAAAAASUVORK5CYII=')
+	mix-blend-mode lighten
+
+	html.invert &
+		filter invert(100%)
+		mix-blend-mode darken
+
+	&.v-enter-active
+		animation page-fade 0.6s
+
+	&.v-leave-active
+		animation page-fade 0.6s reverse
+
+@keyframes page-fade
+	0%
+		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+	16.5%
+		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=')
+
+	16.6%
+		background-image url('data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADQAgCdASoQABAAAgA0JaQAEOA/gHIAeoAa4RwPTWUAAP7+n80ZcVfv89/xH+ogrG3/cr8QdPGKv/5uIg46v/icyXDbt5v89/xH+ogrG3/cr8QdPGKv/5uIg4qgAA==')
+	33.2%
+		background-image url('data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAADQAgCdASoQABAAAgA0JaQAEOA/gHIAeoAa4RwPTWUAAP7+n80ZcVfv89/xH+ogrG3/cr8QdPGKv/5uIg46v/icyXDbt5v89/xH+ogrG3/cr8QdPGKv/5uIg4qgAA==')
+
+	33.3%
+		background-image url('data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAQBQCdASoQABAAAgA0JaQATgDkAvQCYAfi681XzAvwD8segw/p/qAGbBJKqfTnzyAAAP7+oEb/wzwuD/m2+l9nf/lzxu//Nt9L9jj3L//PWAf0jhuCndBJEStSSJeX/MQQ91tPcXzuqDShGhyFAFAH/igcp/z40c7BMV0eF5Llaa7WsKq5/nrAP6Rw3BTugkiJWpJE2h/9L3iRkdM1jPPNTZK8ZEU5vNsAAA==')
+	49.9%
+		background-image url('data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAAAQBQCdASoQABAAAgA0JaQATgDkAvQCYAfi681XzAvwD8segw/p/qAGbBJKqfTnzyAAAP7+oEb/wzwuD/m2+l9nf/lzxu//Nt9L9jj3L//PWAf0jhuCndBJEStSSJeX/MQQ91tPcXzuqDShGhyFAFAH/igcp/z40c7BMV0eF5Llaa7WsKq5/nrAP6Rw3BTugkiJWpJE2h/9L3iRkdM1jPPNTZK8ZEU5vNsAAA==')
+
+	50%
+		background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
+	66.5%
+		background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
+
+	66.6%
+		background-image url('data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQBACdASoQABAAAgA0JaQAMwB+AGeA/ACRAvwD+AaoF+AflV04H6AeoAcjt/SAYAD+9VQXCPdR6PB/+0hzhB36PvHgfjBHuo9F69tpDnCDv0bv/lrXvTHcdqeB+MEe6j0G73rkqn+ZqRp/yLI8uEHfn4AAAA==')
+	83.2%
+		background-image url('data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQBACdASoQABAAAgA0JaQAMwB+AGeA/ACRAvwD+AaoF+AflV04H6AeoAcjt/SAYAD+9VQXCPdR6PB/+0hzhB36PvHgfjBHuo9F69tpDnCDv0bv/lrXvTHcdqeB+MEe6j0G73rkqn+ZqRp/yLI8uEHfn4AAAA==')
+
+	83.3%
+		background-image url('data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAwCdASoQABAAAgA0JaQAJkAkAD+AaoF+AflVzgHqAHI7f0gGAAD+9WPvX3ET8hJ7r9/6cnvx56KUrUfZ/7Y1sCLLHXcfq/8yLzTAZO/lQAAA')
+	99.9%
+		background-image url('data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAwCdASoQABAAAgA0JaQAJkAkAD+AaoF+AflVzgHqAHI7f0gGAAD+9WPvX3ET8hJ7r9/6cnvx56KUrUfZ/7Y1sCLLHXcfq/8yLzTAZO/lQAAA')
+
+	100%
+		background-image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QVDRcoAAAAASUVORK5CYII=')
 </style>
