@@ -72,34 +72,6 @@ watchEffect(() => {
 	}
 })
 
-const lastDrawn = new Map<number, {src: string; frame: number}>()
-
-function drawLyricToContext(id: number, src: string, frame: number) {
-	const {ctx, pix} = contexts.get(id)!
-
-	if (src === '') {
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-	} else {
-		const img = images.get(src)
-
-		if (img) {
-			const threshold = thresholds[frame]
-			const [r, g, b] = primaryRGB.value
-
-			for (let i = 0; i < img.length; i++) {
-				pix.data[i * 4 + 3] = img[i] >= threshold ? 255 : 0
-				pix.data[i * 4] = r
-				pix.data[i * 4 + 1] = g
-				pix.data[i * 4 + 2] = b
-			}
-
-			ctx.putImageData(pix, 0, 0)
-		}
-	}
-
-	lastDrawn.set(id, {src, frame})
-}
-
 const $lyrics = ref<HTMLElement | null>(null)
 
 // Update visibleLyrics
@@ -201,7 +173,27 @@ function drawLyric(id: number, src: string, frame: number) {
 		return
 	}
 
-	drawLyricToContext(id, src, frame)
+	const {ctx, pix} = contexts.get(id)!
+
+	if (src === '') {
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+	} else {
+		const img = images.get(src)
+
+		if (img) {
+			const threshold = thresholds[frame]
+			const [r, g, b] = primaryRGB.value
+
+			for (let i = 0; i < img.length; i++) {
+				pix.data[i * 4 + 3] = img[i] >= threshold ? 255 : 0
+				pix.data[i * 4] = r
+				pix.data[i * 4 + 1] = g
+				pix.data[i * 4 + 2] = b
+			}
+
+			ctx.putImageData(pix, 0, 0)
+		}
+	}
 
 	lastDrawnLyric.set(id, {src, frame})
 }
