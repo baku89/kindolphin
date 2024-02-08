@@ -105,8 +105,13 @@ button
 	line-height 1.2em
 	aspect-ratio 1 / 1
 
-.fa-volume-xmark, .fa-volume-high
-	text-align left
+.fa.sound-sprite
+	background-image url('/assets/icons/sound_sprite.gif')
+	background-size 100% 600%
+	transition background-position 0.2s steps(5)
+
+	&.muted
+		background-position 0 100%
 
 a
 	text-decoration none

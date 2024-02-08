@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
 	<component :is="href ? 'a' : 'button'" class="FooterButton" :href="href">
-		<i class="fa fa-sharp fa-solid" :class="[`fa-${icon}`]" />
+		<img class="fa" :src="icon" />
 		<span class="label">{{ label.toUpperCase() }}</span>
 	</component>
 </template>
@@ -29,8 +29,9 @@ defineProps<{
 	line-height 9rem
 
 .fa
+	display block
 	font-size 20rem
 	height 25rem
-	width 30rem
+	width 25rem
 	text-align center
 </style>

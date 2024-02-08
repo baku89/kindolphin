@@ -74,16 +74,13 @@ onMounted(async () => {
 		<header class="header">
 			<div class="left">
 				<button @click="minimized = false">
-					<i class="fa fa-brands fa-readme" />
+					<img class="fa" src="/assets/icons/read.gif" />
 				</button>
 			</div>
 			<h1 class="title">Kindolphin</h1>
 			<div class="right">
 				<button @click="settings.muted = !settings.muted">
-					<i
-						class="fa fa-sharp fa-solid"
-						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
-					/>
+					<div class="fa sound-sprite img" :class="{muted: settings.muted}" />
 				</button>
 			</div>
 		</header>
@@ -185,24 +182,24 @@ onMounted(async () => {
 		<footer class="footer">
 			<FooterButton
 				:label="ui.label.theme"
-				icon="palette"
+				icon="./assets/icons/palette.gif"
 				@click="showThemeSettings = true"
 			/>
 			<FooterButton
 				:label="ui.label.lang"
-				icon="language"
+				icon="./assets/icons/lang.gif"
 				@click="settings.lang = settings.lang === 'en' ? 'ja' : 'en'"
 			/>
 			<div class="spacer" />
 			<FooterButton
-				:label="ui.label.listen"
+				:label="ui.label.share"
 				href="https://linkco.re/Mu9VcVt8"
 				target="_blank"
-				icon="music"
+				icon="./assets/icons/share.gif"
 			/>
 			<FooterButton
 				:label="ui.label.help"
-				icon="circle-question"
+				icon="./assets/icons/help.gif"
 				@click="showHelp = true"
 			/>
 		</footer>

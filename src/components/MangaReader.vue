@@ -230,7 +230,7 @@ whenever(space, togglePlay)
 		<header class="header" :class="{show: showNav}">
 			<div class="left">
 				<button class="button" @click.stop="$emit('update:minimized', true)">
-					<i class="fa fa-sharp fa-solid fa-house" />
+					<img class="fa fa-img" src="/assets/icons/house.gif" />
 				</button>
 			</div>
 			<h1 class="title" @click.stop="$emit('update:minimized', true)">
@@ -238,10 +238,7 @@ whenever(space, togglePlay)
 			</h1>
 			<div class="right">
 				<button class="button" @click="settings.muted = !settings.muted">
-					<i
-						class="fa fa-sharp fa-solid"
-						:class="settings.muted ? 'fa-volume-xmark' : 'fa-volume-high'"
-					/>
+					<div class="fa sound-sprite img" :class="{muted: settings.muted}" />
 				</button>
 			</div>
 		</header>

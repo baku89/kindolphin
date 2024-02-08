@@ -24,9 +24,9 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'Help',
 			ja: 'ヘルプ',
 		},
-		listen: {
-			en: 'Listen',
-			ja: '聴く',
+		share: {
+			en: 'Share',
+			ja: 'シェア',
 		},
 		readNow: {
 			en: 'READ NOW',
