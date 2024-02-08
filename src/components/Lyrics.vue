@@ -11,10 +11,6 @@ import {useLyrics} from '@/use/useLyrics'
 
 import Bang from './Bang.vue'
 
-const worker = new Worker(new URL('./Lyrics.worker.ts', import.meta.url), {
-	type: 'module',
-})
-
 const props = defineProps<{
 	lyrics: Lyric[]
 	scroll: number
@@ -34,27 +30,82 @@ const settings = useAppSettingsStore()
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
-watchEffect(() => {
-	worker.postMessage({
-		type: 'preloadImages',
-		data: props.lyrics.map(lyric => lyric.src),
-	})
+// Drawing logic
+const primaryRGB = computed(() => {
+	return chroma(settings.currentTheme.primary).rgb()
 })
 
+const images: Map<string, Uint8ClampedArray> = new Map()
+
+const contexts = new Map<
+	number,
+	{ctx: CanvasRenderingContext2D; pix: ImageData}
+>()
+
+let toBufferContext: CanvasRenderingContext2D
+function bmpToBuffer(bmp: ImageBitmap) {
+	if (!toBufferContext) {
+		const canvas = document.createElement('canvas')
+		toBufferContext = canvas.getContext('2d')!
+	}
+
+	toBufferContext.canvas.width = bmp.width
+	toBufferContext.canvas.height = bmp.height
+
+	toBufferContext.drawImage(bmp, 0, 0)
+	const pix = toBufferContext.getImageData(0, 0, bmp.width, bmp.height)
+	const buffer = new Uint8ClampedArray(pix.data.length / 4)
+	for (let i = 0; i < buffer.length; i++) {
+		buffer[i] = pix.data[i * 4]
+	}
+
+	return buffer
+}
+
 watchEffect(() => {
-	worker.postMessage({
-		type: 'setPrimaryColor',
-		data: chroma(settings.currentTheme.primary).rgb(),
-	})
+	for (const src of props.lyrics.map(lyric => lyric.src)) {
+		fetch(src)
+			.then(res => res.blob())
+			.then(createImageBitmap)
+			.then(bmpToBuffer)
+			.then(img => images.set(src, img))
+	}
 })
+
+const lastDrawn = new Map<number, {src: string; frame: number}>()
+
+function drawLyricToContext(id: number, src: string, frame: number) {
+	const {ctx, pix} = contexts.get(id)!
+
+	if (src === '') {
+		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+	} else {
+		const img = images.get(src)
+
+		if (img) {
+			const threshold = thresholds[frame]
+			const [r, g, b] = primaryRGB.value
+
+			for (let i = 0; i < img.length; i++) {
+				pix.data[i * 4 + 3] = img[i] >= threshold ? 255 : 0
+				pix.data[i * 4] = r
+				pix.data[i * 4 + 1] = g
+				pix.data[i * 4 + 2] = b
+			}
+
+			ctx.putImageData(pix, 0, 0)
+		}
+	}
+
+	lastDrawn.set(id, {src, frame})
+}
 
 const $lyrics = ref<HTMLElement | null>(null)
-const canvases: HTMLCanvasElement[] = []
 
 // Update visibleLyrics
 const visibleLyrics: (Lyric & {start: number; visible: boolean})[] = []
 
-const LyricDuration = 8
+const LyricDuration = 4
 
 onMounted(() => {
 	if ($lyrics.value === null) return
@@ -63,14 +114,12 @@ onMounted(() => {
 		const canvas = document.createElement('canvas')
 		canvas.classList.add('lyric')
 		$lyrics.value.appendChild(canvas)
-		canvases.push(canvas)
 
-		const offscreenCanvas = canvas.transferControlToOffscreen()
-
-		worker.postMessage(
-			{type: 'sendOffscreenCanvas', data: {id, canvas: offscreenCanvas}},
-			[offscreenCanvas]
-		)
+		const ctx = canvas.getContext('2d', {willReadFrequently: true})!
+		canvas.width = 145
+		canvas.height = 229
+		const pix = ctx.createImageData(145, 229)
+		contexts.set(id, {ctx, pix})
 
 		visibleLyrics.push({
 			time: 0,
@@ -144,33 +193,6 @@ const seekbarStyle = computed(() => {
 	}
 })
 
-const canvasStatus = new Map<
-	number,
-	{drawing: boolean; queue?: {src: string; frame: number}}
->()
-
-worker.addEventListener('message', e => {
-	const {type, data} = e.data
-
-	if (type === 'lyricDrawn') {
-		const id = data as number
-
-		let {drawing, queue} = canvasStatus.get(id) ?? {drawing: false}
-
-		if (queue) {
-			worker.postMessage({
-				type: 'drawLyric',
-				data: {id, src: queue.src, frame: queue.frame},
-			})
-			queue = undefined
-		} else {
-			drawing = false
-		}
-
-		canvasStatus.set(id, {drawing, queue})
-	}
-})
-
 const lastDrawnLyric = new Map<number, {src: string; frame: number}>()
 
 function drawLyric(id: number, src: string, frame: number) {
@@ -179,19 +201,7 @@ function drawLyric(id: number, src: string, frame: number) {
 		return
 	}
 
-	const {drawing} = canvasStatus.get(id) || {drawing: false}
-
-	if (drawing) {
-		canvasStatus.set(id, {drawing, queue: {src, frame}})
-		return
-	}
-
-	canvasStatus.set(id, {drawing: true})
-
-	worker.postMessage({
-		type: 'drawLyric',
-		data: {id, src, frame},
-	})
+	drawLyricToContext(id, src, frame)
 
 	lastDrawnLyric.set(id, {src, frame})
 }
@@ -204,7 +214,7 @@ function updateLyrics() {
 	for (let id = 0; id < visibleLyrics.length; id++) {
 		const lyric = visibleLyrics[id]
 
-		const canvas = canvases[id]
+		const canvas = contexts.get(id)!.ctx.canvas
 
 		canvas.style.visibility = lyric.visible ? 'visible' : 'hidden'
 
