@@ -21,16 +21,40 @@ self.addEventListener('message', ({data: {type, data}}) => {
 	}
 })
 
-const images: Map<string, ImageBitmap> = new Map()
+const images: Map<string, Uint8ClampedArray> = new Map()
 let primaryRGB: vec3 = [0, 0, 0]
 
-const contexts = new Map<number, OffscreenCanvasRenderingContext2D>()
+const contexts = new Map<
+	number,
+	{ctx: OffscreenCanvasRenderingContext2D; pix: ImageData}
+>()
+
+let toBufferContext: OffscreenCanvasRenderingContext2D
+function bmpToBuffer(bmp: ImageBitmap) {
+	if (!toBufferContext) {
+		const canvas = new OffscreenCanvas(1, 1)
+		toBufferContext = canvas.getContext('2d')!
+	}
+
+	toBufferContext.canvas.width = bmp.width
+	toBufferContext.canvas.height = bmp.height
+
+	toBufferContext.drawImage(bmp, 0, 0)
+	const pix = toBufferContext.getImageData(0, 0, bmp.width, bmp.height)
+	const buffer = new Uint8ClampedArray(pix.data.length / 4)
+	for (let i = 0; i < buffer.length; i++) {
+		buffer[i] = pix.data[i * 4]
+	}
+
+	return buffer
+}
 
 function preloadImages(srcs: string[]) {
 	for (const src of srcs) {
 		fetch(src)
 			.then(res => res.blob())
 			.then(createImageBitmap)
+			.then(bmpToBuffer)
 			.then(img => images.set(src, img))
 	}
 }
@@ -41,13 +65,16 @@ const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 
 function onReceiveOffscreenCanvas(id: number, canvas: OffscreenCanvas) {
 	const ctx = canvas.getContext('2d', {willReadFrequently: true})!
-	contexts.set(id, ctx)
+	canvas.width = 145
+	canvas.height = 229
+	const pix = ctx.createImageData(145, 229)
+	contexts.set(id, {ctx, pix})
 }
 
 const lastDrawn = new Map<number, {src: string; frame: number}>()
 
 function drawLyric(id: number, src: string, frame: number) {
-	const ctx = contexts.get(id)!
+	const {ctx, pix} = contexts.get(id)!
 
 	if (src === '') {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -55,22 +82,14 @@ function drawLyric(id: number, src: string, frame: number) {
 		const img = images.get(src)
 
 		if (img) {
-			ctx.canvas.width = img.width
-			ctx.canvas.height = img.height
-
 			const threshold = thresholds[frame]
 			const [r, g, b] = primaryRGB
-			const {width, height} = img
 
-			ctx.drawImage(img, 0, 0, width, height)
-
-			const pix = ctx.getImageData(0, 0, width, height)
-
-			for (let i = 0; i < pix.data.length; i += 4) {
-				pix.data[i + 3] = pix.data[i] >= threshold ? 255 : 0
-				pix.data[i] = r
-				pix.data[i + 1] = g
-				pix.data[i + 2] = b
+			for (let i = 0; i < img.length; i++) {
+				pix.data[i * 4 + 3] = img[i] >= threshold ? 255 : 0
+				pix.data[i * 4] = r
+				pix.data[i * 4 + 1] = g
+				pix.data[i * 4 + 2] = b
 			}
 
 			ctx.putImageData(pix, 0, 0)

@@ -59,7 +59,7 @@ const LyricDuration = 8
 onMounted(() => {
 	if ($lyrics.value === null) return
 
-	for (const id of range(100)) {
+	for (const id of range(50)) {
 		const canvas = document.createElement('canvas')
 		canvas.classList.add('lyric')
 		$lyrics.value.appendChild(canvas)
@@ -73,7 +73,7 @@ onMounted(() => {
 		)
 
 		visibleLyrics.push({
-			time: -Infinity,
+			time: 0,
 			duration: 0,
 			src: '',
 			offset: vec2.zero,
@@ -224,7 +224,7 @@ function updateLyrics() {
 
 			drawLyric(id, lyric.src, frame)
 		} else {
-			drawLyric(id, '', Infinity)
+			drawLyric(id, '', -1)
 		}
 	}
 }
