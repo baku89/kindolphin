@@ -33,10 +33,6 @@ export default (): UserConfig => {
 			vue(),
 			VitePWA({
 				registerType: 'autoUpdate',
-				injectRegister: 'auto',
-				devOptions: {
-					enabled: true,
-				},
 				manifest: {
 					name: 'HAPPENING',
 					short_name: 'HAPPENING',
@@ -51,6 +47,10 @@ export default (): UserConfig => {
 							purpose: 'any maskable',
 						},
 					],
+				},
+				workbox: {
+					globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,gif}'],
+					maximumFileSizeToCacheInBytes: 10 * 1024 * 1024 /* 10MB */,
 				},
 			}),
 		],
