@@ -23,14 +23,10 @@ const props = defineProps<{
 const settings = useAppSettingsStore()
 
 const lyrics = asyncComputed<Lyric[]>(async () => {
-	console.time('Fetching BSON')
 	const res = await fetch(props.lyricsSrc)
 	const buffer = await res.arrayBuffer()
-	console.timeEnd('Fetching BSON')
 
-	console.time('Deserializing BSON')
 	const lyrics = BSON.deserialize(new Uint8Array(buffer)).lyrics as BSONLyric[]
-	console.timeEnd('Deserializing BSON')
 
 	return lyrics.map(lyric => ({
 		...lyric,
