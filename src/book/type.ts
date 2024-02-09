@@ -7,14 +7,15 @@ export interface Page {
 }
 
 export interface Lyric {
+	index: number
 	time: number
 	duration: number
 	offset: vec2
 	size: vec2
-	src: string
 }
 
 export interface Book {
 	pages: Page[]
 	lyrics: Lyric[]
+	lyricSrc: string
 }

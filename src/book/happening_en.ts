@@ -71,7 +71,7 @@ export const pages: Page[] = [
 	{src: './assets/manga_ja/manga_29_00.webp', width: 324, height: 914},
 ]
 
-const lyrics: Omit<Lyric, 'src'>[] = [
+const lyrics: Omit<Lyric, 'index'>[] = [
 	{time: 0.94, duration: 0.08, offset: [38, 618], size: [28, 22]},
 	{time: 1.02, duration: 0.1, offset: [70, 621], size: [23, 20]},
 	{time: 1.12, duration: 0.1, offset: [95, 618], size: [29, 23]},
@@ -581,18 +581,14 @@ const lyrics: Omit<Lyric, 'src'>[] = [
 
 export const BookHappeningEn: Book = {
 	pages,
-	lyrics: lyrics.map((l, i) => {
+	lyrics: lyrics.map((l, index) => {
 		const size: vec2 = [145, 229]
 		const offset = vec2.sub(
 			l.offset,
 			vec2.floor(vec2.scale(vec2.sub(size, l.size), 0.5))
 		)
 
-		return {
-			...l,
-			offset,
-			size,
-			src: `${location.pathname}assets/lyrics_ja/lyrics_ja_${i.toString().padStart(3, '0')}.webp`,
-		}
+		return {...l, index, offset, size}
 	}),
+	lyricSrc: 'assets/lyrics_ja.bson.gz',
 }

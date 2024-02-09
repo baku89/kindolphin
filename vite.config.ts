@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import {execSync} from 'child_process'
 import {UserConfig} from 'vite'
 import {VitePWA} from 'vite-plugin-pwa'
+import topLevelAwait from 'vite-plugin-top-level-await'
 
 export default (): UserConfig => {
 	const commitHash = execSync('git rev-parse --short HEAD')
@@ -23,6 +24,12 @@ export default (): UserConfig => {
 			port: 5552,
 		},
 		plugins: [
+			topLevelAwait({
+				// The export name of top-level await promise for each chunk module
+				promiseExportName: '__tla',
+				// The function to generate import names of top-level await promise in each chunk module
+				promiseImportName: i => `__tla_${i}`,
+			}),
 			vue(),
 			VitePWA({
 				registerType: 'autoUpdate',

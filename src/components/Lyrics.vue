@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useRafFn} from '@vueuse/core'
+import {BSON} from 'bson'
 import chroma from 'chroma-js'
 import {vec2} from 'linearly'
 import {clamp, range} from 'lodash'
@@ -12,6 +13,7 @@ import {useLyrics} from '@/use/useLyrics'
 import Bang from './Bang.vue'
 
 const props = defineProps<{
+	lyricsSrc: string
 	lyrics: Lyric[]
 	scroll: number
 	currentTime: number
@@ -35,41 +37,25 @@ const primaryRGB = computed(() => {
 	return chroma(settings.currentTheme.primary).rgb()
 })
 
-const images: Map<string, Uint8ClampedArray> = new Map()
+const bitmaps: Map<number, Uint8Array> = new Map()
 
 const contexts = new Map<
 	number,
 	{ctx: CanvasRenderingContext2D; pix: ImageData}
 >()
 
-let toBufferContext: CanvasRenderingContext2D
-function bmpToBuffer(bmp: ImageBitmap) {
-	if (!toBufferContext) {
-		const canvas = document.createElement('canvas')
-		toBufferContext = canvas.getContext('2d')!
-	}
+watchEffect(async () => {
+	console.time('Fetching BSON')
+	const res = await fetch(props.lyricsSrc)
+	const buffer = await res.arrayBuffer()
+	console.timeEnd('Fetching BSON')
 
-	toBufferContext.canvas.width = bmp.width
-	toBufferContext.canvas.height = bmp.height
+	console.time('Deserializing BSON')
+	const result = BSON.deserialize(new Uint8Array(buffer))
+	const lyrics = result.lyrics as BSON.Binary[]
+	console.timeEnd('Deserializing BSON')
 
-	toBufferContext.drawImage(bmp, 0, 0)
-	const pix = toBufferContext.getImageData(0, 0, bmp.width, bmp.height)
-	const buffer = new Uint8ClampedArray(pix.data.length / 4)
-	for (let i = 0; i < buffer.length; i++) {
-		buffer[i] = pix.data[i * 4]
-	}
-
-	return buffer
-}
-
-watchEffect(() => {
-	for (const src of props.lyrics.map(lyric => lyric.src)) {
-		fetch(src)
-			.then(res => res.blob())
-			.then(createImageBitmap)
-			.then(bmpToBuffer)
-			.then(img => images.set(src, img))
-	}
+	lyrics.forEach((lyric, i) => bitmaps.set(i, lyric.buffer))
 })
 
 const $lyrics = ref<HTMLElement | null>(null)
@@ -96,7 +82,7 @@ onMounted(() => {
 		visibleLyrics.push({
 			time: 0,
 			duration: 0,
-			src: '',
+			index: -1,
 			offset: vec2.zero,
 			size: vec2.zero,
 			start: -1,
@@ -165,27 +151,27 @@ const seekbarStyle = computed(() => {
 	}
 })
 
-const lastDrawnLyric = new Map<number, {src: string; frame: number}>()
+const lastDrawnLyric = new Map<number, {index: number; frame: number}>()
 
-function drawLyric(id: number, src: string, frame: number) {
+function drawLyric(id: number, index: number, frame: number) {
 	const lastDrawn = lastDrawnLyric.get(id)
-	if (lastDrawn && lastDrawn.src === src && lastDrawn.frame === frame) {
+	if (lastDrawn && lastDrawn.index === index && lastDrawn.frame === frame) {
 		return
 	}
 
 	const {ctx, pix} = contexts.get(id)!
 
-	if (src === '') {
+	if (index < 0) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 	} else {
-		const img = images.get(src)
+		const bmp = bitmaps.get(index)
 
-		if (img) {
+		if (bmp) {
 			const threshold = thresholds[frame]
 			const [r, g, b] = primaryRGB.value
 
-			for (let i = 0; i < img.length; i++) {
-				pix.data[i * 4 + 3] = img[i] >= threshold ? 255 : 0
+			for (let i = 0; i < bmp.length; i++) {
+				pix.data[i * 4 + 3] = bmp[i] >= threshold ? 255 : 0
 				pix.data[i * 4] = r
 				pix.data[i * 4 + 1] = g
 				pix.data[i * 4 + 2] = b
@@ -195,7 +181,7 @@ function drawLyric(id: number, src: string, frame: number) {
 		}
 	}
 
-	lastDrawnLyric.set(id, {src, frame})
+	lastDrawnLyric.set(id, {index, frame})
 }
 
 function updateLyrics() {
@@ -224,9 +210,9 @@ function updateLyrics() {
 			canvas.style.width = `${width}px`
 			canvas.style.height = `${height}px`
 
-			drawLyric(id, lyric.src, frame)
+			drawLyric(id, lyric.index, frame)
 		} else {
-			drawLyric(id, '', -1)
+			drawLyric(id, -1, -1)
 		}
 	}
 }

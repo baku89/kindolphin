@@ -12,9 +12,7 @@ export function usePreloadBook(book: Book) {
 			preload.fetch(page.src, page.height)
 		})
 
-		book.lyrics.forEach(lyric => {
-			preload.fetch(lyric.src, 10)
-		})
+		preload.fetch(book.lyricSrc, 300)
 	}
 
 	return reactive({

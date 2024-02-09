@@ -252,6 +252,7 @@ whenever(space, togglePlay)
 			<div class="manga-content" ref="$mangaWrapper">
 				<Manga class="manga" :pages="book.pages" :scroll="scroll" />
 				<Lyrics
+					:lyricsSrc="book.lyricSrc"
 					:lyrics="book.lyrics"
 					:seekbarPosition="seekbarPosition"
 					:scroll="scroll"
