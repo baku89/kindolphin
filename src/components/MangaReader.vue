@@ -2,7 +2,6 @@
 import {
 	useElementSize,
 	useMagicKeys,
-	watchOnce,
 	watchThrottled,
 	whenever,
 } from '@vueuse/core'
@@ -20,6 +19,8 @@ import {FPS, Keyframe, lookupTime, lookupValue} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
 import {useVirtualScroll} from '@/use/useVirtualScroll'
 
+import SoundAlertPopup from './SoundAlertPopup.vue'
+
 const props = defineProps<{
 	minimized: boolean
 	book: Book
@@ -35,7 +36,7 @@ const settings = useAppSettingsStore()
 const volume = computed(() => (settings.muted || props.minimized ? 0 : 1))
 
 // This is necessary to play audio on iOS
-watchOnce(
+watch(
 	() => props.minimized,
 	() => {
 		audio.preliminaryPlay()
@@ -240,6 +241,22 @@ watch(
 // Space to toggle
 const {space} = useMagicKeys()
 whenever(space, togglePlay)
+
+//------------------------------------------------------------------------------
+// Sound alert
+const showSoundAlert = ref(false)
+
+watch(
+	() => props.minimized,
+	() => {
+		if (!props.minimized && !settings.muted) {
+			showSoundAlert.value = true
+			setTimeout(() => {
+				showSoundAlert.value = false
+			}, 2000)
+		}
+	}
+)
 </script>
 
 <template>
@@ -291,6 +308,9 @@ whenever(space, togglePlay)
 			/>
 			<Timecode class="timecode" :modelValue="currentTimecode" />
 		</footer>
+		<Transition>
+			<SoundAlertPopup v-if="showSoundAlert" />
+		</Transition>
 	</div>
 </template>
 
