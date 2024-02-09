@@ -44,6 +44,8 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		let autoStop: ReturnType<typeof setTimeout>
 
+		let hasStarted = false
+
 		scratch.value = (time: number) => {
 			const now = getNowSeconds()
 			const rate = (time - lastTime) / (now - lastDate)
@@ -68,7 +70,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			const bufTime = rate > 0 ? time : buf.duration - time
 
 			if (!source) {
-				source = createAndStartSource(buf, bufTime)
+				source = recreateAndStartSource(buf, bufTime)
 				currentTime = time
 			}
 
@@ -82,16 +84,12 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		play.value = (time: number) => {
-			clearTimeout(autoStop)
-			disposeSource()
-
-			createAndStartSource(buffer, time)
+			recreateAndStartSource(buffer, time)
 			scrubGain.gain.linearRampToValueAtTime(1, 2)
 		}
 
 		stop.value = () => {
 			disposeSource()
-			clearTimeout(autoStop)
 		}
 
 		preliminaryPlay.value = () => {
@@ -103,8 +101,10 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		let startTimer: ReturnType<typeof setTimeout>
-		let hasStarted = false
-		function createAndStartSource(buf: AudioBuffer, time: number) {
+
+		function recreateAndStartSource(buf: AudioBuffer, time: number) {
+			disposeSource()
+
 			const delay = Math.max(0, -time)
 			hasStarted = false
 
@@ -127,6 +127,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		function disposeSource() {
+			clearTimeout(autoStop)
 			clearTimeout(startTimer)
 			if (hasStarted) {
 				source?.stop()

@@ -33,7 +33,7 @@ defineEmits<{
 
 const settings = useAppSettingsStore()
 
-const volume = computed(() => (settings.muted || props.minimized ? 0 : 1))
+const volume = computed(() => (settings.muted ? 0 : 1))
 
 // This is necessary to play audio on iOS
 watch(
@@ -62,7 +62,7 @@ const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 		return scalar.clamp(y, 0, maxScroll.value)
 	},
 	onSwipe(e) {
-		showNav.value = e.movementY > 0
+		showNav.value = e.movementY < 0
 	},
 })
 
@@ -141,19 +141,23 @@ const audio = useAudio('./assets/happening.mp3', {volume})
 // Scratch the audio when the manga is not playing
 watch(
 	currentTime,
-	time => {
-		if (!playing.value) {
+	(time, prevTime) => {
+		if (!playing.value && time !== prevTime && !props.minimized) {
 			audio.scratch(time)
 		}
 	},
 	{flush: 'sync'}
 )
 
-// Play or stop the audio
+// On toggle play
 watch(
-	playing,
-	playing => {
-		if (playing) {
+	() => [playing.value],
+	() => {
+		// Stop the inertia
+		cancelInertia()
+
+		// toggle audio play
+		if (playing.value) {
 			audio.play(currentTime.value)
 
 			// Start from the beginning if the manga is at the end
@@ -164,36 +168,29 @@ watch(
 		} else {
 			audio.stop()
 		}
+
+		if (playing.value) {
+			showNav.value = false
+
+			const dateAtStart = Date.now() / 1000
+			const timeAtStart = currentTime.value
+
+			const updateTime = () => {
+				if (!playing.value) return
+
+				const elapsed = Date.now() / 1000 - dateAtStart
+				const time = timeAtStart + elapsed
+
+				currentTime.value = time
+
+				requestAnimationFrame(updateTime)
+			}
+
+			requestAnimationFrame(updateTime)
+		}
 	},
 	{flush: 'sync'}
 )
-
-function togglePlay() {
-	playing.value = !playing.value
-	cancelInertia()
-
-	if (!playing.value) {
-		return
-	}
-
-	showNav.value = false
-
-	const dateAtStart = Date.now() / 1000
-	const timeAtStart = currentTime.value
-
-	updateTime()
-
-	function updateTime() {
-		if (!playing.value) return
-
-		const elapsed = Date.now() / 1000 - dateAtStart
-		const time = timeAtStart + elapsed
-
-		currentTime.value = time
-
-		requestAnimationFrame(updateTime)
-	}
-}
 
 // Stop when the end of the manga is reached
 watch(scroll, scroll => {
@@ -231,16 +228,23 @@ function onScrubSlider(timecode: number) {
 watch(
 	() => props.minimized,
 	() => {
+		if (props.minimized) {
+			cancelInertia()
+			showNav.value = false
+			audio.stop()
+		} else {
+			showNav.value = true
+		}
 		playing.value = false
-		cancelInertia()
-		showNav.value = true
 	}
 )
 
 //------------------------------------------------------------------------------
 // Space to toggle
 const {space} = useMagicKeys()
-whenever(space, togglePlay)
+whenever(space, () => {
+	playing.value = !playing.value
+})
 
 //------------------------------------------------------------------------------
 // Sound alert
@@ -295,7 +299,7 @@ watch(
 			</div>
 		</main>
 		<footer class="footer">
-			<button class="play" @click="togglePlay">
+			<button class="play" @click="playing = !playing">
 				<i
 					class="fa fa-sharp fa-solid"
 					:class="playing ? 'fa-circle-pause' : 'fa-circle-play'"
