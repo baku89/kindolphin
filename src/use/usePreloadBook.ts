@@ -8,6 +8,8 @@ export function usePreloadBook(book: Book) {
 	const preload = usePreload()
 
 	function load() {
+		preload.fetch('./assets/happening.mp3', 300)
+
 		book.pages.forEach(page => {
 			preload.fetch(page.src, page.height)
 		})
