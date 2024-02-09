@@ -8,7 +8,7 @@ import {
 } from '@vueuse/core'
 import {scalar} from 'linearly'
 import {clamp} from 'lodash'
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 
 import {Book, mangaWidth} from '@/book'
 import Lyrics from '@/components/Lyrics.vue'
@@ -137,6 +137,7 @@ const playing = ref(false)
 
 const audio = useAudio('./assets/happening.mp3', {volume})
 
+// Scratch the audio when the manga is not playing
 watch(
 	currentTime,
 	time => {
@@ -147,11 +148,18 @@ watch(
 	{flush: 'sync'}
 )
 
+// Play or stop the audio
 watch(
 	playing,
 	playing => {
 		if (playing) {
 			audio.play(currentTime.value)
+
+			// Start from the beginning if the manga is at the end
+			if (scroll.value >= maxScroll.value) {
+				scrollTo(0)
+				nextTick(() => audio.play(currentTime.value))
+			}
 		} else {
 			audio.stop()
 		}
