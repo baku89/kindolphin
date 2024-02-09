@@ -14,6 +14,7 @@ const MinInertiaScrollSpeed = 140
 interface UseVirtualScrollOptions {
 	onWheel: (e: WheelEvent) => void
 	onSwipe: (e: DragEvent) => void
+	onPointerup: (e: DragEvent) => void
 	mapScroll: (y: number) => number
 	targetSpeed: Ref<number>
 }
@@ -55,13 +56,13 @@ export function useVirtualScroll(
 	}
 
 	function onDrag(e: DragEvent) {
-		scroll.value = options.mapScroll(scroll.value - e.movementY)
+		scroll.value = options.mapScroll(scroll.value - e.movement[1])
 
 		const now = getNow()
 		const dt = now - lastScrollDate
 
 		if (dt > 0) {
-			swipeSpeed = e.movementY / dt
+			swipeSpeed = e.movement[1] / dt
 		}
 
 		lastScrollDate = now
@@ -81,12 +82,14 @@ export function useVirtualScroll(
 		{}
 	)
 
-	function onPointerup() {
+	function onPointerup(e: DragEvent) {
 		if (Math.abs(inertiaSpeed) < MinInertiaScrollSpeed) {
 			inertiaSpeed = swipeSpeed = 0
 		}
 
 		swipeSpeed = 0
+
+		options.onPointerup(e)
 	}
 
 	// Inertial scrolling

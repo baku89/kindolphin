@@ -5,7 +5,7 @@ import {
 	watchThrottled,
 	whenever,
 } from '@vueuse/core'
-import {scalar} from 'linearly'
+import {scalar, vec2} from 'linearly'
 import {clamp} from 'lodash'
 import {computed, nextTick, onMounted, ref, watch} from 'vue'
 
@@ -62,7 +62,16 @@ const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 		return scalar.clamp(y, 0, maxScroll.value)
 	},
 	onSwipe(e) {
-		showNav.value = e.movementY < 0
+		showNav.value = e.movement[1] > 0
+	},
+	onPointerup(e) {
+		if (vec2.len(e.offset) < 5) {
+			if (props.minimized) {
+				showNav.value = true
+			} else {
+				showNav.value = !showNav.value
+			}
+		}
 	},
 })
 
@@ -211,14 +220,6 @@ function onPressManga() {
 	playing.value = false
 }
 
-function onClickManga() {
-	if (props.minimized) {
-		showNav.value = true
-	} else {
-		showNav.value = !showNav.value
-	}
-}
-
 function onScrubSlider(timecode: number) {
 	cancelInertia()
 	playing.value = false
@@ -285,7 +286,6 @@ watch(
 				class="manga-scrollable"
 				ref="$scrollable"
 				@pointerdown="onPressManga"
-				@click="onClickManga"
 			/>
 			<div class="manga-content" ref="$mangaWrapper">
 				<Manga class="manga" :pages="book.pages" :scroll="scroll" />

@@ -34,7 +34,7 @@ function onPointerdown(e: DragEvent) {
 	if (isKnobPressed) {
 		const {left, right} = e.target.getBoundingClientRect()
 		const center = (left + right) / 2
-		knobOffset = center - e.clientX
+		knobOffset = center - e.client[0]
 	} else {
 		knobOffset = 0
 	}
@@ -44,7 +44,9 @@ function onPointerdown(e: DragEvent) {
 
 function onDrag(e: DragEvent) {
 	const {left, right} = $slider.value!.getBoundingClientRect()
-	const {clientX} = e
+	const {
+		client: [clientX],
+	} = e
 
 	const newValue = scalar.fit(
 		clientX + knobOffset,

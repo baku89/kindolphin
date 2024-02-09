@@ -1,10 +1,10 @@
+import {vec2} from 'linearly'
 import {MaybeRef, onMounted, readonly, ref, unref} from 'vue'
 
 export interface DragEvent {
-	clientX: number
-	clientY: number
-	movementX: number
-	movementY: number
+	client: vec2
+	movement: vec2
+	offset: vec2
 	target: HTMLElement
 }
 
@@ -28,8 +28,8 @@ export function useElementDrag(
 		$el.addEventListener('touchstart', onPointerdown)
 	})
 
-	let prevX = 0,
-		prevY = 0
+	let prev = vec2.zero
+	let origin = vec2.zero
 
 	function onPointerdown(e: MouseEvent | TouchEvent) {
 		e.stopPropagation()
@@ -37,19 +37,21 @@ export function useElementDrag(
 
 		dragging.value = true
 
-		const clientX = 'clientX' in e ? e.clientX : e.touches[0].clientX
-		const clientY = 'clientY' in e ? e.clientY : e.touches[0].clientY
+		const client: vec2 = [
+			'clientX' in e ? e.clientX : e.touches[0].clientX,
+			'clientY' in e ? e.clientY : e.touches[0].clientY,
+		]
+
+		origin = client
 
 		const event: DragEvent = {
-			clientX,
-			clientY,
-			movementX: 0,
-			movementY: 0,
+			client,
+			movement: vec2.zero,
+			offset: vec2.zero,
 			target: e.target as HTMLElement,
 		}
 
-		prevX = clientX
-		prevY = clientY
+		prev = client
 
 		options.onPointerdown?.(event)
 
@@ -63,22 +65,21 @@ export function useElementDrag(
 	}
 
 	function onDrag(e: MouseEvent | TouchEvent) {
-		const clientX = 'clientX' in e ? e.clientX : e.touches[0].clientX
-		const clientY = 'clientY' in e ? e.clientY : e.touches[0].clientY
+		const client: vec2 = [
+			'clientX' in e ? e.clientX : e.touches[0].clientX,
+			'clientY' in e ? e.clientY : e.touches[0].clientY,
+		]
 
-		const movementX = clientX - prevX
-		const movementY = clientY - prevY
+		const movement = vec2.sub(client, prev)
 
 		const event: DragEvent = {
-			clientX,
-			clientY,
-			movementX,
-			movementY,
+			client,
+			movement,
+			offset: vec2.sub(client, origin),
 			target: e.target as HTMLElement,
 		}
 
-		prevX = clientX
-		prevY = clientY
+		prev = client
 
 		options.onDrag?.(event)
 	}
@@ -86,14 +87,15 @@ export function useElementDrag(
 	function onPointerup(e: MouseEvent | TouchEvent) {
 		dragging.value = false
 
-		const clientX = 'clientX' in e ? e.clientX : prevX
-		const clientY = 'clientY' in e ? e.clientY : prevY
+		const client: vec2 = [
+			'clientX' in e ? e.clientX : prev[0],
+			'clientY' in e ? e.clientY : prev[1],
+		]
 
 		const event: DragEvent = {
-			clientX,
-			clientY,
-			movementX: 0,
-			movementY: 0,
+			client,
+			movement: vec2.zero,
+			offset: vec2.sub(client, origin),
 			target: e.target as HTMLElement,
 		}
 
