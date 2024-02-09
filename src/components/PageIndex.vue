@@ -146,7 +146,7 @@ onMounted(async () => {
 				</div>
 				<div class="info">
 					<h2>
-						GIF Manga “HAPPENING”<wbr /><span style="font-size: 1em"
+						GIF Manga “HAPPENING”&nbsp;<wbr /><span style="font-size: 1em"
 							>[English Edition]</span
 						>
 					</h2>
