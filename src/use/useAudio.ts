@@ -44,8 +44,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		let autoStop: ReturnType<typeof setTimeout>
 
-		let hasStarted = false
-
 		scratch.value = (time: number) => {
 			const now = getNowSeconds()
 			const rate = (time - lastTime) / (now - lastDate)
@@ -106,7 +104,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			disposeSource()
 
 			const delay = Math.max(0, -time)
-			hasStarted = false
 
 			source = audioContext.createBufferSource()
 			source.buffer = buf
@@ -115,13 +112,13 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 			if (time > 0) {
 				source.start(0, clamp(time, 0, buf.duration))
-				hasStarted = true
 			} else {
 				startTimer = setTimeout(() => {
-					hasStarted = true
 					source?.start(0, clamp(time, 0, buf.duration))
 				}, delay * 1000)
 			}
+
+			window.source = source
 
 			return source
 		}
@@ -129,10 +126,13 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		function disposeSource() {
 			clearTimeout(autoStop)
 			clearTimeout(startTimer)
-			if (hasStarted) {
+
+			try {
 				source?.stop()
+				source?.disconnect()
+			} catch (e) {
+				null
 			}
-			source?.disconnect()
 			source = null
 		}
 	})()
