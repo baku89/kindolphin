@@ -50,7 +50,8 @@ export default (): UserConfig => {
 				},
 				workbox: {
 					globPatterns: [
-						'**/*.{js,css,html,ico,png,svg,webp,gif,mp3,.bson.gz}',
+						'**/*.{js,css,html,ico,png,svg,webp,gif,mp3,bson.gz}',
+						'**/*.{woff2,ttf}',
 					],
 					maximumFileSizeToCacheInBytes: 10 * 1024 * 1024 /* 10MB */,
 				},
