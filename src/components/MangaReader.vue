@@ -253,7 +253,6 @@ whenever(space, togglePlay)
 				<Manga class="manga" :pages="book.pages" :scroll="scroll" />
 				<Lyrics
 					:lyricsSrc="book.lyricSrc"
-					:lyrics="book.lyrics"
 					:seekbarPosition="seekbarPosition"
 					:scroll="scroll"
 					:currentTime="currentTime"

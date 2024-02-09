@@ -12,10 +12,10 @@ export interface Lyric {
 	duration: number
 	offset: vec2
 	size: vec2
+	bitmap: Uint8Array
 }
 
 export interface Book {
 	pages: Page[]
-	lyrics: Lyric[]
 	lyricSrc: string
 }

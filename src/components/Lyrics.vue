@@ -1,27 +1,46 @@
 <script setup lang="ts">
-import {useRafFn} from '@vueuse/core'
+import {asyncComputed, useRafFn} from '@vueuse/core'
 import {BSON} from 'bson'
 import chroma from 'chroma-js'
-import {vec2} from 'linearly'
 import {clamp, range} from 'lodash'
-import {computed, onMounted, ref, watch, watchEffect} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 
 import {Lyric} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
-import {useLyrics} from '@/use/useLyrics'
 
 import Bang from './Bang.vue'
 
 const props = defineProps<{
 	lyricsSrc: string
-	lyrics: Lyric[]
 	scroll: number
 	currentTime: number
 	seekbarPosition: number
 	mangaScale: number
 }>()
 
-const {getLyricsBetween} = useLyrics(computed(() => props.lyrics))
+type BSONLyric = Lyric & {bitmap: BSON.Binary}
+
+const lyrics = asyncComputed<Lyric[]>(async () => {
+	console.time('Fetching BSON')
+	const res = await fetch(props.lyricsSrc)
+	const buffer = await res.arrayBuffer()
+	console.timeEnd('Fetching BSON')
+
+	console.time('Deserializing BSON')
+	const lyrics = BSON.deserialize(new Uint8Array(buffer)).lyrics as BSONLyric[]
+	console.timeEnd('Deserializing BSON')
+
+	console.log(lyrics)
+
+	return lyrics.map(lyric => ({
+		...lyric,
+		bitmap: lyric.bitmap.buffer,
+	}))
+}, [])
+
+function getLyricsBetween(lyrics: Lyric[], inTime: number, outTime: number) {
+	return lyrics.filter(lyric => inTime < lyric.time && lyric.time <= outTime)
+}
 
 const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 	Math.round(i * 255)
@@ -37,31 +56,15 @@ const primaryRGB = computed(() => {
 	return chroma(settings.currentTheme.primary).rgb()
 })
 
-const bitmaps: Map<number, Uint8Array> = new Map()
-
 const contexts = new Map<
 	number,
 	{ctx: CanvasRenderingContext2D; pix: ImageData}
 >()
 
-watchEffect(async () => {
-	console.time('Fetching BSON')
-	const res = await fetch(props.lyricsSrc)
-	const buffer = await res.arrayBuffer()
-	console.timeEnd('Fetching BSON')
-
-	console.time('Deserializing BSON')
-	const result = BSON.deserialize(new Uint8Array(buffer))
-	const lyrics = result.lyrics as BSON.Binary[]
-	console.timeEnd('Deserializing BSON')
-
-	lyrics.forEach((lyric, i) => bitmaps.set(i, lyric.buffer))
-})
-
 const $lyrics = ref<HTMLElement | null>(null)
 
 // Update visibleLyrics
-const visibleLyrics: (Lyric & {start: number; visible: boolean})[] = []
+const visibleLyrics: ((Lyric & {start: number}) | null)[] = []
 
 const LyricDuration = 4
 
@@ -79,24 +82,21 @@ onMounted(() => {
 		const pix = ctx.createImageData(145, 229)
 		contexts.set(id, {ctx, pix})
 
-		visibleLyrics.push({
-			time: 0,
-			duration: 0,
-			index: -1,
-			offset: vec2.zero,
-			size: vec2.zero,
-			start: -1,
-			visible: false,
-		})
+		visibleLyrics.push(null)
 	}
 
 	watch(
 		() => props.currentTime,
 		(time, prevTime) => {
+			// Delete invisible lyrics
 			for (let i = 0; i < visibleLyrics.length; i++) {
 				const lyric = visibleLyrics[i]
-				visibleLyrics[i].visible =
-					time - LyricDuration <= lyric.time && lyric.time <= time
+				if (
+					lyric &&
+					!(time - LyricDuration <= lyric.time && lyric.time <= time)
+				) {
+					visibleLyrics[i] = null
+				}
 			}
 
 			const doAnimate = prevTime < time && time - prevTime < 1 / 10
@@ -111,12 +111,12 @@ onMounted(() => {
 			}
 
 			// Add new lyrics that have just became visible
-			const newLyrics = getLyricsBetween(timeLower, timeUpper)
+			const newLyrics = getLyricsBetween(lyrics.value, timeLower, timeUpper)
 
 			const start = doAnimate ? Date.now() / 1000 : -1
 
 			for (const lyric of newLyrics) {
-				const emptyId = visibleLyrics.findIndex(lyric => !lyric.visible)
+				const emptyId = visibleLyrics.findIndex(lyric => lyric === null)
 
 				if (emptyId === -1) {
 					// eslint-disable-next-line no-console
@@ -124,7 +124,7 @@ onMounted(() => {
 					continue
 				}
 
-				visibleLyrics[emptyId] = {...lyric, start, visible: true}
+				visibleLyrics[emptyId] = {...lyric, start}
 			}
 
 			if (doAnimate) {
@@ -151,37 +151,41 @@ const seekbarStyle = computed(() => {
 	}
 })
 
-const lastDrawnLyric = new Map<number, {index: number; frame: number}>()
+const lastDrawnLyric = new Map<number, {index: number; frame: number} | null>()
 
-function drawLyric(id: number, index: number, frame: number) {
+function drawLyric(
+	id: number,
+	lyric: Lyric | null,
+	frame: number | null = null
+): void {
 	const lastDrawn = lastDrawnLyric.get(id)
-	if (lastDrawn && lastDrawn.index === index && lastDrawn.frame === frame) {
+	if (
+		(lyric === null && lastDrawn === null) ||
+		(lyric && lastDrawn?.index === lyric.index && lastDrawn?.frame === frame)
+	) {
 		return
 	}
 
 	const {ctx, pix} = contexts.get(id)!
 
-	if (index < 0) {
+	if (!lyric || frame === null) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+		lastDrawnLyric.set(id, null)
 	} else {
-		const bmp = bitmaps.get(index)
+		const {bitmap} = lyric
+		const threshold = thresholds[frame]
+		const [r, g, b] = primaryRGB.value
 
-		if (bmp) {
-			const threshold = thresholds[frame]
-			const [r, g, b] = primaryRGB.value
-
-			for (let i = 0; i < bmp.length; i++) {
-				pix.data[i * 4 + 3] = bmp[i] >= threshold ? 255 : 0
-				pix.data[i * 4] = r
-				pix.data[i * 4 + 1] = g
-				pix.data[i * 4 + 2] = b
-			}
-
-			ctx.putImageData(pix, 0, 0)
+		for (let i = 0; i < bitmap.length; i++) {
+			pix.data[i * 4 + 3] = bitmap[i] >= threshold ? 255 : 0
+			pix.data[i * 4] = r
+			pix.data[i * 4 + 1] = g
+			pix.data[i * 4 + 2] = b
 		}
-	}
 
-	lastDrawnLyric.set(id, {index, frame})
+		ctx.putImageData(pix, 0, 0)
+		lastDrawnLyric.set(id, {index: lyric.index, frame})
+	}
 }
 
 function updateLyrics() {
@@ -194,9 +198,9 @@ function updateLyrics() {
 
 		const canvas = contexts.get(id)!.ctx.canvas
 
-		canvas.style.visibility = lyric.visible ? 'visible' : 'hidden'
+		canvas.style.visibility = lyric ? 'visible' : 'hidden'
 
-		if (lyric.visible) {
+		if (lyric) {
 			const elapsed = now - lyric.start
 			const frame = Math.min(Math.floor(elapsed * 25), LyricAnimationDuration)
 
@@ -210,9 +214,9 @@ function updateLyrics() {
 			canvas.style.width = `${width}px`
 			canvas.style.height = `${height}px`
 
-			drawLyric(id, lyric.index, frame)
+			drawLyric(id, lyric, frame)
 		} else {
-			drawLyric(id, -1, -1)
+			drawLyric(id, null)
 		}
 	}
 }
