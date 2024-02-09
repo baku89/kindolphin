@@ -20,6 +20,7 @@ export function usePreload() {
 	watch(remainingTasks, remaining => {
 		if (remaining === 0) {
 			done.value = true
+			loadedWeight.value = weightsTotal.value
 		}
 	})
 
@@ -58,8 +59,11 @@ export function usePreload() {
 				}
 
 		xhr.onload = () => {
-			console.info('[Preload] onload', url)
+			if (lastLoaded === 0) {
+				loadedWeight.value += weight
+			}
 			remainingTasks.value--
+			console.info('[Preload] onload', url, loadedWeight.value)
 		}
 
 		xhr.send()
