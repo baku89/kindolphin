@@ -93,7 +93,7 @@ function onDrag(e: DragEvent) {
 	transition scale 0.1s steps(3)
 	cursor ew-resize
 	scale 1
-	translate -50% -50%
+	transform translate3d(-50%, -50%, 0)
 	will-change left, scale
 
 

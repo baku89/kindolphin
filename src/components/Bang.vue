@@ -60,7 +60,9 @@ function bangAt(x: number) {
 useRafFn(() => {
 	if (!ctx) return
 
-	ctx.clearRect(0, 0, mangaWidth, ctx.canvas.height)
+	ctx.globalCompositeOperation = 'source-over'
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
 	ctx.globalCompositeOperation = 'lighter'
 
 	for (const bang of bangs) {

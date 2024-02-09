@@ -50,6 +50,18 @@ function openBook(id: string) {
 	minimized.value = false
 }
 
+function share() {
+	try {
+		navigator.share({
+			title: 'group_inou / HAPPENING',
+			text: 'Interactive GIF Manga in collaboration with AC-bu',
+			url: 'https://g-a-l.jp/group_inou/happening/',
+		})
+	} catch (e) {
+		console.error(e)
+	}
+}
+
 // Fade in animation
 const fadeInStatus = ref<'before' | 'in' | 'out'>('before')
 
@@ -193,9 +205,8 @@ onMounted(async () => {
 			<div class="spacer" />
 			<FooterButton
 				:label="ui.label.share"
-				href="https://linkco.re/Mu9VcVt8"
-				target="_blank"
 				icon="./assets/icons/share.gif"
+				@click="share"
 			/>
 			<FooterButton
 				:label="ui.label.help"
@@ -398,11 +409,11 @@ onMounted(async () => {
 
 .reader
 	z-index 10
-	transform-origin 50% calc(98svh - env(safe-area-inset-bottom))
+	transform-origin 50% 100%
 	transition all 0.2s steps(8)
 
 	&.minimized
-		transform scale(0.2)
+		transform scale(0.2) translate3d(0, -10%, 0)
 		outline 5rem solid var(--black)
 
 .footer

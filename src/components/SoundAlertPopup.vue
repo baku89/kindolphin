@@ -28,6 +28,9 @@
 	justify-content center
 	align-items center
 
+	html.invert &
+		filter invert(100%)
+
 	&.v-enter-from
 	&.v-leave-to
 		transform scale(0)

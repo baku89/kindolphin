@@ -252,8 +252,9 @@ function getLyricsBetween(lyrics: Lyric[], inTime: number, outTime: number) {
 	right 0
 	height calc(60 * var(--px))
 	margin-top calc(-30 * var(--px))
+	-webkit-mask-image url('/assets/seekbar_diffuse.gif')
 	mask-image url('/assets/seekbar_diffuse.gif')
-	mask-size calc(60 * var(--px)) calc(60 * var(--px))
+	-webkit-mask-size calc(60 * var(--px)) calc(60 * var(--px))
 	background-color var(--theme-primary)
 
 
