@@ -58,7 +58,7 @@ const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
 	},
 
 	mapScroll(y) {
-		return scalar.clamp(y, 0, maxScrollY.value)
+		return scalar.clamp(y, 0, maxScroll.value)
 	},
 	onSwipe(e) {
 		showNav.value = e.movementY > 0
@@ -69,7 +69,7 @@ const mangaScale = computed(() => viewWidth.value / mangaWidth)
 const mangaTotalHeight = computed(() => {
 	return props.book.pages.reduce((acc, page) => acc + page.height, 0)
 })
-const maxScrollY = computed(
+const maxScroll = computed(
 	() => mangaTotalHeight.value * mangaScale.value - viewHeight.value
 )
 
@@ -119,7 +119,7 @@ const inBlankDuration = computed(() => {
 	return -lookupTime(seekbarPosition.value, props.scrollTrack) / FPS
 })
 const outBlankDuration = computed(() => {
-	const mangaY = maxScrollY.value / mangaScale.value + seekbarPosition.value
+	const mangaY = maxScroll.value / mangaScale.value + seekbarPosition.value
 	return lookupTime(mangaY, props.scrollTrack) / FPS - audioDuration
 })
 
@@ -131,6 +131,8 @@ const currentTimecode = computed(() => {
 	return currentTime.value + inBlankDuration.value
 })
 
+//------------------------------------------------------------------------------
+// オーディオ再生
 const playing = ref(false)
 
 const audio = useAudio('./assets/happening.mp3', {volume})
@@ -183,6 +185,13 @@ function togglePlay() {
 		requestAnimationFrame(updateTime)
 	}
 }
+
+// Stop when the end of the manga is reached
+watch(scroll, scroll => {
+	if (scroll >= maxScroll.value) {
+		playing.value = false
+	}
+})
 
 //------------------------------------------------------------------------------
 // nav
