@@ -32,19 +32,33 @@ export function usePreload() {
 
 		let lastLoaded = 0
 
+		console.info('[Preload] start', url)
+
 		xhr.onprogress = e => {
+			console.info(
+				'[Preload] progress',
+				url,
+				e.lengthComputable,
+				e.loaded,
+				e.total
+			)
 			if (e.lengthComputable) {
 				loadedWeight.value += ((e.loaded - lastLoaded) / e.total) * weight
 				lastLoaded = e.loaded
 			}
 		}
 
-		xhr.ontimeout = xhr.onerror = () => {
-			loadedWeight.value += weight
-			remainingTasks.value--
-		}
+		xhr.ontimeout =
+			xhr.onerror =
+			xhr.onabort =
+				() => {
+					console.info('[Preload] onerror', url)
+					loadedWeight.value += weight
+					remainingTasks.value--
+				}
 
 		xhr.onload = () => {
+			console.info('[Preload] onload', url)
 			remainingTasks.value--
 		}
 
