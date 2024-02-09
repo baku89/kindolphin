@@ -51,10 +51,10 @@ const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 
 const $scrollable = ref<HTMLElement | null>(null)
 const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
-	targetSpeed: computed(() => (isPlaying.value ? 100 : 0)),
+	targetSpeed: computed(() => (playing.value ? 100 : 0)),
 	onWheel(e) {
 		showNav.value = e.deltaY < 0
-		isPlaying.value = false
+		playing.value = false
 	},
 
 	mapScroll(y) {
@@ -131,14 +131,14 @@ const currentTimecode = computed(() => {
 	return currentTime.value + inBlankDuration.value
 })
 
-const isPlaying = ref(false)
+const playing = ref(false)
 
 const audio = useAudio('./assets/happening.mp3', {volume})
 
 watch(
 	currentTime,
 	time => {
-		if (!isPlaying.value) {
+		if (!playing.value) {
 			audio.scratch(time)
 		}
 	},
@@ -146,7 +146,7 @@ watch(
 )
 
 watch(
-	isPlaying,
+	playing,
 	playing => {
 		if (playing) {
 			audio.play(currentTime.value)
@@ -158,10 +158,10 @@ watch(
 )
 
 function togglePlay() {
-	isPlaying.value = !isPlaying.value
+	playing.value = !playing.value
 	cancelInertia()
 
-	if (!isPlaying.value) {
+	if (!playing.value) {
 		return
 	}
 
@@ -173,7 +173,7 @@ function togglePlay() {
 	updateTime()
 
 	function updateTime() {
-		if (!isPlaying.value) return
+		if (!playing.value) return
 
 		const elapsed = Date.now() / 1000 - dateAtStart
 		const time = timeAtStart + elapsed
@@ -193,7 +193,7 @@ const showNav = ref(false)
 // Events
 function onPressManga() {
 	cancelInertia()
-	isPlaying.value = false
+	playing.value = false
 }
 
 function onClickManga() {
@@ -206,14 +206,14 @@ function onClickManga() {
 
 function onScrubSlider(timecode: number) {
 	cancelInertia()
-	isPlaying.value = false
+	playing.value = false
 	currentTime.value = timecode - inBlankDuration.value
 }
 
 watch(
 	() => props.minimized,
 	() => {
-		isPlaying.value = false
+		playing.value = false
 		cancelInertia()
 		showNav.value = true
 	}
@@ -264,7 +264,7 @@ whenever(space, togglePlay)
 			<button class="play" @click="togglePlay">
 				<i
 					class="fa fa-sharp fa-solid"
-					:class="isPlaying ? 'fa-circle-pause' : 'fa-circle-play'"
+					:class="playing ? 'fa-circle-pause' : 'fa-circle-play'"
 				></i>
 			</button>
 			<Slider
