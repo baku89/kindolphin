@@ -10,6 +10,8 @@ import {useAppSettingsStore} from '@/store/appSettings'
 
 import Bang from './Bang.vue'
 
+type BSONLyric = Lyric & {bitmap: BSON.Binary}
+
 const props = defineProps<{
 	lyricsSrc: string
 	scroll: number
@@ -18,7 +20,7 @@ const props = defineProps<{
 	mangaScale: number
 }>()
 
-type BSONLyric = Lyric & {bitmap: BSON.Binary}
+const settings = useAppSettingsStore()
 
 const lyrics = asyncComputed<Lyric[]>(async () => {
 	console.time('Fetching BSON')
@@ -30,24 +32,17 @@ const lyrics = asyncComputed<Lyric[]>(async () => {
 	const lyrics = BSON.deserialize(new Uint8Array(buffer)).lyrics as BSONLyric[]
 	console.timeEnd('Deserializing BSON')
 
-	console.log(lyrics)
-
 	return lyrics.map(lyric => ({
 		...lyric,
 		bitmap: lyric.bitmap.buffer,
 	}))
 }, [])
 
-function getLyricsBetween(lyrics: Lyric[], inTime: number, outTime: number) {
-	return lyrics.filter(lyric => inTime < lyric.time && lyric.time <= outTime)
-}
-
 const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 	Math.round(i * 255)
 )
 
 const LyricAnimationDuration = thresholds.length - 1
-const settings = useAppSettingsStore()
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
@@ -64,13 +59,14 @@ const contexts = new Map<
 const $lyrics = ref<HTMLElement | null>(null)
 
 // Update visibleLyrics
-const visibleLyrics: ((Lyric & {start: number}) | null)[] = []
+const currentLyricsForCanvas: ((Lyric & {start: number}) | null)[] = []
 
 const LyricDuration = 4
 
 onMounted(() => {
 	if ($lyrics.value === null) return
 
+	// Create all canvases at first
 	for (const id of range(50)) {
 		const canvas = document.createElement('canvas')
 		canvas.classList.add('lyric')
@@ -82,41 +78,44 @@ onMounted(() => {
 		const pix = ctx.createImageData(145, 229)
 		contexts.set(id, {ctx, pix})
 
-		visibleLyrics.push(null)
+		currentLyricsForCanvas.push(null)
 	}
 
 	watch(
-		() => props.currentTime,
-		(time, prevTime) => {
+		() => [props.currentTime, lyrics.value] as const,
+		([time, lyrics], [prevTime]) => {
 			// Delete invisible lyrics
-			for (let i = 0; i < visibleLyrics.length; i++) {
-				const lyric = visibleLyrics[i]
+			for (let i = 0; i < currentLyricsForCanvas.length; i++) {
+				const lyric = currentLyricsForCanvas[i]
 				if (
 					lyric &&
 					!(time - LyricDuration <= lyric.time && lyric.time <= time)
 				) {
-					visibleLyrics[i] = null
+					currentLyricsForCanvas[i] = null
 				}
 			}
 
 			const doAnimate = prevTime < time && time - prevTime < 1 / 10
-			let timeLower: number, timeUpper: number
-
-			if (time > prevTime) {
-				timeLower = Math.max(prevTime, time - LyricDuration)
-				timeUpper = time
-			} else {
-				timeLower = time - LyricDuration
-				timeUpper = Math.min(prevTime, time + LyricDuration) - LyricDuration
-			}
 
 			// Add new lyrics that have just became visible
-			const newLyrics = getLyricsBetween(lyrics.value, timeLower, timeUpper)
+			const visibleLyrics = getLyricsBetween(
+				lyrics,
+				time - LyricAnimationDuration,
+				time
+			)
 
 			const start = doAnimate ? Date.now() / 1000 : -1
 
-			for (const lyric of newLyrics) {
-				const emptyId = visibleLyrics.findIndex(lyric => lyric === null)
+			for (const lyric of visibleLyrics) {
+				// Skip if the lyric is assigned to a canvas
+				if (currentLyricsForCanvas.some(l => lyric.index === l?.index)) {
+					continue
+				}
+
+				// Assign the lyric to an empty canvas
+				const emptyId = currentLyricsForCanvas.findIndex(
+					lyric => lyric === null
+				)
 
 				if (emptyId === -1) {
 					// eslint-disable-next-line no-console
@@ -124,12 +123,14 @@ onMounted(() => {
 					continue
 				}
 
-				visibleLyrics[emptyId] = {...lyric, start}
-			}
+				currentLyricsForCanvas[emptyId] = {...lyric, start}
 
-			if (doAnimate) {
-				for (const lyric of newLyrics) {
-					$bang.value!.bangAt(lyric.offset[0] + Math.floor(lyric.size[0] / 2))
+				// Bang if the lyric is just added
+				const justAdded = prevTime < lyric.time && lyric.time <= time
+
+				if (doAnimate && justAdded) {
+					const x = lyric.offset[0] + Math.floor(lyric.size[0] / 2)
+					$bang.value!.bangAt(x)
 				}
 			}
 
@@ -138,6 +139,15 @@ onMounted(() => {
 		{flush: 'sync'}
 	)
 })
+
+watch(
+	primaryRGB,
+	() => {
+		lastDrawnLyric.clear()
+		updateLyrics()
+	},
+	{flush: 'sync'}
+)
 
 const seekbarStyle = computed(() => {
 	const top = clamp(
@@ -158,6 +168,7 @@ function drawLyric(
 	lyric: Lyric | null,
 	frame: number | null = null
 ): void {
+	// Skip if the lyric is already drawn
 	const lastDrawn = lastDrawnLyric.get(id)
 	if (
 		(lyric === null && lastDrawn === null) ||
@@ -166,6 +177,7 @@ function drawLyric(
 		return
 	}
 
+	// Then draw the lyric
 	const {ctx, pix} = contexts.get(id)!
 
 	if (!lyric || frame === null) {
@@ -193,8 +205,8 @@ function updateLyrics() {
 
 	const now = Date.now() / 1000
 
-	for (let id = 0; id < visibleLyrics.length; id++) {
-		const lyric = visibleLyrics[id]
+	for (let id = 0; id < currentLyricsForCanvas.length; id++) {
+		const lyric = currentLyricsForCanvas[id]
 
 		const canvas = contexts.get(id)!.ctx.canvas
 
@@ -222,6 +234,10 @@ function updateLyrics() {
 }
 
 useRafFn(updateLyrics)
+
+function getLyricsBetween(lyrics: Lyric[], inTime: number, outTime: number) {
+	return lyrics.filter(lyric => inTime < lyric.time && lyric.time <= outTime)
+}
 </script>
 
 <template>
