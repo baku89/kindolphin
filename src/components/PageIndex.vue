@@ -57,17 +57,17 @@ const auxMode = ref<'install' | 'share' | 'listen'>('listen')
 const auxIcon = computed(() => {
 	if (auxMode.value === 'install') {
 		return {
-			icon: '/assets/icons/install.gif',
+			icon: './assets/icons/install.gif',
 			label: ui.label.install,
 		}
 	} else if (auxMode.value === 'share') {
 		return {
-			icon: '/assets/icons/share.gif',
+			icon: './assets/icons/share.gif',
 			label: ui.label.share,
 		}
 	} else {
 		return {
-			icon: '/assets/icons/listen.gif',
+			icon: './assets/icons/listen.gif',
 			label: ui.label.listen,
 		}
 	}
