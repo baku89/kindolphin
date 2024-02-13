@@ -39,9 +39,8 @@ const MangaReader = defineAsyncComponent(
 	() => import('@/components/MangaReader.vue')
 )
 
-const showHelp = ref(false)
 const minimized = ref(true)
-const showThemeSettings = ref(false)
+const popover = ref<null | 'help' | 'theme'>()
 
 function openBook(id: string) {
 	if (preloadJa.progress < 1 || id === '') return
@@ -195,7 +194,7 @@ onMounted(async () => {
 			<FooterButton
 				:label="ui.label.theme"
 				icon="./assets/icons/palette.gif"
-				@click="showThemeSettings = true"
+				@click="popover = 'theme'"
 			/>
 			<FooterButton
 				:label="ui.label.lang"
@@ -211,7 +210,7 @@ onMounted(async () => {
 			<FooterButton
 				:label="ui.label.help"
 				icon="./assets/icons/help.gif"
-				@click="showHelp = true"
+				@click="popover = 'help'"
 			/>
 		</footer>
 		<MangaReader
@@ -227,10 +226,10 @@ onMounted(async () => {
 	<Transition>
 		<div class="PageIndex__fade-in" v-if="fadeInStatus === 'in'" />
 	</Transition>
-	<PaneHelp v-model:show="showHelp" />
+	<PaneHelp :show="popover === 'help'" @close="popover = null" />
 	<div class="bg-overlay" />
 	<div class="ink-overlay" />
-	<PaneSettings v-model:show="showThemeSettings" />
+	<PaneSettings :show="popover === 'theme'" @close="popover = null" />
 </template>
 
 <style lang="stylus" scoped>
@@ -410,7 +409,7 @@ onMounted(async () => {
 .reader
 	z-index 10
 	transform-origin 50% 100%
-	transition all 0.2s steps(8)
+	transition transform 0.2s steps(8), outline 0.2s steps(4)
 
 	&.minimized
 		transform scale(0.2) translate3d(0, -10%, 0)

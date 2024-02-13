@@ -6,7 +6,7 @@ defineProps<{
 }>()
 
 defineEmits<{
-	'update:show': [value: boolean]
+	close: []
 }>()
 
 const env = (import.meta as any).env
@@ -14,11 +14,7 @@ const env = (import.meta as any).env
 
 <template>
 	<Transition>
-		<FadeBg
-			class="PaneSettings__outside"
-			v-if="show"
-			@click="$emit('update:show', false)"
-		/>
+		<FadeBg class="PaneSettings__outside" v-if="show" @click="$emit('close')" />
 	</Transition>
 	<div class="PaneHelp" :class="{show}">
 		<div class="window">
@@ -83,9 +79,7 @@ const env = (import.meta as any).env
 			</div>
 
 			<div class="buttons">
-				<button @click="$emit('update:show', false)" v-hover>
-					閉じる (<u>C</u>lose)
-				</button>
+				<button @click="$emit('close')" v-hover>閉じる (<u>C</u>lose)</button>
 			</div>
 		</div>
 	</div>

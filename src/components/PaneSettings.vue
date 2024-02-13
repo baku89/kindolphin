@@ -8,7 +8,7 @@ defineProps<{
 }>()
 
 defineEmits<{
-	'update:show': [value: boolean]
+	close: []
 }>()
 
 const settings = useAppSettingsStore()
@@ -16,7 +16,7 @@ const settings = useAppSettingsStore()
 
 <template>
 	<Transition>
-		<FadeBg v-if="show" @click="$emit('update:show', false)" />
+		<FadeBg v-if="show" @click="$emit('close')" />
 	</Transition>
 	<div class="PaneSettings" ref="$root" :class="{show}">
 		<section class="property">
@@ -68,7 +68,6 @@ const settings = useAppSettingsStore()
 	[lang=en]
 		margin-left 0.5em
 		font-size 12rem
-
 
 .themes
 	display flex
