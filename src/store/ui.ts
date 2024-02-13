@@ -28,6 +28,14 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'Share',
 			ja: 'シェア',
 		},
+		listen: {
+			en: 'Listen',
+			ja: '聴く',
+		},
+		install: {
+			en: 'Install',
+			ja: 'インストール',
+		},
 		readNow: {
 			en: 'READ NOW',
 			ja: '今すぐ読む',

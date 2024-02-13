@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import delay from 'delay'
-import {defineAsyncComponent, onMounted, ref} from 'vue'
+import {computed, defineAsyncComponent, onMounted, ref} from 'vue'
 
 import {Book, BookHappeningEn, BookHappeningJa} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -49,18 +49,70 @@ function openBook(id: string) {
 	minimized.value = false
 }
 
-function share() {
+//------------------------------------------------------------------------------
+// Aux action: Install PWA, or share, or just jump to the Linkcore
+
+const auxMode = ref<'install' | 'share' | 'listen'>('listen')
+
+const auxIcon = computed(() => {
+	if (auxMode.value === 'install') {
+		return {
+			icon: '/assets/icons/install.gif',
+			label: ui.label.install,
+		}
+	} else if (auxMode.value === 'share') {
+		return {
+			icon: '/assets/icons/share.gif',
+			label: ui.label.share,
+		}
+	} else {
+		return {
+			icon: '/assets/icons/listen.gif',
+			label: ui.label.listen,
+		}
+	}
+})
+
+if ((window as any).deferredPrompt) {
+	auxMode.value = 'install'
+} else if ('share' in navigator) {
+	auxMode.value = 'share'
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+	e.preventDefault()
+	// eslint-disable-next-line no-console
+	console.info('PWA support detected')
+	;(window as any).deferredPrompt = e
+	auxMode.value = 'install'
+})
+
+async function auxAction() {
 	try {
-		navigator.share({
-			title: 'group_inou / HAPPENING',
-			text: 'Interactive GIF Manga in collaboration with AC-bu',
-			url: 'https://g-a-l.jp/group_inou/happening/',
-		})
+		if (auxMode.value === 'install') {
+			const deferredPrompt = (window as any).deferredPrompt
+			deferredPrompt.prompt()
+			const choiceResult = await deferredPrompt.userChoice
+			if (choiceResult.outcome === 'accepted') {
+				console.info('User accepted the install prompt')
+			} else {
+				console.info('User dismissed the install prompt')
+			}
+		} else if (auxMode.value === 'share') {
+			navigator.share({
+				title: 'group_inou / HAPPENING',
+				text: 'Interactive GIF Manga in collaboration with AC-bu',
+				url: 'https://g-a-l.jp/group_inou/happening/',
+			})
+		} else if (auxMode.value === 'listen') {
+			window.open('https://linkco.re/Mu9VcVt8', '_blank')
+		}
 	} catch (e) {
 		console.error(e)
 	}
 }
 
+//------------------------------------------------------------------------------
 // Fade in animation
 const fadeInStatus = ref<'before' | 'in' | 'out'>('before')
 
@@ -203,9 +255,9 @@ onMounted(async () => {
 			/>
 			<div class="spacer" />
 			<FooterButton
-				:label="ui.label.share"
-				icon="./assets/icons/share.gif"
-				@click="share"
+				:label="auxIcon.label"
+				:icon="auxIcon.icon"
+				@click="auxAction"
 			/>
 			<FooterButton
 				:label="ui.label.help"

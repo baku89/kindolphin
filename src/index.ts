@@ -35,3 +35,12 @@ console.info(
 	env.VITE_NPM_VERSION,
 	env.VITE_GIT_COMMIT_HASH
 )
+
+// PWA
+// https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/How_to/Trigger_install_prompt
+window.addEventListener('beforeinstallprompt', e => {
+	e.preventDefault()
+	// eslint-disable-next-line no-console
+	console.info('PWA support detected')
+	;(window as any).deferredPrompt = e
+})

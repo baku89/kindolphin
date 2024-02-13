@@ -33,6 +33,9 @@ export default (): UserConfig => {
 			vue(),
 			VitePWA({
 				registerType: 'autoUpdate',
+				devOptions: {
+					enabled: true,
+				},
 				manifest: {
 					name: 'HAPPENING',
 					short_name: 'HAPPENING',
