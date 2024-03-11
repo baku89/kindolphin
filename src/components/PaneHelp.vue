@@ -24,17 +24,38 @@ const env = (import.meta as any).env
 				<img src="/assets/artist_photo.gif" />
 
 				<p>
-					(英語のみ、結構ちゃんとした情報が入る)<br />
-					* group_inouの概要<br />
-					* AC部とのコラボレーション、今回のMVについて
+					(一言サラッと、イルカくんによる代弁でもあっこゴリラの時の佐藤さんのコメみたいな感じでも。日本語と英語の物量の差がちょっと面白ければと)
 				</p>
 
 				<p>
-					group_inou (グループイノウ) is a Japanese electronic and hip-hop duo
-					formed in 2003. Since 2006 they have released music under their own
-					independent record label GAL. The group went on indefinite hiatus in
-					2016 returning without announcement in late 2023 with a new song
-					“HAPPENING”.
+					group_inou, an electric and hip-hop duo based in Tokyo, known for
+					transcending the boundaries of band scene, hip-hop, and club music.
+					Over their two-decade-long career, they have released 5 albums and
+					three EPs, captivating audiences at major festivals both in Japan and
+					internationally.
+				</p>
+
+				<p>
+					They has also gained recognition for their impressive visuals and
+					music videos, realized through artistic partnerships with graphic
+					designers, filmmakers, and media artists.
+				</p>
+
+				<p>
+					To celebrate their EP “HAPPENING,” released after a 7-year hiatus,
+					they collaborated with the renowned animation group AC-bu (known for
+					works like “<a href="https://www.youtube.com/watch?v=ACEBZ-KmuQo"
+						>THERAPY</a
+					>,” “<a href="https://www.youtube.com/watch?v=w_os8HqfxHc">HEART</a>,”
+					“<a href="https://www.youtube.com/watch?v=ZE2ywCcKkdQ">ORIENTATION</a
+					>,” and “<a href="https://www.youtube.com/watch?v=Ty2h9XZB6-o"
+						>CATCH</a
+					>”) and experimental filmmaker and creative coder
+					<a href="https://baku89.com/">Baku Hashimoto</a>
+					(known for “<a href="https://www.youtube.com/watch?v=WSFeje8-4Vc"
+						>EYE</a
+					>”). This collaboration led to the release of this "Kindolphin," a
+					multilingual, interactive GIF manga app.
 				</p>
 
 				<hr />
@@ -65,15 +86,9 @@ const env = (import.meta as any).env
 							<a href="https://baku89.com" target="_blank">Baku Hashimoto</a>
 						</dd>
 					</div>
-
-					<div class="line">
-						<dt>Produce</dt>
-						<div class="spacer">.........................................</div>
-						<dd>INS Studio</dd>
-					</div>
 				</dl>
 
-				<p align="right">
+				<p style="text-align: right">
 					v{{ env.VITE_NPM_VERSION }} ({{ env.VITE_GIT_COMMIT_HASH }})
 				</p>
 			</div>
@@ -142,6 +157,7 @@ const env = (import.meta as any).env
 	p
 		margin 1em 0
 		line-height 1.5em
+		text-align justify
 
 	h2
 		font-weight bold
