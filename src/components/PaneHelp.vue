@@ -21,10 +21,13 @@ const env = (import.meta as any).env
 			<div class="content">
 				<h2>About group_inou</h2>
 
-				<img src="/assets/artist_photo.gif" />
+				<img src="/assets/artist_photo.webp" />
 
 				<p>
-					(一言サラッと、イルカくんによる代弁でもあっこゴリラの時の佐藤さんのコメみたいな感じでも。日本語と英語の物量の差がちょっと面白ければと)
+					<a href="https://natalie.mu/music/news/554591"
+						>group_inouが突如配信した新曲「HAPPENING」のMV公開、手がけたのはAC部
+						- Natalie
+					</a>
 				</p>
 
 				<p>
