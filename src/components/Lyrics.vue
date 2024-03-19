@@ -69,9 +69,13 @@ onMounted(() => {
 		$lyrics.value.appendChild(canvas)
 
 		const ctx = canvas.getContext('2d', {willReadFrequently: true})!
-		canvas.width = 145
-		canvas.height = 229
-		const pix = ctx.createImageData(145, 229)
+
+		const width = 251
+		const height = 229
+
+		canvas.width = width
+		canvas.height = height
+		const pix = ctx.createImageData(width, height)
 		contexts.set(id, {ctx, pix})
 
 		currentLyricsForCanvas.push(null)
@@ -175,23 +179,33 @@ function drawLyric(
 
 	// Then draw the lyric
 	const {ctx, pix} = contexts.get(id)!
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
 	if (!lyric || frame === null) {
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 		lastDrawnLyric.set(id, null)
 	} else {
-		const {bitmap} = lyric
+		const {
+			bitmap,
+			size: [bitmapWidth, bitmapHeight],
+		} = lyric
 		const threshold = thresholds[frame]
 		const [r, g, b] = primaryRGB.value
+		const pixWidth = pix.width
 
-		for (let i = 0; i < bitmap.length; i++) {
-			pix.data[i * 4 + 3] = bitmap[i] >= threshold ? 255 : 0
-			pix.data[i * 4] = r
-			pix.data[i * 4 + 1] = g
-			pix.data[i * 4 + 2] = b
+		let x: number, y: number, i: number, pi: number
+
+		for (y = 0; y < bitmapHeight; y++) {
+			for (x = 0; x < bitmapWidth; x++) {
+				pi = y * pixWidth + x
+				i = y * bitmapWidth + x
+				pix.data[pi * 4 + 3] = bitmap[i] >= threshold ? 255 : 0
+				pix.data[pi * 4] = r
+				pix.data[pi * 4 + 1] = g
+				pix.data[pi * 4 + 2] = b
+			}
 		}
 
-		ctx.putImageData(pix, 0, 0)
+		ctx.putImageData(pix, 0, 0, 0, 0, bitmapWidth, bitmapHeight)
 		lastDrawnLyric.set(id, {index: lyric.index, frame})
 	}
 }
@@ -214,7 +228,7 @@ function updateLyrics() {
 
 			const left = lyric.offset[0] * props.mangaScale
 			const top = lyric.offset[1] * props.mangaScale - props.scroll
-			const width = lyric.size[0] * props.mangaScale
+			const width = 251 * props.mangaScale
 			const height = lyric.size[1] * props.mangaScale
 
 			canvas.style.left = `${left}px`

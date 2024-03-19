@@ -1,4 +1,4 @@
-import {Book, Page} from './type'
+import {Book, Page} from '../src/book/type'
 
 export const pages: Page[] = [
 	{src: './assets/manga_en/manga_en_00_00.webp', width: 324, height: 74},
@@ -8,7 +8,7 @@ export const pages: Page[] = [
 	{src: './assets/manga_ja/manga_01_00.webp', width: 324, height: 695},
 	{src: './assets/manga_ja/manga_02_00.webp', width: 324, height: 339},
 	{src: './assets/manga_ja/manga_02_01.webp', width: 324, height: 401},
-	{src: './assets/manga_ja/manga_03_00.webp', width: 324, height: 765},
+	{src: './assets/manga_en/manga_en_03_00.webp', width: 324, height: 765},
 	{src: './assets/manga_ja/manga_04_03.webp', width: 324, height: 1211},
 	{src: './assets/manga_ja/manga_05_00.webp', width: 324, height: 937},
 	{src: './assets/manga_ja/manga_06_00.webp', width: 324, height: 716},
@@ -24,7 +24,7 @@ export const pages: Page[] = [
 	{src: './assets/manga_ja/manga_10_01.webp', width: 324, height: 107},
 	{src: './assets/manga_ja/manga_10_02.webp', width: 324, height: 177},
 	{src: './assets/manga_ja/manga_10_03.webp', width: 324, height: 136},
-	{src: './assets/manga_ja/manga_11_00.webp', width: 324, height: 1689},
+	{src: './assets/manga_en/manga_en_11_00.webp', width: 324, height: 1689},
 	{src: './assets/manga_ja/manga_12_00.webp', width: 324, height: 112},
 	{src: './assets/manga_ja/manga_12_01.webp', width: 324, height: 594},
 	{src: './assets/manga_ja/manga_12_02.webp', width: 324, height: 505},
@@ -71,5 +71,5 @@ export const pages: Page[] = [
 
 export const BookHappeningEn: Book = {
 	pages,
-	lyricSrc: 'assets/lyrics_ja.bson.gz',
+	lyricSrc: 'assets/lyrics_en.bson.gz',
 }
