@@ -1,4 +1,4 @@
-import {Book, Page} from '../src/book/type'
+import {Book, Page} from './type'
 
 export const pages: Page[] = [
 	{src: './assets/manga_en/manga_en_00_00.webp', width: 324, height: 74},
