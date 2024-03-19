@@ -83,7 +83,11 @@ onMounted(() => {
 
 	watch(
 		() => [props.currentTime, lyrics.value] as const,
-		([time, lyrics], [prevTime]) => {
+		([time, lyrics], [prevTime, prevLyrics]) => {
+			if (lyrics !== prevLyrics) {
+				currentLyricsForCanvas.fill(null)
+			}
+
 			// Delete invisible lyrics
 			for (let i = 0; i < currentLyricsForCanvas.length; i++) {
 				const lyric = currentLyricsForCanvas[i]
@@ -141,7 +145,7 @@ onMounted(() => {
 })
 
 watch(
-	primaryRGB,
+	[primaryRGB, lyrics],
 	() => {
 		lastDrawnLyric.clear()
 		updateLyrics()
@@ -229,7 +233,7 @@ function updateLyrics() {
 			const left = lyric.offset[0] * props.mangaScale
 			const top = lyric.offset[1] * props.mangaScale - props.scroll
 			const width = 251 * props.mangaScale
-			const height = lyric.size[1] * props.mangaScale
+			const height = 229 * props.mangaScale
 
 			canvas.style.left = `${left}px`
 			canvas.style.transform = `translate3d(0, ${top}px, 0)`

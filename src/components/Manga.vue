@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useElementSize, useWindowSize} from '@vueuse/core'
-import {computed, ImgHTMLAttributes, ref, ReservedProps, watchEffect} from 'vue'
+import {computed, ImgHTMLAttributes, ref, ReservedProps} from 'vue'
 
 interface MangaPage {
 	src: string
@@ -58,10 +58,6 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 			},
 		]
 	})
-})
-
-watchEffect(() => {
-	console.log(props.pages)
 })
 </script>
 
