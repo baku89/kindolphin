@@ -45,7 +45,7 @@ export default (): UserConfig => {
 					icons: [
 						{
 							src: 'pwa-icon.png',
-							sizes: '512x512',
+							sizes: '540x540',
 							type: 'image/png',
 							purpose: 'any maskable',
 						},
