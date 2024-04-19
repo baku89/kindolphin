@@ -15,6 +15,7 @@
 	left calc(50% - var(--size) / 2)
 	background var(--white)
 	border-radius 10rem
+	border 1px solid black
 	pointer-events none
 	background-size 8px 8px
 	background-position 0 0
@@ -33,10 +34,12 @@
 
 	&.v-enter-from
 	&.v-leave-to
-		transform scale(0)
+		transform scale(0.2)
+		top 0
+		left 90%
 
 	&.v-leave-active
-		transition transform 0.3s steps(5)
+		transition all 0.5s steps(10)
 
 .sound-sprite
 	width 36rem
