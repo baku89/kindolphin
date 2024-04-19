@@ -232,7 +232,7 @@ watch(
 		if (props.minimized) {
 			cancelInertia()
 			showNav.value = false
-			audio.stop()
+			audio.reset()
 		} else {
 			showNav.value = true
 		}

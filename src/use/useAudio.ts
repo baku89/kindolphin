@@ -13,6 +13,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 	const maxRate = 1
 
 	const scratch = ref<(time: number) => void>(() => {})
+	const reset = ref<() => void>(() => {})
 	const play = ref<(time: number) => void>(() => {})
 	const stop = ref<() => void>(() => {})
 	const preliminaryPlay = ref<() => void>(() => {})
@@ -31,7 +32,15 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			masterGain.gain.linearRampToValueAtTime(volume.value, 0.25)
 		})
 
-		const scrubGain = audioContext.createGain()
+		let scrubGain: GainNode = audioContext.createGain()
+
+		reset.value = () => {
+			stop.value()
+			scrubGain.disconnect()
+			scrubGain = audioContext.createGain()
+			scrubGain.connect(masterGain)
+		}
+
 		scrubGain.connect(masterGain)
 
 		let source: AudioBufferSourceNode | null = null
@@ -42,7 +51,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		let currentTime = 0
 
-		let autoStop: ReturnType<typeof setTimeout>
+		let autoStopTimer: ReturnType<typeof setTimeout>
 
 		scratch.value = (time: number) => {
 			const now = getNowSeconds()
@@ -77,8 +86,8 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 			scrubGain.gain.linearRampToValueAtTime(volume, 0.5)
 
-			clearTimeout(autoStop)
-			autoStop = setTimeout(disposeSource, 50)
+			clearTimeout(autoStopTimer)
+			autoStopTimer = setTimeout(disposeSource, 50)
 		}
 
 		play.value = (time: number) => {
@@ -118,13 +127,11 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 				}, delay * 1000)
 			}
 
-			window.source = source
-
 			return source
 		}
 
 		function disposeSource() {
-			clearTimeout(autoStop)
+			clearTimeout(autoStopTimer)
 			clearTimeout(startTimer)
 
 			try {
@@ -132,13 +139,15 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 				source?.disconnect()
 			} catch (e) {
 				null
+			} finally {
+				source = null
 			}
-			source = null
 		}
 	})()
 
 	return toReactive({
 		scratch,
+		reset,
 		play,
 		stop,
 		preliminaryPlay,
