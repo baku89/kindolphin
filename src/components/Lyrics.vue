@@ -71,7 +71,7 @@ onMounted(() => {
 		const ctx = canvas.getContext('2d', {willReadFrequently: true})!
 
 		const width = 251
-		const height = 229
+		const height = 251
 
 		canvas.width = width
 		canvas.height = height
@@ -233,7 +233,7 @@ function updateLyrics() {
 			const left = lyric.offset[0] * props.mangaScale
 			const top = lyric.offset[1] * props.mangaScale - props.scroll
 			const width = 251 * props.mangaScale
-			const height = 229 * props.mangaScale
+			const height = 251 * props.mangaScale
 
 			canvas.style.left = `${left}px`
 			canvas.style.transform = `translate3d(0, ${top}px, 0)`
