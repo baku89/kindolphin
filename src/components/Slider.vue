@@ -90,16 +90,15 @@ function onDrag(e: DragEvent) {
 	height calc(0.5 * var(--header-height))
 	background var(--white)
 	border-radius 50%
-	transition scale 0.1s steps(3)
+	transition transform 0.1s steps(3)
 	cursor ew-resize
-	scale 1
 	transform translate3d(-50%, -50%, 0)
-	will-change left, scale
+	will-change left, transform
 
 
 	&.hover
-		scale 1.2
+		transform translate3d(-50%, -50%, 0) scale(1.2)
 
 	.dragging &
-		scale 1.4
+		transform translate3d(-50%, -50%, 0) scale(1.4)
 </style>
