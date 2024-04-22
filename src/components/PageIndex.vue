@@ -102,7 +102,7 @@ async function auxAction() {
 			navigator.share({
 				title: 'group_inou / HAPPENING',
 				text: 'Interactive GIF Manga in collaboration with AC-bu',
-				url: 'https://g-a-l.jp/group_inou/happening/',
+				url: 'https://ac-bu.info/happening/',
 			})
 		} else if (auxMode.value === 'listen') {
 			window.open('https://linkco.re/Mu9VcVt8', '_blank')
