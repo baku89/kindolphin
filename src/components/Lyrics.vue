@@ -3,7 +3,7 @@ import {asyncComputed, useRafFn} from '@vueuse/core'
 import {BSON} from 'bson'
 import chroma from 'chroma-js'
 import {clamp, range} from 'lodash'
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch, watchEffect} from 'vue'
 
 import {Lyric} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -26,7 +26,11 @@ const lyrics = asyncComputed<Lyric[]>(async () => {
 	const res = await fetch(props.lyricsSrc)
 	const buffer = await res.arrayBuffer()
 
+	console.log('buffer', props.lyricsSrc, buffer)
+
 	const lyrics = BSON.deserialize(new Uint8Array(buffer)).lyrics as BSONLyric[]
+
+	console.log('lyrics deserialized', lyrics)
 
 	return lyrics.map(lyric => ({
 		...lyric,
@@ -80,6 +84,10 @@ onMounted(() => {
 
 		currentLyricsForCanvas.push(null)
 	}
+
+	watchEffect(() => {
+		console.log('lyrics', lyrics.value)
+	})
 
 	watch(
 		() => [props.currentTime, lyrics.value] as const,
