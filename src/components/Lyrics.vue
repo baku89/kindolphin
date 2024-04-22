@@ -24,13 +24,21 @@ const settings = useAppSettingsStore()
 
 const lyrics = asyncComputed<Lyric[]>(async () => {
 	const res = await fetch(props.lyricsSrc)
-	const buffer = await res.arrayBuffer()
 
-	console.log('buffer', props.lyricsSrc, buffer)
+	const contentType = res.headers.get('content-type')
+
+	let buffer: ArrayBuffer
+	if (contentType === 'application/x-gzip') {
+		console.log('Decompressing lyrics')
+		// Decompress the buffer
+		const bs = new DecompressionStream('gzip')
+		const stream = (await res.blob()).stream().pipeThrough(bs)
+		buffer = await new Response(stream).arrayBuffer()
+	} else {
+		buffer = await res.arrayBuffer()
+	}
 
 	const lyrics = BSON.deserialize(new Uint8Array(buffer)).lyrics as BSONLyric[]
-
-	console.log('lyrics deserialized', lyrics)
 
 	return lyrics.map(lyric => ({
 		...lyric,
