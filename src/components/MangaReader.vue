@@ -318,6 +318,7 @@ const showWobble = computed(() => {
 					:scroll="scroll"
 					:currentTime="currentTime"
 					:mangaScale="mangaScale"
+					:maxScroll="maxScroll"
 				/>
 			</div>
 		</main>

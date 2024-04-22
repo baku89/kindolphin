@@ -16,6 +16,7 @@ type BSONLyric = Lyric & {bitmap: BSON.Binary}
 const props = defineProps<{
 	lyricsSrc: string
 	scroll: number
+	maxScroll: number
 	currentTime: number
 	seekbarPosition: number
 	mangaScale: number
@@ -108,6 +109,10 @@ onMounted(() => {
 				time
 			)
 
+			if (props.scroll >= props.maxScroll) {
+				visibleLyrics.push(lyrics[lyrics.length - 1])
+			}
+
 			const start = doAnimate ? Date.now() / 1000 : -1
 
 			for (const lyric of visibleLyrics) {
@@ -157,7 +162,7 @@ const seekbarStyle = computed(() => {
 	const top = clamp(
 		props.seekbarPosition * props.mangaScale,
 		630 * props.mangaScale - props.scroll,
-		33184 * props.mangaScale - props.scroll
+		33174 * props.mangaScale - props.scroll
 	)
 
 	return {
@@ -250,7 +255,10 @@ function updateLyrics() {
 useRafFn(updateLyrics)
 
 function getLyricsBetween(lyrics: Lyric[], inTime: number, outTime: number) {
-	return lyrics.filter(lyric => inTime < lyric.time && lyric.time <= outTime)
+	return lyrics.filter(
+		(lyric, i) =>
+			inTime < lyric.time && lyric.time <= outTime && i < lyrics.length - 1
+	)
 }
 </script>
 
