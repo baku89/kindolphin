@@ -7,6 +7,7 @@ import {computed, onMounted, ref, watch} from 'vue'
 
 import {Lyric} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
+import {fetchGzip} from '@/utils'
 
 import Bang from './Bang.vue'
 
@@ -23,20 +24,7 @@ const props = defineProps<{
 const settings = useAppSettingsStore()
 
 const lyrics = asyncComputed<Lyric[]>(async () => {
-	const res = await fetch(props.lyricsSrc)
-
-	const contentType = res.headers.get('content-type')
-
-	let buffer: ArrayBuffer
-	if (contentType === 'application/x-gzip') {
-		console.log('Decompressing lyrics')
-		// Decompress the buffer
-		const bs = new DecompressionStream('gzip')
-		const stream = (await res.blob()).stream().pipeThrough(bs)
-		buffer = await new Response(stream).arrayBuffer()
-	} else {
-		buffer = await res.arrayBuffer()
-	}
+	const buffer = await fetchGzip(props.lyricsSrc)
 
 	const lyrics = BSON.deserialize(new Uint8Array(buffer)).lyrics as BSONLyric[]
 

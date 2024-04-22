@@ -40,3 +40,20 @@ export function binarySearchBound<T, U>(
 
 	return result
 }
+
+export async function fetchGzip(url: string) {
+	const res = await fetch(url)
+
+	const contentType = res.headers.get('content-type')
+
+	if (contentType === 'application/x-gzip') {
+		console.log('Decompressing lyrics')
+		// Decompress the buffer
+		const bs = new DecompressionStream('gzip')
+		const stream = (await res.blob()).stream().pipeThrough(bs)
+		return await new Response(stream).arrayBuffer()
+	} else {
+		console.log('decompressed by the browser')
+		return await res.arrayBuffer()
+	}
+}
