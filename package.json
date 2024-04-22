@@ -10,6 +10,7 @@
 		"build": "vite build"
 	},
 	"devDependencies": {
+		"@baku89/pave": "0.4.1",
 		"@types/chroma-js": "^2.4.3",
 		"@types/lodash": "^4.14.202",
 		"@types/preloadjs": "^0.6.36",

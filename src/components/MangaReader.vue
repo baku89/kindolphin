@@ -18,6 +18,7 @@ import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, Keyframe, lookupTime, lookupValue} from '@/timeline'
 import {useAudio} from '@/use/useAudio'
 import {useVirtualScroll} from '@/use/useVirtualScroll'
+import {waveform} from '@/waveform'
 
 import SoundAlertPopup from './SoundAlertPopup.vue'
 
@@ -262,6 +263,28 @@ watch(
 		}
 	}
 )
+
+//------------------------------------------------------------------------------
+// Waveform
+const amplitude = computed(() => {
+	if (playing.value) {
+		const frame = Math.floor(currentTime.value * 50 + 2)
+		return waveform[frame % waveform.length]
+	} else {
+		return 0.00001
+	}
+})
+
+const playStyles = computed(() => {
+	const s = 1 + amplitude.value * 0.4
+	return {
+		transform: `scale(${s}, ${s})`,
+	}
+})
+
+const showWobble = computed(() => {
+	return playing.value && amplitude.value > 0.1
+})
 </script>
 
 <template>
@@ -299,16 +322,22 @@ watch(
 			</div>
 		</main>
 		<footer class="footer">
-			<button class="play" @click="playing = !playing">
+			<button class="play" @click="playing = !playing" :style="playStyles">
 				<i
 					class="fa fa-sharp fa-solid"
 					:class="playing ? 'fa-circle-pause' : 'fa-circle-play'"
 				></i>
+				<img
+					class="wobble"
+					v-show="showWobble"
+					src="/assets/play_wobble.webp"
+				/>
 			</button>
 			<Slider
 				:modelValue="currentTimecode"
 				@update:modelValue="onScrubSlider"
 				:duration="timelineDuration"
+				:amplitude="amplitude"
 			/>
 			<Timecode class="timecode" :modelValue="currentTimecode" />
 		</footer>
@@ -402,6 +431,7 @@ watch(
 	gap 16rem
 
 .play
+	position relative
 	font-size 33rem
 	margin auto 0
 	line-height 100%
@@ -410,6 +440,14 @@ watch(
 
 	.fa-play
 		text-indent 0.2em
+
+.wobble
+	display block
+	position absolute
+	top -15%
+	left -15%
+	width 130%
+	mix-blend-mode multiply
 
 .timecode
 	width 3em

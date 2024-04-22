@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import {scalar} from 'linearly'
+import {Iter, Path} from '@baku89/pave'
+import {scalar, vec2} from 'linearly'
 import {computed, ref} from 'vue'
 
 import {DragEvent, useElementDrag} from '@/use/useElementDrag'
@@ -7,17 +8,12 @@ import {DragEvent, useElementDrag} from '@/use/useElementDrag'
 const props = defineProps<{
 	modelValue: number
 	duration: number
+	amplitude: number
 }>()
 
 const emit = defineEmits<{
 	'update:modelValue': [value: number]
 }>()
-
-const knobStyle = computed(() => {
-	return {
-		left: `${(props.modelValue / props.duration) * 100}%`,
-	}
-})
 
 const $slider = ref<HTMLElement | null>(null)
 
@@ -58,12 +54,42 @@ function onDrag(e: DragEvent) {
 
 	emit('update:modelValue', newValue)
 }
+
+const f = (t: number): vec2 => [
+	t * 100,
+	Math.sin(t * Math.PI * 2 * 5) * 3 + 0.5,
+]
+
+const d = Path.toD(Path.formula(f, Iter.range(0, 1, 0.025)))
+
+const trackTransform = computed(() => {
+	return `scale(1 ${props.amplitude})`
+})
+
+const knobStyle = computed(() => {
+	const topOffset =
+		f(props.modelValue / props.duration)[1] * 1.5 * props.amplitude
+
+	return {
+		left: `${(props.modelValue / props.duration) * 100}%`,
+		top: `calc(50% + ${topOffset}rem)`,
+	}
+})
 </script>
 
 <template>
 	<div class="Slider" :class="{dragging}" ref="$slider">
-		<div class="track" />
-		<button class="knob fa fa-regular fa-circle" :style="knobStyle" v-hover />
+		<svg
+			class="track"
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 100 1"
+			preserveAspectRatio="none"
+		>
+			<path class="stroke" :d="d" :transform="trackTransform" />
+		</svg>
+		<div class="knob-wrapper" :style="knobStyle">
+			<button class="knob fa fa-regular fa-circle" v-hover />
+		</div>
 	</div>
 </template>
 
@@ -77,12 +103,24 @@ function onDrag(e: DragEvent) {
 .track
 	width 100%
 	height 2rem
-	background var(--black)
+	overflow visible
+
+.stroke
+	stroke var(--black)
+	stroke-width 5
+	fill none
+	vector-effect non-scaling-stroke
+	shape-rendering crispEdges
+
+.knob-wrapper
+	position absolute
+	top 50%
 
 .knob
 	position absolute
 	display block
-	top 50%
+	top 0
+	left 0
 	font-size calc(0.5 * var(--header-height))
 	text-align center
 	line-height calc(0.5 * var(--header-height))
@@ -93,7 +131,7 @@ function onDrag(e: DragEvent) {
 	transition transform 0.1s steps(3)
 	cursor ew-resize
 	transform translate3d(-50%, -50%, 0)
-	will-change left, transform
+	will-change transform
 
 
 	&.hover
