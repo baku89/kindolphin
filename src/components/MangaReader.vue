@@ -268,10 +268,10 @@ watch(
 // Waveform
 const amplitude = computed(() => {
 	if (playing.value) {
-		const frame = Math.floor(currentTime.value * 50 + 2)
-		return waveform[frame % waveform.length]
+		const frame = Math.floor(currentTime.value * 50 + 15)
+		return waveform[scalar.clamp(frame, 0, waveform.length - 1)]
 	} else {
-		return 0.00001
+		return 0
 	}
 })
 
@@ -322,7 +322,13 @@ const showWobble = computed(() => {
 			</div>
 		</main>
 		<footer class="footer">
-			<button class="play" @click="playing = !playing" :style="playStyles">
+			<button
+				class="play"
+				@click="playing = !playing"
+				:style="playStyles"
+				@pointerdown.prevent
+				@pointerup.prevent
+			>
 				<i
 					class="fa fa-sharp fa-solid"
 					:class="playing ? 'fa-circle-pause' : 'fa-circle-play'"

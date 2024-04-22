@@ -63,7 +63,7 @@ const f = (t: number): vec2 => [
 const d = Path.toD(Path.formula(f, Iter.range(0, 1, 0.025)))
 
 const trackTransform = computed(() => {
-	return `scale(1 ${props.amplitude})`
+	return `scale(1 ${Math.max(props.amplitude, 0.0001)})`
 })
 
 const knobStyle = computed(() => {
