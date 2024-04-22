@@ -3,7 +3,7 @@ import {asyncComputed, useRafFn} from '@vueuse/core'
 import {BSON} from 'bson'
 import chroma from 'chroma-js'
 import {clamp, range} from 'lodash'
-import {computed, onMounted, ref, watch, watchEffect} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 
 import {Lyric} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -92,10 +92,6 @@ onMounted(() => {
 
 		currentLyricsForCanvas.push(null)
 	}
-
-	watchEffect(() => {
-		console.log('lyrics', lyrics.value)
-	})
 
 	watch(
 		() => [props.currentTime, lyrics.value] as const,
