@@ -1,4 +1,4 @@
-name: Deploy to Lollipop
+name: Deploy to GAL's website (Redirection)
 
 on:
   push:

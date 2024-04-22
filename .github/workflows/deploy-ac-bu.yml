@@ -1,4 +1,4 @@
-name: Deploy to Lollipop
+name: Deploy to AC-bu's website
 
 on:
   push:
