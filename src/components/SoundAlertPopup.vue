@@ -34,12 +34,12 @@
 
 	&.v-enter-from
 	&.v-leave-to
-		transform scale(0.2)
-		top 0
-		left 90%
+		transform scale(0.5)
+		top 5%
+		left 70%
 
 	&.v-leave-active
-		transition all 0.5s steps(10)
+		transition all 0.6s steps(10)
 
 .sound-sprite
 	width 36rem
