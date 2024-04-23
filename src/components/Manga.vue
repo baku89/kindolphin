@@ -36,7 +36,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 		const y = top - props.scroll
 		const height = page.height * scale
 
-		const aspectRatio = page.width / page.height
+		const aspectRatio = page.width / (page.height + 1)
 
 		top += page.height * scale
 
@@ -95,6 +95,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 	display block
 	width 100%
 	height auto
+	transform-origin 0 0
 	pointer-events none
 	will-change visibility, transform
 	object-fit fill
