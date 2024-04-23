@@ -44,6 +44,10 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'DOWNLOADING...',
 			ja: '読み込み中...',
 		},
+		soundAlert: {
+			en: 'Sound will play',
+			ja: '音が出ます',
+		},
 	}
 
 	const label = computed(() => {

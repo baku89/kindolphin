@@ -1,6 +1,13 @@
+<script setup lang="ts">
+import {useUIStore} from '@/store/ui'
+
+const ui = useUIStore()
+</script>
+
 <template>
 	<div class="SoundAlertPopup">
 		<div class="fa sound-sprite img" />
+		<div class="text">{{ ui.label.soundAlert }}</div>
 	</div>
 </template>
 
@@ -35,8 +42,8 @@
 	&.v-enter-from
 	&.v-leave-to
 		transform scale(0.5)
-		top 5%
-		left 70%
+		top 0
+		left 90%
 
 	&.v-leave-active
 		transition all 0.6s steps(10)
@@ -44,4 +51,9 @@
 .sound-sprite
 	width 36rem
 	height 36rem
+
+.text
+	font-size 80%
+	font-weight bold
+	margin-top 5rem
 </style>
