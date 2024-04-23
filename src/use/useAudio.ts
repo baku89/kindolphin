@@ -13,7 +13,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 	const maxRate = 1
 
 	const scratch = ref<(time: number) => void>(() => {})
-	const reset = ref<() => void>(() => {})
 	const play = ref<(time: number) => void>(() => {})
 	const stop = ref<() => void>(() => {})
 	const preliminaryPlay = ref<() => void>(() => {})
@@ -24,6 +23,14 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		const arrayBuffer = await response.arrayBuffer()
 		const buffer = await audioContext.decodeAudioData(arrayBuffer)
 		const revBuffer = getReversedAudioBuffer(audioContext, buffer)
+
+		let willResume = false
+
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible') {
+				willResume = true
+			}
+		})
 
 		const masterGain = audioContext.createGain()
 		masterGain.connect(audioContext.destination)
@@ -41,13 +48,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		let scrubGain: GainNode = audioContext.createGain()
 
-		reset.value = () => {
-			stop.value()
-			scrubGain.disconnect()
-			scrubGain = audioContext.createGain()
-			scrubGain.connect(masterGain)
-		}
-
 		scrubGain.connect(masterGain)
 
 		let source: AudioBufferSourceNode | null = null
@@ -58,9 +58,14 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		let currentTime = 0
 
-		let autoStopTimer: ReturnType<typeof setTimeout>
+		let autoStopTimer: ReturnType<typeof setTimeout> | undefined
 
-		scratch.value = (time: number) => {
+		scratch.value = async (time: number) => {
+			if (willResume) {
+				audioContext.resume()
+				willResume = false
+			}
+
 			const now = getNowSeconds()
 			const rate = (time - lastTime) / (now - lastDate)
 
@@ -98,6 +103,19 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		play.value = (time: number) => {
+			if (willResume) {
+				audioContext.resume()
+				willResume = false
+			}
+
+			if (autoStopTimer === undefined) {
+				masterGain.gain.value = 0
+				masterGain.gain.linearRampToValueAtTime(
+					volume.value,
+					audioContext.currentTime + 0.25
+				)
+			}
+
 			recreateAndStartSource(buffer, time)
 			scrubGain.gain.linearRampToValueAtTime(1, 2)
 		}
@@ -139,11 +157,16 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		function disposeSource() {
 			clearTimeout(autoStopTimer)
+			autoStopTimer = undefined
 			clearTimeout(startTimer)
 
 			try {
 				source?.stop()
 				source?.disconnect()
+
+				scrubGain.disconnect()
+				scrubGain = audioContext.createGain()
+				scrubGain.connect(masterGain)
 			} catch (e) {
 				null
 			} finally {
@@ -154,7 +177,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 	return toReactive({
 		scratch,
-		reset,
 		play,
 		stop,
 		preliminaryPlay,

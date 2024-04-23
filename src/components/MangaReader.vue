@@ -145,7 +145,7 @@ const currentTimecode = computed(() => {
 const playing = ref(false)
 
 const audio = useAudio('./assets/happening.mp3', {
-	volume: computed(() => (!settings.muted && playing.value ? 1 : 0)),
+	volume: computed(() => (!settings.muted ? 1 : 0)),
 })
 
 // Scratch the audio when the manga is not playing
@@ -233,13 +233,18 @@ watch(
 		if (props.minimized) {
 			cancelInertia()
 			showNav.value = false
-			audio.reset()
 		} else {
 			showNav.value = true
 		}
 		playing.value = false
 	}
 )
+
+document.addEventListener('visibilitychange', async () => {
+	if (document.visibilityState === 'hidden') {
+		playing.value = false
+	}
+})
 
 //------------------------------------------------------------------------------
 // Space to toggle
