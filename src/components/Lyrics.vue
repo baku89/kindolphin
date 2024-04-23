@@ -117,7 +117,7 @@ onMounted(() => {
 
 			for (const lyric of visibleLyrics) {
 				// Skip if the lyric is assigned to a canvas
-				if (currentLyricsForCanvas.some(l => lyric.index === l?.index)) {
+				if (currentLyricsForCanvas.some(l => lyric?.index === l?.index)) {
 					continue
 				}
 
