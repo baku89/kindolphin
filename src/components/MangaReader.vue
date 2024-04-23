@@ -34,8 +34,6 @@ defineEmits<{
 
 const settings = useAppSettingsStore()
 
-const volume = computed(() => (settings.muted ? 0 : 1))
-
 // This is necessary to play audio on iOS
 watch(
 	() => props.minimized,
@@ -146,7 +144,9 @@ const currentTimecode = computed(() => {
 // オーディオ再生
 const playing = ref(false)
 
-const audio = useAudio('./assets/happening.mp3', {volume})
+const audio = useAudio('./assets/happening.mp3', {
+	volume: computed(() => (!settings.muted && playing.value ? 1 : 0)),
+})
 
 // Scratch the audio when the manga is not playing
 watch(

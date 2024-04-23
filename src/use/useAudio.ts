@@ -1,7 +1,7 @@
 import {toReactive} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {clamp} from 'lodash'
-import {Ref, ref, watchEffect} from 'vue'
+import {Ref, ref, watch} from 'vue'
 
 import {getReversedAudioBuffer} from '@/utils'
 
@@ -28,8 +28,15 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		const masterGain = audioContext.createGain()
 		masterGain.connect(audioContext.destination)
 
-		watchEffect(() => {
-			masterGain.gain.linearRampToValueAtTime(volume.value, 0.25)
+		watch(volume, (volume, prevVolume) => {
+			if (volume < prevVolume) {
+				masterGain.gain.value = volume
+			} else {
+				masterGain.gain.linearRampToValueAtTime(
+					volume,
+					audioContext.currentTime + 0.25
+				)
+			}
 		})
 
 		let scrubGain: GainNode = audioContext.createGain()
