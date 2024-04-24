@@ -30,7 +30,7 @@ const env = (import.meta as any).env
 					</a>
 				</p>
 
-				<p>
+				<p lang="en">
 					group_inou, an electric and hip-hop duo based in Tokyo, known for
 					transcending the boundaries of band scene, hip-hop, and club music.
 					Over their two-decade-long career, they have released 5 albums and
@@ -38,13 +38,13 @@ const env = (import.meta as any).env
 					internationally.
 				</p>
 
-				<p>
+				<p lang="en">
 					They has also gained recognition for their impressive visuals and
 					music videos, realized through artistic partnerships with graphic
 					designers, filmmakers, and media artists.
 				</p>
 
-				<p>
+				<p lang="en">
 					To celebrate their EP “HAPPENING,” released after a 7-year hiatus,
 					they collaborated with the renowned animation group AC-bu (known for
 					works like “<a href="https://www.youtube.com/watch?v=ACEBZ-KmuQo"
@@ -161,6 +161,7 @@ const env = (import.meta as any).env
 		margin 1em 0
 		line-height 1.5em
 		text-align justify
+		hyphens auto
 
 	h2
 		font-weight bold
@@ -191,6 +192,7 @@ const env = (import.meta as any).env
 	dt
 	dd
 		text-wrap nowrap
+		white-space nowrap
 
 		dd
 			text-align right
