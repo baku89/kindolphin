@@ -9,6 +9,7 @@ export function usePreloadBook(book: Book) {
 
 	function load() {
 		preload.fetch('./assets/happening.mp3', 300)
+		preload.fetch('./assets/scroll_effect_line.webp', 200)
 
 		book.pages.forEach(page => {
 			preload.fetch(page.src, page.height)
