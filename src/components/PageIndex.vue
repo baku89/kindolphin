@@ -194,15 +194,15 @@ onMounted(async () => {
 					<img class="thumb-content" src="/assets/cover_happening_en.png" />
 					<div
 						class="book-loading var(--white)-semitransparent"
-						v-if="preloadJa.progress < 1"
+						v-if="preloadEn.progress < 1"
 					>
 						<div class="message">
-							{{ Math.round(preloadJa.progress * 100) }}%
+							{{ Math.round(preloadEn.progress * 100) }}%
 						</div>
 						<div class="progress">
 							<div
 								class="bar"
-								:style="{width: preloadJa.progress * 100 + '%'}"
+								:style="{width: preloadEn.progress * 100 + '%'}"
 							/>
 						</div>
 					</div>
@@ -215,7 +215,7 @@ onMounted(async () => {
 					</h2>
 					<h3>AC-bu</h3>
 					<div class="read-now">
-						{{ preloadJa.progress < 1 ? ui.label.loading : ui.label.readNow }}
+						{{ preloadEn.progress < 1 ? ui.label.loading : ui.label.readNow }}
 					</div>
 					<CircleProgress
 						class="reading-progress"
@@ -266,7 +266,7 @@ onMounted(async () => {
 			/>
 		</footer>
 		<MangaReader
-			v-if="preloadJa.progress == 1"
+			v-if="currentBookId === 'ja' ? preloadJa.done : preloadEn.done"
 			class="reader"
 			:class="{minimized}"
 			:book="shelf[currentBookId]"
