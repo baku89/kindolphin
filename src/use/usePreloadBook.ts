@@ -7,7 +7,14 @@ import {usePreload} from './usePreload'
 export function usePreloadBook(book: Book) {
 	const preload = usePreload()
 
+	let hasStarted = false
+
 	function load() {
+		if (hasStarted) {
+			return
+		}
+		hasStarted = true
+
 		preload.fetch('./assets/happening.mp3', 300)
 		preload.fetch('./assets/scroll_effect_line.webp', 200)
 
