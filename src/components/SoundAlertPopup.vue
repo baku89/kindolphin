@@ -27,7 +27,7 @@ const ui = useUIStore()
 	background-size 8px 8px
 	background-position 0 0
 	background-repeat repeat
-	background-image url('data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQBACdASoQABAAAgA0JaQAMwB+AGeA/ACRAvwD+AaoF+AflV04H6AeoAcjt/SAYAD+9VQXCPdR6PB/+0hzhB36PvHgfjBHuo9F69tpDnCDv0bv/lrXvTHcdqeB+MEe6j0G73rkqn+ZqRp/yLI8uEHfn4AAAA==')
+	background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
 
 	font-size 14rem
 	text-align center
@@ -56,4 +56,5 @@ const ui = useUIStore()
 	font-size 80%
 	font-weight bold
 	margin-top 5rem
+	text-shadow 0 1px 1px var(--white), 1px 0 1px var(--white), 0 -1px 1px var(--white), -1px 0 1px var(--white)
 </style>
