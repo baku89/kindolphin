@@ -1,5 +1,11 @@
 import {computed, ref, watch} from 'vue'
 
+const cacheURLs = new Map<string, string>()
+
+export function getCachedURL(url: string) {
+	return cacheURLs.get(url)!
+}
+
 export function usePreload() {
 	const loadedWeight = ref(0)
 	const weightsTotal = ref(0)
@@ -29,7 +35,8 @@ export function usePreload() {
 		remainingTasks.value++
 
 		const xhr = new XMLHttpRequest()
-		xhr.open('GET', url)
+		xhr.open('GET', url, true)
+		xhr.responseType = 'blob'
 
 		let lastLoaded = 0
 
@@ -52,6 +59,10 @@ export function usePreload() {
 			if (lastLoaded === 0) {
 				loadedWeight.value += weight
 			}
+
+			const cacheURL = URL.createObjectURL(xhr.response)
+			cacheURLs.set(url, cacheURL)
+
 			remainingTasks.value--
 		}
 

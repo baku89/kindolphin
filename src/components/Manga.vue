@@ -2,6 +2,8 @@
 import {useElementSize, useWindowSize} from '@vueuse/core'
 import {computed, ImgHTMLAttributes, ref, ReservedProps} from 'vue'
 
+import {getCachedURL} from '@/use/usePreload'
+
 interface MangaPage {
 	src: string
 	width: number
@@ -50,7 +52,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 		return [
 			{
 				key: page.src,
-				src: page.src,
+				src: getCachedURL(page.src),
 				style: {
 					transform: `translate3d(0, ${y}px, 0)`,
 					aspectRatio,
