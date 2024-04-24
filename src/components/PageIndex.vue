@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import {whenever} from '@vueuse/core'
 import delay from 'delay'
-import {computed, defineAsyncComponent, onMounted, ref} from 'vue'
+import {computed, onMounted, ref, shallowReactive} from 'vue'
 
 import {Book, BookHappeningEn, BookHappeningJa} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -10,6 +11,7 @@ import {usePreloadBook} from '@/use/usePreloadBook'
 
 import CircleProgress from './CircleProgress.vue'
 import FooterButton from './FooterButton.vue'
+import MangaReader from './MangaReader.vue'
 import PaneHelp from './PaneHelp.vue'
 import PaneSettings from './PaneSettings.vue'
 
@@ -21,32 +23,38 @@ const audioDuration = 164.4930612244898
 const settings = useAppSettingsStore()
 const ui = useUIStore()
 
-const shelf: Record<string, Book> = {
+const shelf = shallowReactive<Record<string, Book>>({
 	'happening-ja': BookHappeningJa,
 	'happening-en': BookHappeningEn,
-}
+})
 
 const currentBookId = ref(
 	settings.lang === 'ja' ? 'happening-ja' : 'happening-en'
 )
 
 onMounted(() => {
-	setTimeout(preloadJa.load, 250)
-	setTimeout(preloadEn.load, 250)
-})
+	const [first, second] =
+		currentBookId.value === 'happening-ja'
+			? [preloadJa, preloadEn]
+			: [preloadEn, preloadJa]
 
-const MangaReader = defineAsyncComponent(
-	() => import('@/components/MangaReader.vue')
-)
+	setTimeout(() => {
+		first.load()
+		whenever(() => first.done, second.load)
+	}, 250)
+})
 
 const minimized = ref(true)
 const popover = ref<null | 'help' | 'theme'>()
 
 function openBook(id: string) {
-	if (preloadJa.progress < 1 || id === '') return
-
-	currentBookId.value = id
-	minimized.value = false
+	const preload = id === 'happening-ja' ? preloadJa : preloadEn
+	if (!preload.done) {
+		preload.load()
+	} else {
+		currentBookId.value = id
+		minimized.value = false
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -266,7 +274,7 @@ onMounted(async () => {
 			/>
 		</footer>
 		<MangaReader
-			v-if="currentBookId === 'ja' ? preloadJa.done : preloadEn.done"
+			v-if="currentBookId === 'happening-ja' ? preloadJa.done : preloadEn.done"
 			class="reader"
 			:class="{minimized}"
 			:book="shelf[currentBookId]"
