@@ -14,7 +14,7 @@ onBeforeUnmount(() => {
 
 <template>
 	<Transition>
-		<div class="FadeBg" v-if="show" />
+		<div class="FadeBg" v-show="show" />
 	</Transition>
 </template>
 
