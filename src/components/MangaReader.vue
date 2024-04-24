@@ -399,6 +399,10 @@ const showWobble = computed(() => {
 		display block
 		font-size 20rem
 
+	.title
+		padding 10rem 0
+		cursor pointer
+
 .header
 .footer
 	z-index 2
