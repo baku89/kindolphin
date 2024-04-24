@@ -1,0 +1,35 @@
+name: Deploy to AC-bu's website (Dev)
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Run install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+      - name: Build
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_AC_BU_HOST }}
+          username: ${{ secrets.FTP_AC_BU_USERNAME }}
+          password: ${{ secrets.FTP_AC_BU_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ./happening-dev/
