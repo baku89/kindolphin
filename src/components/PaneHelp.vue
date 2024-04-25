@@ -31,7 +31,7 @@ const env = (import.meta as any).env
 				</p>
 
 				<p lang="en">
-					group_inou, an electric and hip-hop duo based in Tokyo, known for
+					group_inou is an electric and hip-hop duo based in Tokyo, known for
 					transcending the boundaries of band scene, hip-hop, and club music.
 					Over their two-decade-long career, they have released 5 albums and
 					three EPs, captivating audiences at major festivals both in Japan and
