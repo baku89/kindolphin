@@ -102,8 +102,10 @@ async function auxAction() {
 			deferredPrompt.prompt()
 			const choiceResult = await deferredPrompt.userChoice
 			if (choiceResult.outcome === 'accepted') {
+				// eslint-disable-next-line no-console
 				console.info('User accepted the install prompt')
 			} else {
+				// eslint-disable-next-line no-console
 				console.info('User dismissed the install prompt')
 			}
 		} else if (auxMode.value === 'share') {
@@ -116,6 +118,7 @@ async function auxAction() {
 			window.open('https://linkco.re/Mu9VcVt8', '_blank')
 		}
 	} catch (e) {
+		// eslint-disable-next-line no-console
 		console.error(e)
 	}
 }
