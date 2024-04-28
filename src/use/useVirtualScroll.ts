@@ -1,7 +1,7 @@
 import {useEventListener, useRafFn} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {debounce} from 'lodash'
-import {MaybeRef, readonly, Ref, ref} from 'vue'
+import {MaybeRef, readonly, ref} from 'vue'
 
 import {DragEvent, useElementDrag} from './useElementDrag'
 
@@ -11,12 +11,16 @@ const InertiaCancelDuration = 0.25
 // 慣性スクロールが効き始める最低速度 (px/sec)
 const MinInertiaScrollSpeed = 140
 
+export interface VirtualScrollEvent {
+	offset: number
+	delta: number
+}
+
 interface UseVirtualScrollOptions {
-	onWheel: (e: WheelEvent) => void
-	onSwipe: (e: DragEvent) => void
-	onPointerup: (e: DragEvent) => void
+	onSwipe: (e: VirtualScrollEvent) => void
+	onPointerdown: (e: VirtualScrollEvent) => void
+	onPointerup: (e: VirtualScrollEvent) => void
 	mapScroll: (y: number) => number
-	targetSpeed: Ref<number>
 }
 
 function getNow() {
@@ -34,13 +38,39 @@ export function useVirtualScroll(
 	useEventListener(el, 'wheel', onWheel)
 
 	// Scroll by wheel
+	let wheelScrollOrigin: null | number = null
 	function onWheel(e: WheelEvent) {
 		swipeSpeed = inertiaSpeed = 0
 
 		scroll.value = options.mapScroll(scroll.value + e.deltaY)
 
-		options.onWheel(e)
+		if (wheelScrollOrigin === null) {
+			wheelScrollOrigin = scroll.value
+
+			options.onPointerdown({
+				offset: 0,
+				delta: 0,
+			})
+		}
+
+		options.onSwipe({
+			offset: scroll.value - wheelScrollOrigin,
+			delta: e.deltaY,
+		})
+
+		onWheelEnd()
 	}
+
+	const onWheelEnd = debounce(() => {
+		if (wheelScrollOrigin === null) return
+
+		options.onPointerup({
+			offset: scroll.value - wheelScrollOrigin,
+			delta: 0,
+		})
+
+		wheelScrollOrigin = null
+	}, 100)
 
 	// Scroll by swipe
 	let lastScrollDate = getNow()
@@ -53,6 +83,11 @@ export function useVirtualScroll(
 
 	function onPointerdown() {
 		lastScrollDate = getNow()
+
+		options.onPointerdown({
+			offset: 0,
+			delta: 0,
+		})
 	}
 
 	function onDrag(e: DragEvent) {
@@ -69,7 +104,10 @@ export function useVirtualScroll(
 
 		onLongPress()
 
-		options.onSwipe(e)
+		options.onSwipe({
+			offset: e.offset[1],
+			delta: -e.movement[1],
+		})
 	}
 
 	const onLongPress = debounce(
@@ -89,7 +127,10 @@ export function useVirtualScroll(
 
 		swipeSpeed = 0
 
-		options.onPointerup(e)
+		options.onPointerup({
+			offset: e.offset[1],
+			delta: 0,
+		})
 	}
 
 	// Inertial scrolling

@@ -5,7 +5,7 @@ import {
 	watchThrottled,
 	whenever,
 } from '@vueuse/core'
-import {scalar, vec2} from 'linearly'
+import {scalar} from 'linearly'
 import {clamp} from 'lodash'
 import {computed, nextTick, onMounted, ref, watch} from 'vue'
 
@@ -42,25 +42,26 @@ const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 
 const $scrollable = ref<HTMLElement | null>(null)
 const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
-	targetSpeed: computed(() => (playing.value ? 100 : 0)),
-	onWheel(e) {
-		showNav.value = e.deltaY < 0
-		playing.value = false
-	},
-
 	mapScroll(y) {
 		return scalar.clamp(y, 0, maxScroll.value)
 	},
 	onSwipe(e) {
-		showNav.value = e.movement[1] > 0
+		showNav.value = e.delta < 0
+	},
+	onPointerdown() {
+		cancelInertia()
+		if (playing.value) {
+			pausingState.value = 'scratching'
+		}
+		playing.value = false
 	},
 	onPointerup(e) {
-		if (vec2.len(e.offset) < 5) {
-			if (props.minimized) {
-				showNav.value = true
-			} else {
-				showNav.value = !showNav.value
-			}
+		if (e.offset < 5) {
+			showNav.value = !showNav.value
+		}
+		if (pausingState.value === 'scratching') {
+			pausingState.value = null
+			playing.value = true
 		}
 	},
 })
@@ -134,6 +135,7 @@ const currentTimecode = computed(() => {
 //------------------------------------------------------------------------------
 // オーディオ再生
 const playing = ref(false)
+const pausingState = ref<null | 'scratching' | 'seeking'>(null)
 
 const audio = useAudio('./assets/happening.mp3', {
 	volume: computed(() => (!settings.muted ? 1 : 0)),
@@ -189,8 +191,7 @@ watch(
 
 			requestAnimationFrame(updateTime)
 		}
-	},
-	{flush: 'sync'}
+	}
 )
 
 // Stop when the end of the manga is reached
@@ -207,15 +208,24 @@ const showNav = ref(false)
 
 //------------------------------------------------------------------------------
 // Events
-function onPressManga() {
-	cancelInertia()
-	playing.value = false
-}
-
-function onScrubSlider(timecode: number) {
+function onSeek(timecode: number) {
 	cancelInertia()
 	playing.value = false
 	currentTime.value = timecode - inBlankDuration.value
+}
+
+function onStartSeek() {
+	if (playing.value) {
+		pausingState.value = 'seeking'
+		playing.value = false
+	}
+}
+
+function onEndSeek() {
+	if (pausingState.value === 'seeking') {
+		playing.value = true
+	}
+	pausingState.value = null
 }
 
 watch(
@@ -241,6 +251,7 @@ document.addEventListener('visibilitychange', async () => {
 // Space to toggle
 const {space} = useMagicKeys()
 whenever(space, () => {
+	if (pausingState.value === 'scratching') return
 	playing.value = !playing.value
 })
 
@@ -314,11 +325,7 @@ const showWobble = computed(() => {
 			</div>
 		</header>
 		<main class="manga-wrapper">
-			<div
-				class="manga-scrollable"
-				ref="$scrollable"
-				@pointerdown="onPressManga"
-			/>
+			<div class="manga-scrollable" ref="$scrollable" />
 			<div class="manga-content" ref="$mangaWrapper">
 				<MangaPages class="manga" :pages="book.pages" :scroll="scroll" />
 				<Lyrics
@@ -340,7 +347,11 @@ const showWobble = computed(() => {
 			>
 				<i
 					class="fa fa-sharp fa-solid"
-					:class="playing ? 'fa-circle-pause' : 'fa-circle-play'"
+					:class="
+						playing || pausingState !== null
+							? 'fa-circle-pause'
+							: 'fa-circle-play'
+					"
 				></i>
 				<img
 					class="wobble"
@@ -350,9 +361,11 @@ const showWobble = computed(() => {
 			</button>
 			<Seekbar
 				:modelValue="currentTimecode"
-				@update:modelValue="onScrubSlider"
+				@update:modelValue="onSeek"
 				:duration="timelineDuration"
 				:amplitude="amplitude"
+				@pointerdown="onStartSeek"
+				@pointerup="onEndSeek"
 			/>
 			<Timecode class="timecode" :modelValue="currentTimecode" />
 		</footer>
