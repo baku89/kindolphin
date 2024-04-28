@@ -41,30 +41,39 @@ const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 })
 
 const $scrollable = ref<HTMLElement | null>(null)
-const {scroll, cancelInertia, scrollTo} = useVirtualScroll($scrollable, {
-	mapScroll(y) {
-		return scalar.clamp(y, 0, maxScroll.value)
-	},
-	onSwipe(e) {
-		showNav.value = e.delta < 0
-	},
-	onPointerdown() {
-		cancelInertia()
-		if (playing.value) {
-			pausingState.value = 'scratching'
-		}
-		playing.value = false
-	},
-	onPointerup(e) {
-		if (e.offset < 5) {
-			showNav.value = !showNav.value
-		}
-		if (pausingState.value === 'scratching') {
-			pausingState.value = null
-			playing.value = true
-		}
-	},
-})
+const {scroll, cancelInertia, scrollTo, easeToSpeed} = useVirtualScroll(
+	$scrollable,
+	{
+		mapScroll(y) {
+			return scalar.clamp(y, 0, maxScroll.value)
+		},
+		onSwipe(e) {
+			showNav.value = e.delta < 0
+		},
+		onPointerdown() {
+			cancelInertia()
+			if (playing.value) {
+				pausingState.value = 'scratching'
+			}
+			playing.value = false
+		},
+		onPointerup(e) {
+			if (e.offset < 5) {
+				showNav.value = !showNav.value
+			}
+			if (pausingState.value === 'scratching') {
+				pausingState.value = 'resuming'
+				easeToSpeed({
+					get: () => -targetScrollSpeed.value,
+					onReach: () => {
+						playing.value = true
+						pausingState.value = null
+					},
+				})
+			}
+		},
+	}
+)
 
 const mangaScale = computed(() => viewWidth.value / mangaWidth)
 const mangaTotalHeight = computed(() => {
@@ -94,6 +103,16 @@ const currentTime = computed({
 			seekbarPosition.value * mangaScale.value
 		scrollTo(y)
 	},
+})
+
+const targetScrollSpeed = computed(() => {
+	const dt = 0.01
+	const curtValue = lookupValue(currentTime.value * FPS, props.scrollTrack)
+	const nextValue = lookupValue(
+		(currentTime.value + dt) * FPS,
+		props.scrollTrack
+	)
+	return ((nextValue - curtValue) / dt) * mangaScale.value
 })
 
 // Restore scroll position
@@ -135,7 +154,7 @@ const currentTimecode = computed(() => {
 //------------------------------------------------------------------------------
 // オーディオ再生
 const playing = ref(false)
-const pausingState = ref<null | 'scratching' | 'seeking'>(null)
+const pausingState = ref<null | 'scratching' | 'resuming' | 'seeking'>(null)
 
 const audio = useAudio('./assets/happening.mp3', {
 	volume: computed(() => (!settings.muted ? 1 : 0)),
@@ -196,8 +215,10 @@ watch(
 
 // Stop when the end of the manga is reached
 watch(scroll, scroll => {
-	if (scroll >= maxScroll.value) {
+	if (scroll <= 0 || maxScroll.value <= scroll) {
+		cancelInertia()
 		playing.value = false
+		pausingState.value = null
 	}
 })
 
@@ -251,7 +272,9 @@ document.addEventListener('visibilitychange', async () => {
 // Space to toggle
 const {space} = useMagicKeys()
 whenever(space, () => {
-	if (pausingState.value === 'scratching') return
+	if (pausingState.value !== null) {
+		return
+	}
 	playing.value = !playing.value
 })
 

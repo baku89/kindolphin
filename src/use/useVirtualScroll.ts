@@ -32,8 +32,15 @@ export function useVirtualScroll(
 	options: UseVirtualScrollOptions
 ) {
 	const scroll = ref(0)
+
+	// px / sec
 	let swipeSpeed = 0
 	let inertiaSpeed = 0
+
+	let easeSpeedOptions: null | {
+		get: () => number
+		onReach: () => void
+	} = null
 
 	useEventListener(el, 'wheel', onWheel)
 
@@ -45,12 +52,12 @@ export function useVirtualScroll(
 		scroll.value = options.mapScroll(scroll.value + e.deltaY)
 
 		if (wheelScrollOrigin === null) {
-			wheelScrollOrigin = scroll.value
-
 			options.onPointerdown({
 				offset: 0,
 				delta: 0,
 			})
+
+			wheelScrollOrigin = scroll.value
 		}
 
 		options.onSwipe({
@@ -58,10 +65,10 @@ export function useVirtualScroll(
 			delta: e.deltaY,
 		})
 
-		onWheelEnd()
+		onEndWheel()
 	}
 
-	const onWheelEnd = debounce(() => {
+	const onEndWheel = debounce(() => {
 		if (wheelScrollOrigin === null) return
 
 		options.onPointerup({
@@ -150,6 +157,29 @@ export function useVirtualScroll(
 
 				inertiaSpeed = scalar.lerp(inertiaSpeed, swipeSpeed, lerpRatio)
 			}
+
+			// Accelate/decelerate to target speed
+			if (easeSpeedOptions !== null) {
+				const targetSpeed = easeSpeedOptions.get()
+				const doAccelate = targetSpeed > inertiaSpeed
+
+				const diff =
+					Math.abs(inertiaSpeed - targetSpeed) / Math.abs(targetSpeed)
+
+				const rate = scalar.efit(diff, 0, 10, 1000, 5000)
+
+				inertiaSpeed += (doAccelate ? 1 : -1) * rate * dt
+
+				const reached = doAccelate
+					? inertiaSpeed >= targetSpeed
+					: inertiaSpeed <= targetSpeed
+
+				if (reached) {
+					inertiaSpeed = 0
+					easeSpeedOptions.onReach()
+					easeSpeedOptions = null
+				}
+			}
 		}
 
 		if (!dragging.value && Math.abs(inertiaSpeed) > 1) {
@@ -160,15 +190,22 @@ export function useVirtualScroll(
 
 	function cancelInertia() {
 		swipeSpeed = inertiaSpeed = 0
+		wheelScrollOrigin = null
+		easeSpeedOptions = null
 	}
 
 	function scrollTo(y: number) {
 		scroll.value = options.mapScroll(y)
 	}
 
+	function easeToSpeed(options: typeof easeSpeedOptions) {
+		easeSpeedOptions = options
+	}
+
 	return {
 		scroll: readonly(scroll),
 		scrollTo,
 		cancelInertia,
+		easeToSpeed,
 	}
 }
