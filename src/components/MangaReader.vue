@@ -12,7 +12,7 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import {Book, mangaWidth} from '@/book'
 import Lyrics from '@/components/Lyrics.vue'
 import MangaPages from '@/components/MangaPages.vue'
-import Slider from '@/components/Slider.vue'
+import Seekbar from '@/components/Seekbar.vue'
 import Timecode from '@/components/Timecode.vue'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {FPS, Keyframe, lookupTime, lookupValue} from '@/timeline'
@@ -336,7 +336,7 @@ const showWobble = computed(() => {
 					src="/assets/play_wobble.webp"
 				/>
 			</button>
-			<Slider
+			<Seekbar
 				:modelValue="currentTimecode"
 				@update:modelValue="onScrubSlider"
 				:duration="timelineDuration"

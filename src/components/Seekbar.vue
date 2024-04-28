@@ -78,7 +78,7 @@ const knobStyle = computed(() => {
 </script>
 
 <template>
-	<div class="Slider" :class="{dragging}" ref="$slider">
+	<div class="Seekbar" :class="{dragging}" ref="$slider">
 		<svg
 			class="track"
 			xmlns="http://www.w3.org/2000/svg"
@@ -94,7 +94,7 @@ const knobStyle = computed(() => {
 </template>
 
 <style scoped lang="stylus">
-.Slider
+.Seekbar
 	position relative
 	width 100%
 	display flex
