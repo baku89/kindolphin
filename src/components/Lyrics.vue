@@ -84,11 +84,7 @@ onMounted(() => {
 
 	watch(
 		() => [props.currentTime, lyrics.value] as const,
-		([time, lyrics], [prevTime, prevLyrics]) => {
-			if (lyrics !== prevLyrics) {
-				currentLyricsForCanvas.fill(null)
-			}
-
+		([time, lyrics], [prevTime]) => {
 			// Delete invisible lyrics
 			for (let i = 0; i < currentLyricsForCanvas.length; i++) {
 				const lyric = currentLyricsForCanvas[i]
@@ -152,6 +148,7 @@ onMounted(() => {
 watch(
 	[primaryRGB, lyrics],
 	() => {
+		currentLyricsForCanvas.fill(null)
 		lastDrawnLyric.clear()
 		updateLyrics()
 	},
