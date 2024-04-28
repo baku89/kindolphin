@@ -458,8 +458,8 @@ onMounted(async () => {
 	color var(--white)
 	margin-bottom 1em
 	font-family "HiraKakuProN-W3, 游ゴシック, 'Yu Gothic', 'monaco', monospace" % null
-	font-smoothing antialiased !important
-	-webkit-font-smoothing antialiased !important
+	// font-smoothing antialiased !important
+	// -webkit-font-smoothing antialiased !important
 
 	.book.hover &
 		background var(--white)
