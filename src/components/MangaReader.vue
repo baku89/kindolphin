@@ -34,15 +34,6 @@ defineEmits<{
 
 const settings = useAppSettingsStore()
 
-// This is necessary to play audio on iOS
-watch(
-	() => props.minimized,
-	() => {
-		audio.preliminaryPlay()
-	},
-	{flush: 'sync'}
-)
-
 const $mangaWrapper = ref<HTMLElement | null>(null)
 const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 	width: 1,

@@ -15,7 +15,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 	const scratch = ref<(time: number) => void>(() => {})
 	const play = ref<(time: number) => void>(() => {})
 	const stop = ref<() => void>(() => {})
-	const preliminaryPlay = ref<() => void>(() => {})
 
 	;(async () => {
 		const audioContext = new AudioContext()
@@ -24,13 +23,27 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		const buffer = await audioContext.decodeAudioData(arrayBuffer)
 		const revBuffer = getReversedAudioBuffer(audioContext, buffer)
 
-		let willResume = false
-
 		document.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'visible') {
-				willResume = true
+				resumeAudioContext()
 			}
 		})
+
+		function resumeAudioContext() {
+			// https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
+			const eventName =
+				typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup'
+			document.addEventListener(eventName, resumeContext)
+
+			function resumeContext() {
+				// eslint-disable-next-line no-console
+				console.info(`Resume audio context (state = ${audioContext.state})`)
+				document.removeEventListener(eventName, resumeContext)
+				audioContext.resume()
+			}
+		}
+
+		resumeAudioContext()
 
 		const masterGain = audioContext.createGain()
 		masterGain.connect(audioContext.destination)
@@ -61,11 +74,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		let autoStopTimer: ReturnType<typeof setTimeout> | undefined
 
 		scratch.value = async (time: number) => {
-			if (willResume) {
-				audioContext.resume()
-				willResume = false
-			}
-
 			const now = getNowSeconds()
 			const rate = (time - lastTime) / (now - lastDate)
 
@@ -103,11 +111,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		play.value = (time: number) => {
-			if (willResume) {
-				audioContext.resume()
-				willResume = false
-			}
-
 			if (autoStopTimer === undefined) {
 				masterGain.gain.value = 0
 				masterGain.gain.linearRampToValueAtTime(
@@ -122,14 +125,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		stop.value = () => {
 			disposeSource()
-		}
-
-		preliminaryPlay.value = () => {
-			source = audioContext.createBufferSource()
-			source.buffer = buffer
-			source.loop = false
-			source.connect(scrubGain)
-			source.start(0, 0, 0.5)
 		}
 
 		let startTimer: ReturnType<typeof setTimeout>
@@ -179,6 +174,5 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		scratch,
 		play,
 		stop,
-		preliminaryPlay,
 	})
 }
