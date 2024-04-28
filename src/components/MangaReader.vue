@@ -11,7 +11,7 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue'
 
 import {Book, mangaWidth} from '@/book'
 import Lyrics from '@/components/Lyrics.vue'
-import Manga from '@/components/Manga.vue'
+import MangaPages from '@/components/MangaPages.vue'
 import Slider from '@/components/Slider.vue'
 import Timecode from '@/components/Timecode.vue'
 import {useAppSettingsStore} from '@/store/appSettings'
@@ -316,7 +316,7 @@ const showWobble = computed(() => {
 				@pointerdown="onPressManga"
 			/>
 			<div class="manga-content" ref="$mangaWrapper">
-				<Manga class="manga" :pages="book.pages" :scroll="scroll" />
+				<MangaPages class="manga" :pages="book.pages" :scroll="scroll" />
 				<Lyrics
 					:lyricsSrc="book.lyricSrc"
 					:seekbarPosition="seekbarPosition"

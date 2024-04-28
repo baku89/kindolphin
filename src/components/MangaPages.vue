@@ -64,7 +64,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 </script>
 
 <template>
-	<div class="Manga" ref="$root" @touchend="$emit('touchend', $event)">
+	<div class="MangaPages" ref="$root" @touchend="$emit('touchend', $event)">
 		<div class="bottom-ink" />
 		<div class="pages">
 			<img
@@ -78,7 +78,7 @@ const pageAttrs = computed<ImgAttrs[]>(() => {
 </template>
 
 <style lang="stylus" scoped>
-.Manga
+.MangaPages
 	position absolute
 	inset 0
 	background var(--white)
