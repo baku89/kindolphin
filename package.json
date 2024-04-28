@@ -29,7 +29,7 @@
 		"eslint-plugin-unused-imports": "^3.0.0",
 		"eslint-plugin-vue": "^9.17.0",
 		"linearly": "^0.21.0",
-		"loadsh": "^0.0.4",
+		"lodash": "^4.17.21",
 		"pify": "^6.1.0",
 		"pinia": "^2.1.7",
 		"preloadjs": "^1.0.1",
