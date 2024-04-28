@@ -147,8 +147,10 @@ onMounted(() => {
 
 watch(
 	[primaryRGB, lyrics],
-	() => {
-		currentLyricsForCanvas.fill(null)
+	([, lyrics], [, prevLyrics]) => {
+		if (lyrics !== prevLyrics) {
+			currentLyricsForCanvas.fill(null)
+		}
 		lastDrawnLyric.clear()
 		updateLyrics()
 	},
