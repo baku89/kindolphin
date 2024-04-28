@@ -40,6 +40,7 @@ const thresholds = [0.58, 0.03, 0.09, 0.15, 0.433333, 0.716667, 1].map(i =>
 )
 
 const LyricAnimationDuration = thresholds.length - 1
+const LyricDuration = 2.5
 
 const $bang = ref<InstanceType<typeof Bang> | null>(null)
 
@@ -58,13 +59,11 @@ const $lyrics = ref<HTMLElement | null>(null)
 // Update visibleLyrics
 const currentLyricsForCanvas: ((Lyric & {start: number}) | null)[] = []
 
-const LyricDuration = 4
-
 onMounted(() => {
 	if ($lyrics.value === null) return
 
 	// Create all canvases at first
-	for (const id of range(50)) {
+	for (const id of range(35)) {
 		const canvas = document.createElement('canvas')
 		canvas.classList.add('lyric')
 		$lyrics.value.appendChild(canvas)
@@ -88,10 +87,11 @@ onMounted(() => {
 			// Delete invisible lyrics
 			for (let i = 0; i < currentLyricsForCanvas.length; i++) {
 				const lyric = currentLyricsForCanvas[i]
-				if (
-					lyric &&
-					!(time - LyricDuration <= lyric.time && lyric.time <= time)
-				) {
+				if (!lyric) continue
+
+				const visible = lyric.time <= time && time < lyric.time + LyricDuration
+
+				if (!visible) {
 					currentLyricsForCanvas[i] = null
 				}
 			}
