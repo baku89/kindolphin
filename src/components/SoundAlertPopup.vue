@@ -22,7 +22,7 @@ const ui = useUIStore()
 	left calc(50% - var(--size) / 2)
 	background var(--white)
 	border-radius 10rem
-	border 1px solid black
+	border 1px solid var(--black)
 	pointer-events none
 	background-size 8px 8px
 	background-position 0 0
