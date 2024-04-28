@@ -25,6 +25,14 @@ app.directive('hover', {
 	},
 })
 
+app.directive('inert', {
+	mounted(el) {
+		el.addEventListener('focus', () => {
+			el.blur?.()
+		})
+	},
+})
+
 app.mount('#app')
 
 const env = (import.meta as any).env

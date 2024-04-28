@@ -295,7 +295,11 @@ const showWobble = computed(() => {
 				group_inou / HAPPENING (1)
 			</h1>
 			<div class="right">
-				<button class="button" @click="settings.muted = !settings.muted">
+				<button
+					class="button"
+					@click="settings.muted = !settings.muted"
+					v-inert
+				>
 					<div class="fa sound-sprite img" :class="{muted: settings.muted}" />
 				</button>
 			</div>
@@ -323,8 +327,7 @@ const showWobble = computed(() => {
 				class="play"
 				@click="playing = !playing"
 				:style="playStyles"
-				@pointerdown.prevent
-				@pointerup.prevent
+				v-inert
 			>
 				<i
 					class="fa fa-sharp fa-solid"
