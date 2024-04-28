@@ -48,6 +48,10 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'Sound will play',
 			ja: '音が出ます',
 		},
+		soundAlertMuted: {
+			en: 'Sound is muted',
+			ja: 'ミュート中です',
+		},
 	}
 
 	const label = computed(() => {

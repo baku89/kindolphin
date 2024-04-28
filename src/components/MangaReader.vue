@@ -260,6 +260,15 @@ watch(
 	}
 )
 
+watch(playing, playing => {
+	if (playing && settings.muted) {
+		showSoundAlert.value = true
+		setTimeout(() => {
+			showSoundAlert.value = false
+		}, 2000)
+	}
+})
+
 //------------------------------------------------------------------------------
 // Waveform
 const amplitude = computed(() => {
