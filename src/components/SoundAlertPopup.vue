@@ -45,8 +45,8 @@ const label = computed(() => {
 	&.v-enter-active
 		transition all 0.5s steps(6)
 
-	html.invert &
-		filter invert(100%)
+html.invert .img
+	filter none
 
 .wrapper
 	position absolute
@@ -71,4 +71,5 @@ const label = computed(() => {
 
 .text
 	font-weight bold
+	color var(--white)
 </style>
