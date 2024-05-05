@@ -14,6 +14,7 @@ const label = computed(() => {
 
 <template>
 	<div class="SoundAlertPopup">
+		<div class="baloon" />
 		<div class="wrapper">
 			<div class="fa sound-sprite img" :class="{muted: settings.muted}" />
 			<div class="text">{{ label }}</div>
@@ -31,10 +32,6 @@ const label = computed(() => {
 	top calc(var(--header-height) / 2)
 	right calc(var(--nav-margin-horiz))
 	pointer-events none
-	background-size 100% 100%
-	background-position 0 0
-	background-repeat repeat
-	background-image url('/assets/alert.webp')
 	transform-origin 87% 0
 
 	&.v-enter-from
@@ -45,8 +42,16 @@ const label = computed(() => {
 	&.v-enter-active
 		transition all 0.5s steps(6)
 
-html.invert .img
-	filter none
+.baloon
+	position absolute
+	inset 0
+	background-size 100% 100%
+	background-position 0 0
+	background-repeat repeat
+	background-image url('/assets/alert.webp')
+
+	html.invert &
+		filter invert(1)
 
 .wrapper
 	position absolute
@@ -71,5 +76,4 @@ html.invert .img
 
 .text
 	font-weight bold
-	color var(--white)
 </style>
