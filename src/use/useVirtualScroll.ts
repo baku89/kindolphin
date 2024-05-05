@@ -6,10 +6,10 @@ import {MaybeRef, readonly, ref} from 'vue'
 import {DragEvent, useElementDrag} from './useElementDrag'
 
 // 慣性スクロールを無効化するまでの指を動かさないでいる時間 (sec)
-const InertiaCancelDuration = 0.25
+const InertiaCancelDuration = 0.2
 
-// 慣性スクロールが効き始める最低速度 (px/sec)
-const MinInertiaScrollSpeed = 140
+// 慣性スクロールが効き始める最低速度 (vh/sec)
+const MinInertiaScrollSpeedInVh = 10
 
 export interface VirtualScrollEvent {
 	offset: number
@@ -23,18 +23,15 @@ interface UseVirtualScrollOptions {
 	mapScroll: (y: number) => number
 }
 
-function getNow() {
-	return Date.now() / 1000
-}
-
 export function useVirtualScroll(
 	el: MaybeRef<HTMLElement | null>,
 	options: UseVirtualScrollOptions
 ) {
 	const scroll = ref(0)
 
-	// px / sec
-	let swipeSpeed = 0
+	let swipeDelta = 0
+
+	/** Pepresented in px / second */
 	let inertiaSpeed = 0
 
 	let easeSpeedOptions: null | {
@@ -47,7 +44,7 @@ export function useVirtualScroll(
 	// Scroll by wheel
 	let wheelScrollOrigin: null | number = null
 	function onWheel(e: WheelEvent) {
-		swipeSpeed = inertiaSpeed = 0
+		swipeDelta = inertiaSpeed = 0
 
 		scroll.value = options.mapScroll(scroll.value + e.deltaY)
 
@@ -56,23 +53,19 @@ export function useVirtualScroll(
 				offset: 0,
 				delta: 0,
 			})
-
-			wheelScrollOrigin = scroll.value
 		}
 
 		options.onSwipe({
-			offset: scroll.value - wheelScrollOrigin,
+			offset: 0,
 			delta: e.deltaY,
 		})
 
-		onEndWheel()
+		willTriggerOnPointerup()
 	}
 
-	const onEndWheel = debounce(() => {
-		if (wheelScrollOrigin === null) return
-
+	const willTriggerOnPointerup = debounce(() => {
 		options.onPointerup({
-			offset: scroll.value - wheelScrollOrigin,
+			offset: 0,
 			delta: 0,
 		})
 
@@ -80,7 +73,6 @@ export function useVirtualScroll(
 	}, 100)
 
 	// Scroll by swipe
-	let lastScrollDate = getNow()
 
 	const {dragging} = useElementDrag(el, {
 		onPointerdown,
@@ -89,7 +81,7 @@ export function useVirtualScroll(
 	})
 
 	function onPointerdown() {
-		lastScrollDate = getNow()
+		cancelInertia()
 
 		options.onPointerdown({
 			offset: 0,
@@ -100,14 +92,7 @@ export function useVirtualScroll(
 	function onDrag(e: DragEvent) {
 		scroll.value = options.mapScroll(scroll.value - e.movement[1])
 
-		const now = getNow()
-		const dt = now - lastScrollDate
-
-		if (dt > 0) {
-			swipeSpeed = e.movement[1] / dt
-		}
-
-		lastScrollDate = now
+		swipeDelta += e.movement[1]
 
 		onLongPress()
 
@@ -120,19 +105,21 @@ export function useVirtualScroll(
 	const onLongPress = debounce(
 		() => {
 			if (!dragging.value) return
-
-			inertiaSpeed = swipeSpeed = 0
+			cancelInertia()
 		},
 		InertiaCancelDuration * 1000,
 		{}
 	)
 
 	function onPointerup(e: DragEvent) {
-		if (Math.abs(inertiaSpeed) < MinInertiaScrollSpeed) {
-			inertiaSpeed = swipeSpeed = 0
+		const minInertiaSpeed =
+			(window.innerHeight * MinInertiaScrollSpeedInVh) / 100
+
+		if (Math.abs(inertiaSpeed) < minInertiaSpeed) {
+			inertiaSpeed = 0
 		}
 
-		swipeSpeed = 0
+		swipeDelta = 0
 
 		options.onPointerup({
 			offset: e.offset[1],
@@ -141,24 +128,26 @@ export function useVirtualScroll(
 	}
 
 	// Inertial scrolling
-	useRafFn(({delta}) => {
-		const dt = delta / 1000
+	useRafFn(({delta: deltaTimeMs}) => {
+		const deltaTime = deltaTimeMs / 1000
+		const swipeSpeed = swipeDelta / deltaTime
+		swipeDelta = 0
 
-		// Lerp inertia speed to swipe speed
-		if (dt > 0) {
+		// Lerp inertiaSpeed to swipeSpeed
+		if (deltaTime > 0) {
 			const directionChanged = swipeSpeed * inertiaSpeed < 0
 			const swipeSpeedExceeded = Math.abs(swipeSpeed) > Math.abs(inertiaSpeed)
 
 			if (directionChanged || swipeSpeedExceeded) {
 				inertiaSpeed = swipeSpeed
 			} else {
-				const lerpHalfLife = dragging.value ? 0.1 : 2
-				const lerpRatio = 1 - 1 / (dt / lerpHalfLife + 1)
+				const halfLife = dragging.value ? 0.05 : 1
+				const ratio = 1 - 2 ** (-deltaTime / halfLife)
 
-				inertiaSpeed = scalar.lerp(inertiaSpeed, swipeSpeed, lerpRatio)
+				inertiaSpeed = scalar.lerp(inertiaSpeed, swipeSpeed, ratio)
 			}
 
-			// Accelate/decelerate to target speed
+			// Accelate/decelerate to the target speed
 			if (easeSpeedOptions !== null) {
 				const targetSpeed = easeSpeedOptions.get()
 				const doAccelate = targetSpeed > inertiaSpeed
@@ -168,7 +157,7 @@ export function useVirtualScroll(
 
 				const rate = scalar.efit(diff, 0, 10, 1000, 5000)
 
-				inertiaSpeed += (doAccelate ? 1 : -1) * rate * dt
+				inertiaSpeed += (doAccelate ? 1 : -1) * rate * deltaTime
 
 				const reached = doAccelate
 					? inertiaSpeed >= targetSpeed
@@ -183,13 +172,13 @@ export function useVirtualScroll(
 		}
 
 		if (!dragging.value && Math.abs(inertiaSpeed) > 1) {
-			const delta = inertiaSpeed * dt
+			const delta = inertiaSpeed * deltaTime
 			scroll.value = options.mapScroll(scroll.value - delta)
 		}
 	})
 
 	function cancelInertia() {
-		swipeSpeed = inertiaSpeed = 0
+		swipeDelta = inertiaSpeed = 0
 		wheelScrollOrigin = null
 		easeSpeedOptions = null
 	}
