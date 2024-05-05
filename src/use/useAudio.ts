@@ -36,8 +36,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			document.addEventListener(eventName, resumeContext)
 
 			function resumeContext() {
-				// eslint-disable-next-line no-console
-				console.info(`Resume audio context (state = ${audioContext.state})`)
 				document.removeEventListener(eventName, resumeContext)
 				audioContext.resume()
 			}
