@@ -33,12 +33,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			// https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
 			const eventName =
 				typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup'
-			document.addEventListener(eventName, resumeContext)
-
-			function resumeContext() {
-				document.removeEventListener(eventName, resumeContext)
-				audioContext.resume()
-			}
+			document.addEventListener(eventName, audioContext.resume, {once: true})
 		}
 
 		resumeAudioContext()
@@ -57,52 +52,57 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			}
 		})
 
-		let scrubGain: GainNode = audioContext.createGain()
+		let scratchGain: GainNode = audioContext.createGain()
 
-		scrubGain.connect(masterGain)
+		scratchGain.connect(masterGain)
 
 		let source: AudioBufferSourceNode | null = null
 
-		let lastDate: number = 0,
-			lastTime: number = 0,
-			lastRate: number = 0
+		let prevTime = 0,
+			prevRate = 0,
+			lastTargetTime = 0
 
 		let currentTime = 0
 
 		let autoStopTimer: ReturnType<typeof setTimeout> | undefined
 
-		scratch.value = async (time: number) => {
+		scratch.value = async (targetTime: number) => {
 			const now = getNowSeconds()
-			const rate = (time - lastTime) / (now - lastDate)
+			const unboundRate = (targetTime - lastTargetTime) / (now - prevTime)
+			const rate = scalar.clamp(unboundRate, -maxRate, maxRate)
 
-			let limitedRate = rate
-			if (Math.abs(rate) > maxRate) {
-				limitedRate = Math.sign(rate) * maxRate
-			}
+			currentTime += (now - prevTime) * prevRate
 
-			currentTime += (now - lastDate) * lastRate
-			const error = Math.abs(time - currentTime)
+			lastTargetTime = targetTime
+			prevTime = now
+			prevRate = rate
 
-			if (error > 0.05 || rate * lastRate < 0) {
+			// When the difference between target and current times exceeds the
+			// threshold or the playback direction has inverted,
+			// just seek to the target time
+			const error = Math.abs(targetTime - currentTime)
+
+			if (error > 0.025 || rate * prevRate < 0) {
 				disposeSource()
 			}
 
-			lastTime = time
-			lastDate = new Date().getTime() / 1000
-			lastRate = limitedRate
-
-			const buf = rate > 0 ? buffer : revBuffer
-			const bufTime = rate > 0 ? time : buf.duration - time
-
 			if (!source) {
-				source = recreateAndStartSource(buf, bufTime)
-				currentTime = time
+				const currentBuffer = rate > 0 ? buffer : revBuffer
+				const timeInBuffer =
+					unboundRate > 0 ? targetTime : currentBuffer.duration - targetTime
+
+				source = recreateAndStartSource(currentBuffer, timeInBuffer)
+				currentTime = targetTime
 			}
 
-			source.playbackRate.value = Math.abs(limitedRate)
-			const volume = scalar.fit(Math.abs(1 - rate), 0, 1, 0.1, 1)
+			// Update the playback rate and volume
+			source.playbackRate.value = Math.abs(rate)
+			const volume = scalar.fit(Math.abs(1 - unboundRate), 0, 1, 1, 1)
 
-			scrubGain.gain.linearRampToValueAtTime(volume, 0.5)
+			scratchGain.gain.linearRampToValueAtTime(
+				volume,
+				audioContext.currentTime + 0.5
+			)
 
 			clearTimeout(autoStopTimer)
 			autoStopTimer = setTimeout(disposeSource, 50)
@@ -118,7 +118,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			}
 
 			recreateAndStartSource(buffer, time)
-			scrubGain.gain.linearRampToValueAtTime(1, 2)
+			scratchGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2)
 		}
 
 		stop.value = () => {
@@ -135,7 +135,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			source = audioContext.createBufferSource()
 			source.buffer = buf
 			source.loop = false
-			source.connect(scrubGain)
+			source.connect(scratchGain)
 
 			if (time > 0) {
 				source.start(0, clamp(time, 0, buf.duration))
@@ -157,9 +157,9 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 				source?.stop()
 				source?.disconnect()
 
-				scrubGain.disconnect()
-				scrubGain = audioContext.createGain()
-				scrubGain.connect(masterGain)
+				scratchGain.disconnect()
+				scratchGain = audioContext.createGain()
+				scratchGain.connect(masterGain)
 			} catch (e) {
 				null
 			} finally {
