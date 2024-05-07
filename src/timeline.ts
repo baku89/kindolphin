@@ -1,4 +1,4 @@
-export type Keyframe<T> = [frame: number, value: T]
+export type Keyframe<T> = [frame: number, scrollY: T]
 
 export const FPS = 50
 
@@ -53,8 +53,6 @@ export const scrollTrack: Keyframe<number>[] = [
 	[7904, 32764.5],
 	[8018, 33305.1],
 ]
-
-// 48 keyframes
 
 function createLookup(xIndex: number, yIndex: number) {
 	return (x: number, track: Keyframe<number>[]) => {
