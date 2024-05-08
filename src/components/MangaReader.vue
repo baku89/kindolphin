@@ -156,7 +156,7 @@ const currentTimecode = computed(() => {
 const playing = ref(false)
 const pausingState = ref<null | 'scratching' | 'resuming' | 'seeking'>(null)
 
-const audio = useAudio('./assets/happening.mp3', {
+const audio = useAudio('./assets/group_inou - HAPPY - 03 HAPPENING.mp3', {
 	volume: computed(() => (!settings.muted ? 1 : 0)),
 })
 

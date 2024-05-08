@@ -128,6 +128,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		let startTimer: ReturnType<typeof setTimeout>
 
 		function recreateAndStartSource(buf: AudioBuffer, time: number) {
+			time -= 0.68
 			disposeSource()
 
 			const delay = Math.max(0, -time)

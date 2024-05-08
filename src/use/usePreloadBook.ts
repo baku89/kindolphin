@@ -15,7 +15,7 @@ export function usePreloadBook(book: Book) {
 		}
 		hasStarted = true
 
-		preload.fetch('./assets/happening.mp3', 300)
+		preload.fetch('./assets/group_inou - HAPPY - 03 HAPPENING.mp3', 300)
 		preload.fetch('./assets/scroll_effect_line.webp', 200)
 
 		book.pages.forEach((page, i) => {
