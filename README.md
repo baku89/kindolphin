@@ -11,8 +11,8 @@ Designed, art directed, and implemented by [Baku Hashimoto](https://baku89.com).
 ### 1. Clone the repository
 
 ```bash
-$ git clone https://github.com/baku89/group-inou-happening
-$ cd group-inou-happening
+$ git clone https://github.com/baku89/kindolphin
+$ cd kindolphin
 ```
 
 ### 2. Just buy their music
