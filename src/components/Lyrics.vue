@@ -68,7 +68,10 @@ onMounted(() => {
 		canvas.classList.add('lyric')
 		$lyrics.value.appendChild(canvas)
 
-		const ctx = canvas.getContext('2d', {willReadFrequently: true})!
+		// NOTE: Sep 26, 2024
+		// Since there's no need to `getImageData` frequently,
+		// set willReadFrequently to `false`
+		const ctx = canvas.getContext('2d', {willReadFrequently: false})!
 
 		const width = 251
 		const height = 251
