@@ -9,7 +9,7 @@ import {scalar} from 'linearly'
 import {clamp} from 'lodash'
 import {computed, nextTick, onMounted, ref, watch} from 'vue'
 
-import {Book, mangaWidth} from '@/book'
+import {Book} from '@/book'
 import Lyrics from '@/components/Lyrics.vue'
 import MangaPages from '@/components/MangaPages.vue'
 import Seekbar from '@/components/Seekbar.vue'
@@ -24,6 +24,7 @@ import SoundAlertPopup from './SoundAlertPopup.vue'
 
 const props = defineProps<{
 	minimized: boolean
+	id: string
 	book: Book
 	scrollTrack: Keyframe<number>[]
 }>()
@@ -33,6 +34,8 @@ defineEmits<{
 }>()
 
 const settings = useAppSettingsStore()
+
+const hasAudio = computed(() => props.book.lyricSrc)
 
 const $mangaWrapper = ref<HTMLElement | null>(null)
 const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
@@ -75,7 +78,7 @@ const {scroll, cancelInertia, scrollTo, easeToSpeed} = useVirtualScroll(
 	}
 )
 
-const mangaScale = computed(() => viewWidth.value / mangaWidth)
+const mangaScale = computed(() => viewWidth.value / props.book.width)
 const mangaTotalHeight = computed(() => {
 	return props.book.pages.reduce((acc, page) => acc + page.height, 0)
 })
@@ -89,9 +92,10 @@ const seekbarPosition = computed(() => {
 	return Math.min(offsetY / mangaScale.value, 630)
 })
 
+// オーディオファイルの長さ (音が無い場合、オリジナルファイルの高さ合計)
 const audioDuration = 164.4930612244898
 
-// オーディオファイルを基準とした時間
+// オーディオファイルを基準とした時間 (音が無い場合、オリジナルファイルのpx座標)
 const currentTime = computed({
 	get() {
 		const mangaY = scroll.value / mangaScale.value + seekbarPosition.value
@@ -121,7 +125,11 @@ onMounted(() => {
 		0 < settings.lastPlayedTime &&
 		settings.lastPlayedTime < audioDuration - 10
 	) {
-		currentTime.value = settings.lastPlayedTime
+		if (hasAudio.value) {
+			currentTime.value = settings.lastPlayedTime
+		} else {
+			currentTime.value = settings.readPositions[props.id] ?? 0
+		}
 	}
 
 	// Save it
@@ -157,7 +165,7 @@ const playing = ref(false)
 const pausingState = ref<null | 'scratching' | 'resuming' | 'seeking'>(null)
 
 const audio = useAudio('./assets/group_inou - HAPPY - 03 HAPPENING.mp3', {
-	volume: computed(() => (!settings.muted ? 1 : 0)),
+	volume: computed(() => (!settings.muted && hasAudio.value ? 1 : 0)),
 })
 
 // Scratch the audio when the manga is not playing
@@ -272,9 +280,10 @@ document.addEventListener('visibilitychange', async () => {
 // Space to toggle
 const {space} = useMagicKeys()
 whenever(space, () => {
-	if (pausingState.value !== null) {
+	if (pausingState.value !== null || !hasAudio.value) {
 		return
 	}
+
 	playing.value = !playing.value
 })
 
@@ -295,7 +304,7 @@ watch(
 )
 
 watch(playing, playing => {
-	if (playing && settings.muted) {
+	if (playing && settings.muted && hasAudio.value) {
 		showSoundAlert.value = true
 		setTimeout(() => {
 			showSoundAlert.value = false
@@ -306,7 +315,7 @@ watch(playing, playing => {
 //------------------------------------------------------------------------------
 // Waveform
 const amplitude = computed(() => {
-	if (playing.value) {
+	if (playing.value && hasAudio.value) {
 		const frame = Math.floor(currentTime.value * 50 + 15)
 		return waveform[scalar.clamp(frame, 0, waveform.length - 1)]
 	} else {
@@ -335,7 +344,7 @@ const showWobble = computed(() => {
 				</button>
 			</div>
 			<h1 class="title" @click.stop="$emit('update:minimized', true)">
-				group_inou / HAPPENING (1)
+				{{ book.appBarTitle }}
 			</h1>
 			<div class="right">
 				<button
@@ -352,6 +361,7 @@ const showWobble = computed(() => {
 			<div class="manga-content" ref="$mangaWrapper">
 				<MangaPages class="manga" :pages="book.pages" :scroll="scroll" />
 				<Lyrics
+					v-if="book.lyricSrc"
 					:lyricsSrc="book.lyricSrc"
 					:seekbarPosition="seekbarPosition"
 					:scroll="scroll"
@@ -363,6 +373,7 @@ const showWobble = computed(() => {
 		</main>
 		<footer class="footer">
 			<button
+				v-if="book.lyricSrc"
 				class="play"
 				@click="playing = !playing"
 				:style="playStyles"

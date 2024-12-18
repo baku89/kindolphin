@@ -3,7 +3,8 @@ import {useRafFn} from '@vueuse/core'
 import {range} from 'lodash'
 import {onMounted, ref} from 'vue'
 
-import {mangaWidth} from '@/book'
+const mangaWidth = 324 // Hardcoded for now
+
 import {useAppSettingsStore} from '@/store/appSettings'
 
 const $canvas = ref<HTMLCanvasElement | null>(null)
@@ -21,8 +22,7 @@ interface Bang {
 const bangs: Bang[] = []
 
 onMounted(() => {
-	const canvas = $canvas.value!
-	canvas.width = mangaWidth
+	const canvas = $canvas.value! // Hardcoded for now
 	canvas.height = 120
 
 	ctx = canvas.getContext('2d')!

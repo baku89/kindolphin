@@ -3,20 +3,24 @@ import {whenever} from '@vueuse/core'
 import delay from 'delay'
 import {computed, onMounted, ref, shallowReactive} from 'vue'
 
-import {Book, BookHappeningEn, BookHappeningJa} from '@/book'
+import {
+	Book,
+	BookEnjoyYourTripVol1,
+	BookEnjoyYourTripVol2,
+	BookEnjoyYourTripVol3,
+	BookHappeningEn,
+	BookHappeningJa,
+} from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
 import {usePreloadBook} from '@/use/usePreloadBook'
 
-import CircleProgress from './CircleProgress.vue'
+import BookColumn from './BookColumn.vue'
 import FooterButton from './FooterButton.vue'
 import MangaReader from './MangaReader.vue'
 import PaneHelp from './PaneHelp.vue'
 import PaneSettings from './PaneSettings.vue'
-
-const preloadJa = usePreloadBook(BookHappeningJa)
-const preloadEn = usePreloadBook(BookHappeningEn)
 
 const audioDuration = 164.4930612244898
 
@@ -26,29 +30,53 @@ const ui = useUIStore()
 const shelf = shallowReactive<Record<string, Book>>({
 	'happening-ja': BookHappeningJa,
 	'happening-en': BookHappeningEn,
+	'enjoy-your-trip-vol1': BookEnjoyYourTripVol1,
+	'enjoy-your-trip-vol2': BookEnjoyYourTripVol2,
+	'enjoy-your-trip-vol3': BookEnjoyYourTripVol3,
 })
+
+const preloads = Object.fromEntries(
+	Object.entries(shelf).map(([id, book]) => [id, usePreloadBook(book)])
+)
 
 const currentBookId = ref(
 	settings.lang === 'ja' ? 'happening-ja' : 'happening-en'
 )
 
+// ロード処理
 onMounted(() => {
-	const [first, second] =
-		currentBookId.value === 'happening-ja'
-			? [preloadJa, preloadEn]
-			: [preloadEn, preloadJa]
+	const preloadList = Object.entries(preloads)
 
-	setTimeout(() => {
-		first.load()
-		whenever(() => first.done, second.load)
-	}, 250)
+	let currentBookIndex = preloadList.findIndex(
+		([id]) => id === currentBookId.value
+	)
+
+	if (currentBookIndex === -1) {
+		currentBookIndex = 0
+	}
+
+	// 現在のブックを先頭に移動
+	const current = preloadList.splice(currentBookIndex, 1)[0]
+	preloadList.unshift(current)
+
+	// 順番に一つずつ読み込む
+	let i = 0
+	function loadNext() {
+		if (i >= preloadList.length) return
+		const [, preload] = preloadList[i]
+		console.log('loading...' + i)
+		preload.load()
+		i++
+		whenever(() => preload.done, loadNext)
+	}
+	loadNext()
 })
 
 const minimized = ref(true)
 const popover = ref<null | 'help' | 'theme'>()
 
 function openBook(id: string) {
-	const preload = id === 'happening-ja' ? preloadJa : preloadEn
+	const preload = preloads[id]
 	if (!preload.done) {
 		preload.load()
 	} else {
@@ -159,7 +187,7 @@ onMounted(async () => {
 			</div>
 		</header>
 		<main class="main">
-			<a
+			<!-- <a
 				class="youtube"
 				href="https://www.youtube.com/watch?v=JP2728BtJ34"
 				target="_blank"
@@ -168,74 +196,43 @@ onMounted(async () => {
 				<i class="fa fa-brands fa-youtube"></i>
 				<div>{{ ui.label.viewOnYouTube }}</div>
 				<i class="fa fa-solid fa-sort"></i>
-			</a>
-			<a class="book" @click="openBook('happening-ja')" v-hover>
-				<div class="thumb">
-					<img class="thumb-content" src="/assets/cover_happening.png" />
-					<div
-						class="book-loading var(--white)-semitransparent"
-						v-if="preloadJa.progress < 1"
-					>
-						<div class="message">
-							{{ Math.round(preloadJa.progress * 100) }}%
-						</div>
-						<div class="progress">
-							<div
-								class="bar"
-								:style="{width: preloadJa.progress * 100 + '%'}"
-							/>
-						</div>
-					</div>
-				</div>
-				<div class="info">
-					<h2>GIFマンガ <wbr />「HAPPENING」(1)</h2>
-					<h3>AC部</h3>
-					<div class="read-now">
-						{{ preloadJa.progress < 1 ? ui.label.loading : ui.label.readNow }}
-					</div>
-					<CircleProgress
-						class="reading-progress"
-						:progress="settings.lastPlayedTime"
-						:total="audioDuration"
-					/>
-				</div>
-			</a>
-			<a class="book" @click="openBook('happening-en')" v-hover>
-				<div class="thumb">
-					<img class="thumb-content" src="/assets/cover_happening_en.png" />
-					<div
-						class="book-loading var(--white)-semitransparent"
-						v-if="preloadEn.progress < 1"
-					>
-						<div class="message">
-							{{ Math.round(preloadEn.progress * 100) }}%
-						</div>
-						<div class="progress">
-							<div
-								class="bar"
-								:style="{width: preloadEn.progress * 100 + '%'}"
-							/>
-						</div>
-					</div>
-				</div>
-				<div class="info">
-					<h2>
-						GIF Manga “HAPPENING”&nbsp;<wbr /><span style="font-size: 1em"
-							>[English Edition]</span
-						>
-					</h2>
-					<h3>AC-bu</h3>
-					<div class="read-now">
-						{{ preloadEn.progress < 1 ? ui.label.loading : ui.label.readNow }}
-					</div>
-					<CircleProgress
-						class="reading-progress"
-						:progress="settings.lastPlayedTime"
-						:total="audioDuration"
-					/>
-				</div>
-			</a>
-			<a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank" v-hover>
+			</a> -->
+			<BookColumn
+				:book="shelf['happening-ja']"
+				:progress="preloads['happening-ja'].progress"
+				:readPosition="settings.lastPlayedTime"
+				:totalReadPosition="audioDuration"
+				@open="openBook('happening-ja')"
+			/>
+			<BookColumn
+				:book="shelf['happening-en']"
+				:progress="preloads['happening-en'].progress"
+				:readPosition="settings.lastPlayedTime"
+				:totalReadPosition="audioDuration"
+				@open="openBook('happening-en')"
+			/>
+			<BookColumn
+				:book="shelf['enjoy-your-trip-vol1']"
+				:progress="preloads['enjoy-your-trip-vol1'].progress"
+				:readPosition="settings.readPositions['enjoy-your-trip-vol1']"
+				:totalReadPosition="audioDuration"
+				@open="openBook('enjoy-your-trip-vol1')"
+			/>
+			<BookColumn
+				:book="shelf['enjoy-your-trip-vol2']"
+				:progress="preloads['enjoy-your-trip-vol2'].progress"
+				:readPosition="settings.readPositions['enjoy-your-trip-vol2']"
+				:totalReadPosition="audioDuration"
+				@open="openBook('enjoy-your-trip-vol2')"
+			/>
+			<BookColumn
+				:book="shelf['enjoy-your-trip-vol3']"
+				:progress="preloads['enjoy-your-trip-vol3'].progress"
+				:readPosition="settings.readPositions['enjoy-your-trip-vol3']"
+				:totalReadPosition="audioDuration"
+				@open="openBook('enjoy-your-trip-vol3')"
+			/>
+			<!-- <a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank" v-hover>
 				<div class="thumb album">
 					<img class="thumb-content" src="/assets/cover_happy.webp" />
 				</div>
@@ -251,7 +248,7 @@ onMounted(async () => {
 						<li>6&nbsp;&nbsp;MESSAGE</li>
 					</ul>
 				</div>
-			</a>
+			</a> -->
 		</main>
 		<footer class="footer">
 			<FooterButton
@@ -277,9 +274,10 @@ onMounted(async () => {
 			/>
 		</footer>
 		<MangaReader
-			v-if="currentBookId === 'happening-ja' ? preloadJa.done : preloadEn.done"
+			v-if="preloads[currentBookId].done"
 			class="reader"
 			:class="{minimized}"
+			:id="currentBookId"
 			:book="shelf[currentBookId]"
 			:scrollTrack="scrollTrack"
 			@click="minimized = false"

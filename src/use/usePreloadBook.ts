@@ -22,7 +22,9 @@ export function usePreloadBook(book: Book) {
 			setTimeout(() => preload.fetch(page.src, page.height), i)
 		})
 
-		preload.fetch(book.lyricSrc, 300)
+		if (book.lyricSrc) {
+			preload.fetch(book.lyricSrc, 300)
+		}
 	}
 
 	return reactive({

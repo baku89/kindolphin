@@ -17,5 +17,9 @@ export interface Lyric {
 
 export interface Book {
 	pages: Page[]
-	lyricSrc: string
+	width: number
+	homeTitle: string
+	appBarTitle: string
+	thumbSrc: string
+	lyricSrc?: string
 }

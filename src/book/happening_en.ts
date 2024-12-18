@@ -71,5 +71,10 @@ export const pages: Page[] = [
 
 export const BookHappeningEn: Book = {
 	pages,
+	width: 324,
+	homeTitle:
+		'group_inou / HAPPENING (1) <wbr /><span style="font-size: 1em">[English Edition]</span>',
+	appBarTitle: 'group_inou / HAPPENING (1)',
+	thumbSrc: '/assets/cover_happening_en.png',
 	lyricSrc: 'assets/lyrics_en.bson.gz',
 }
