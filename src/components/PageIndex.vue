@@ -10,6 +10,12 @@ import {
 	BookEnjoyYourTripVol3,
 	BookHappeningEn,
 	BookHappeningJa,
+	BookRyohVol1,
+	BookRyohVol3,
+	BookYamanobeNvs,
+	BookYamanobeVol1,
+	BookYamanobeVol2,
+	BookYamanobeVol3,
 } from '@/book'
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
@@ -33,6 +39,12 @@ const shelf = shallowReactive<Record<string, Book>>({
 	'enjoy-your-trip-vol1': BookEnjoyYourTripVol1,
 	'enjoy-your-trip-vol2': BookEnjoyYourTripVol2,
 	'enjoy-your-trip-vol3': BookEnjoyYourTripVol3,
+	'ryoh-vol1': BookRyohVol1,
+	'ryoh-vol3': BookRyohVol3,
+	'yamanobe-vol1': BookYamanobeVol1,
+	'yamanobe-vol2': BookYamanobeVol2,
+	'yamanobe-vol3': BookYamanobeVol3,
+	'yamanobe-nvs': BookYamanobeNvs,
 })
 
 const preloads = Object.fromEntries(
@@ -241,6 +253,30 @@ onMounted(async () => {
 			<BookColumn
 				v-bind="bookColumnProps('enjoy-your-trip-vol3')"
 				@open="openBook('enjoy-your-trip-vol3')"
+			/>
+			<BookColumn
+				v-bind="bookColumnProps('ryoh-vol1')"
+				@open="openBook('ryoh-vol1')"
+			/>
+			<BookColumn
+				v-bind="bookColumnProps('ryoh-vol3')"
+				@open="openBook('ryoh-vol3')"
+			/>
+			<BookColumn
+				v-bind="bookColumnProps('yamanobe-vol1')"
+				@open="openBook('yamanobe-vol1')"
+			/>
+			<BookColumn
+				v-bind="bookColumnProps('yamanobe-vol2')"
+				@open="openBook('yamanobe-vol2')"
+			/>
+			<BookColumn
+				v-bind="bookColumnProps('yamanobe-vol3')"
+				@open="openBook('yamanobe-vol3')"
+			/>
+			<BookColumn
+				v-bind="bookColumnProps('yamanobe-nvs')"
+				@open="openBook('yamanobe-nvs')"
 			/>
 			<!-- <a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank" v-hover>
 				<div class="thumb album">
