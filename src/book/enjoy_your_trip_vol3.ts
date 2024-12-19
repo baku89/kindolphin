@@ -71,7 +71,8 @@ export const pages: Page[] = [
 export const BookEnjoyYourTripVol3: Book = {
 	pages,
 	width: 500,
+	totalHeight: pages.reduce((acc, page) => acc + page.height, 0),
 	homeTitle: '79 / Enjoy Your Trip (3) <wbr />エピローグ',
 	appBarTitle: '79 / Enjoy Your Trip (3)',
-	thumbSrc: '/assets/cover_enjoy_your_trip_vol3.png',
+	thumbSrc: './assets/cover_enjoy_your_trip_vol3.png',
 }

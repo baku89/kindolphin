@@ -79,11 +79,8 @@ const {scroll, cancelInertia, scrollTo, easeToSpeed} = useVirtualScroll(
 )
 
 const mangaScale = computed(() => viewWidth.value / props.book.width)
-const mangaTotalHeight = computed(() => {
-	return props.book.pages.reduce((acc, page) => acc + page.height, 0)
-})
 const maxScroll = computed(
-	() => mangaTotalHeight.value * mangaScale.value - viewHeight.value
+	() => props.book.totalHeight * mangaScale.value - viewHeight.value
 )
 
 // 漫画座標系におけるシークバーの位置
@@ -119,24 +116,30 @@ const targetScrollSpeed = computed(() => {
 	return ((nextValue - curtValue) / dt) * mangaScale.value
 })
 
-// Restore scroll position
 onMounted(() => {
+	// Restore scroll position
 	if (
 		0 < settings.lastPlayedTime &&
 		settings.lastPlayedTime < audioDuration - 10
 	) {
-		if (hasAudio.value) {
-			currentTime.value = settings.lastPlayedTime
-		} else {
-			currentTime.value = settings.readPositions[props.id] ?? 0
-		}
+		currentTime.value = settings.lastPlayedTime
 	}
 
 	// Save it
 	watchThrottled(
 		currentTime,
 		time => {
+			if (!hasAudio.value) return
 			settings.lastPlayedTime = clamp(time, 0, audioDuration)
+		},
+		{throttle: 500}
+	)
+
+	watchThrottled(
+		[scroll, mangaScale],
+		([scroll, mangaScale]) => {
+			if (hasAudio.value) return
+			settings.readPositions[props.id] = scroll / mangaScale
 		},
 		{throttle: 500}
 	)
@@ -152,11 +155,15 @@ const outBlankDuration = computed(() => {
 })
 
 const timelineDuration = computed(() => {
-	return audioDuration + inBlankDuration.value + outBlankDuration.value
+	return hasAudio.value
+		? audioDuration + inBlankDuration.value + outBlankDuration.value
+		: maxScroll.value / mangaScale.value
 })
 
 const currentTimecode = computed(() => {
-	return currentTime.value + inBlankDuration.value
+	return hasAudio.value
+		? currentTime.value + inBlankDuration.value
+		: scroll.value / mangaScale.value
 })
 
 //------------------------------------------------------------------------------
@@ -172,7 +179,12 @@ const audio = useAudio('./assets/group_inou - HAPPY - 03 HAPPENING.mp3', {
 watch(
 	currentTime,
 	(time, prevTime) => {
-		if (!playing.value && time !== prevTime && !props.minimized) {
+		if (
+			!playing.value &&
+			time !== prevTime &&
+			!props.minimized &&
+			hasAudio.value
+		) {
 			audio.scratch(time)
 		}
 	},
@@ -239,8 +251,13 @@ const showNav = ref(false)
 // Events
 function onSeek(timecode: number) {
 	cancelInertia()
-	playing.value = false
-	currentTime.value = timecode - inBlankDuration.value
+
+	if (hasAudio.value) {
+		playing.value = false
+		currentTime.value = timecode - inBlankDuration.value
+	} else {
+		scrollTo(timecode * mangaScale.value)
+	}
 }
 
 function onStartSeek() {
@@ -257,6 +274,7 @@ function onEndSeek() {
 	pausingState.value = null
 }
 
+// Toggle nav visibility when the manga reader is minimized / restored
 watch(
 	() => props.minimized,
 	() => {
@@ -268,6 +286,22 @@ watch(
 		}
 		playing.value = false
 	}
+)
+
+// Restore scroll position when the book is changed
+watch(
+	() => props.id,
+	() => {
+		if (hasAudio.value) return
+
+		const y = Math.min(
+			(settings.readPositions[props.id] ?? 0) * mangaScale.value,
+			maxScroll.value
+		)
+
+		scrollTo(y)
+	},
+	{immediate: true}
 )
 
 document.addEventListener('visibilitychange', async () => {
@@ -294,7 +328,7 @@ const showSoundAlert = ref(false)
 watch(
 	() => props.minimized,
 	() => {
-		if (!props.minimized && !settings.muted) {
+		if (!props.minimized && !settings.muted && hasAudio.value) {
 			showSoundAlert.value = true
 			setTimeout(() => {
 				showSoundAlert.value = false
@@ -352,7 +386,11 @@ const showWobble = computed(() => {
 					@click="settings.muted = !settings.muted"
 					v-inert
 				>
-					<div class="fa sound-sprite img" :class="{muted: settings.muted}" />
+					<div
+						v-show="hasAudio"
+						class="fa sound-sprite img"
+						:class="{muted: settings.muted}"
+					/>
 				</button>
 			</div>
 		</header>
@@ -401,7 +439,11 @@ const showWobble = computed(() => {
 				@pointerdown="onStartSeek"
 				@pointerup="onEndSeek"
 			/>
-			<Timecode class="timecode" :modelValue="currentTimecode" />
+			<Timecode
+				class="timecode"
+				:modelValue="currentTimecode"
+				:mode="hasAudio ? 'time' : 'px'"
+			/>
 		</footer>
 		<Transition>
 			<SoundAlertPopup v-if="showSoundAlert" />
@@ -516,8 +558,5 @@ const showWobble = computed(() => {
 	mix-blend-mode multiply
 
 .timecode
-	width 3em
-	text-align right
-	font-size 16rem
 	line-height var(--header-height)
 </style>

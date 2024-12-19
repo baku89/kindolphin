@@ -63,10 +63,8 @@ onMounted(() => {
 	let i = 0
 	function loadNext() {
 		if (i >= preloadList.length) return
-		const [, preload] = preloadList[i]
-		console.log('loading...' + i)
+		const [, preload] = preloadList[i++]
 		preload.load()
-		i++
 		whenever(() => preload.done, loadNext)
 	}
 	loadNext()
@@ -138,8 +136,8 @@ async function auxAction() {
 			}
 		} else if (auxMode.value === 'share') {
 			navigator.share({
-				title: 'group_inou / HAPPENING',
-				text: 'Interactive GIF Manga in collaboration with AC-bu',
+				title: 'Kindolphin',
+				text: 'GIF Manga Reader by AC-bu',
 				url: 'https://ac-bu.info/happening/',
 			})
 		} else if (auxMode.value === 'listen') {
@@ -148,6 +146,33 @@ async function auxAction() {
 	} catch (e) {
 		// eslint-disable-next-line no-console
 		console.error(e)
+	}
+}
+//------------------------------------------------------------------------------
+
+function bookColumnProps(id: string) {
+	const book = shelf[id]
+
+	const isHappening = id === 'happening-ja' || id === 'happening-en'
+
+	const readPosition = isHappening
+		? settings.lastPlayedTime
+		: settings.readPositions[id] ?? 0
+
+	const totalReadPosition = isHappening
+		? audioDuration
+		: book.totalHeight - 1000
+
+	const circleCount = isHappening
+		? undefined
+		: Math.round(book.totalHeight / 2000)
+
+	return {
+		book,
+		loadProgress: preloads[id].progress,
+		readPosition,
+		totalReadPosition,
+		circleCount,
 	}
 }
 
@@ -198,38 +223,23 @@ onMounted(async () => {
 				<i class="fa fa-solid fa-sort"></i>
 			</a> -->
 			<BookColumn
-				:book="shelf['happening-ja']"
-				:progress="preloads['happening-ja'].progress"
-				:readPosition="settings.lastPlayedTime"
-				:totalReadPosition="audioDuration"
+				v-bind="bookColumnProps('happening-ja')"
 				@open="openBook('happening-ja')"
 			/>
 			<BookColumn
-				:book="shelf['happening-en']"
-				:progress="preloads['happening-en'].progress"
-				:readPosition="settings.lastPlayedTime"
-				:totalReadPosition="audioDuration"
+				v-bind="bookColumnProps('happening-en')"
 				@open="openBook('happening-en')"
 			/>
 			<BookColumn
-				:book="shelf['enjoy-your-trip-vol1']"
-				:progress="preloads['enjoy-your-trip-vol1'].progress"
-				:readPosition="settings.readPositions['enjoy-your-trip-vol1']"
-				:totalReadPosition="audioDuration"
+				v-bind="bookColumnProps('enjoy-your-trip-vol1')"
 				@open="openBook('enjoy-your-trip-vol1')"
 			/>
 			<BookColumn
-				:book="shelf['enjoy-your-trip-vol2']"
-				:progress="preloads['enjoy-your-trip-vol2'].progress"
-				:readPosition="settings.readPositions['enjoy-your-trip-vol2']"
-				:totalReadPosition="audioDuration"
+				v-bind="bookColumnProps('enjoy-your-trip-vol2')"
 				@open="openBook('enjoy-your-trip-vol2')"
 			/>
 			<BookColumn
-				:book="shelf['enjoy-your-trip-vol3']"
-				:progress="preloads['enjoy-your-trip-vol3'].progress"
-				:readPosition="settings.readPositions['enjoy-your-trip-vol3']"
-				:totalReadPosition="audioDuration"
+				v-bind="bookColumnProps('enjoy-your-trip-vol3')"
 				@open="openBook('enjoy-your-trip-vol3')"
 			/>
 			<!-- <a class="book" href="https://linkco.re/Mu9VcVt8" target="_blank" v-hover>
@@ -356,118 +366,6 @@ onMounted(async () => {
 	&.hover
 		background var(--black)
 		color var(--white)
-
-
-
-.book
-	display grid
-	grid-template-columns min-content 1fr
-	padding 10rem
-	gap 10rem
-	cursor pointer
-
-	&:not(:first-child)
-		margin-top -1rem
-		border-top 1rem solid transparent
-
-	&.hover
-		background var(--black)
-		color var(--white)
-		border-top-color var(--black)
-
-	&:not(:last-child)
-		border-bottom 1rem dotted var(--black)
-
-	.thumb
-		position relative
-		width 120rem
-		aspect-ratio 3 / 4
-		border 1rem solid var(--black)
-
-		.book-loading
-			position absolute
-			inset 0
-			width 100%
-			display flex
-			flex-direction column
-			align-items center
-			justify-content center
-			gap 5rem
-
-		.message
-			background var(--white)
-			color var(--black)
-			font-size 10rem
-			font-family var(--font-small)
-			letter-spacing 0.2em
-
-		.thumb-content
-			width 100%
-			height 100%
-			object-fit cover
-
-		.progress
-			height 10rem
-			width 80%
-			background var(--white)
-			position relative
-			border 1rem solid var(--black)
-
-		.bar
-			position absolute
-			inset 0
-			background var(--black)
-
-
-		&.album
-			aspect-ratio 1
-
-
-.info
-	padding-top 4rem
-	font-size 12rem
-	line-height 1.3
-
-	.neg
-		display block
-		text-indent -0.5em
-
-	h2
-		font-size 14rem
-		margin-bottom 0.2em
-		text-wrap balance
-
-	h3
-		margin-bottom 0.5em
-
-	ul
-	ol
-		margin-top 5rem
-		display flex
-		flex-direction column
-
-.read-now
-	letter-spacing 0.1em
-	background var(--black)
-	font-size 10rem
-	padding 0.1em 0.2em
-	display inline-block
-	border-radius 2rem
-	color var(--white)
-	margin-bottom 1em
-	font-family "HiraKakuProN-W3, 游ゴシック, 'Yu Gothic', 'monaco', monospace" % null
-	// font-smoothing antialiased !important
-	// -webkit-font-smoothing antialiased !important
-
-	.book.hover &
-		background var(--white)
-		color var(--black)
-
-.reading-progress
-	font-size 8rem
-
-	i
-		margin-right 2rem
 
 .reader
 	z-index 10

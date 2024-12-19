@@ -18,6 +18,7 @@ export interface Lyric {
 export interface Book {
 	pages: Page[]
 	width: number
+	totalHeight: number
 	homeTitle: string
 	appBarTitle: string
 	thumbSrc: string

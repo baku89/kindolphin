@@ -8,9 +8,10 @@ const ui = useUIStore()
 
 defineProps<{
 	book: Book
-	progress: number
+	loadProgress: number
 	readPosition: number
 	totalReadPosition: number
+	circleCount?: number
 }>()
 
 defineEmits<{
@@ -19,35 +20,36 @@ defineEmits<{
 </script>
 
 <template>
-	<a class="book" @click="$emit('open')" v-hover>
+	<a class="BookColumn" @click="$emit('open')" v-hover>
 		<div class="thumb">
 			<img class="thumb-content" :src="book.thumbSrc" />
 			<div
 				class="book-loading var(--white)-semitransparent"
-				v-if="progress < 1"
+				v-if="loadProgress < 1"
 			>
-				<div class="message">{{ Math.round(progress * 100) }}%</div>
+				<div class="message">{{ Math.round(loadProgress * 100) }}%</div>
 				<div class="progress">
-					<div class="bar" :style="{width: progress * 100 + '%'}" />
+					<div class="bar" :style="{width: loadProgress * 100 + '%'}" />
 				</div>
 			</div>
 		</div>
 		<div class="info">
 			<h2 v-html="book.homeTitle" />
 			<div class="read-now">
-				{{ progress < 1 ? ui.label.loading : ui.label.readNow }}
+				{{ loadProgress < 1 ? ui.label.loading : ui.label.readNow }}
 			</div>
 			<CircleProgress
 				class="reading-progress"
 				:progress="readPosition"
 				:total="totalReadPosition"
+				:count="circleCount"
 			/>
-		</div> </a
-	>e>
+		</div>
+	</a>
 </template>
 
 <style scoped lang="stylus">
-.book
+.BookColumn
 	display grid
 	grid-template-columns min-content 1fr
 	padding 10rem

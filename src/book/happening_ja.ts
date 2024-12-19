@@ -72,8 +72,9 @@ export const pages: Page[] = [
 export const BookHappeningJa: Book = {
 	pages,
 	width: 324,
+	totalHeight: pages.reduce((acc, page) => acc + page.height, 0),
 	homeTitle: 'group_inou / HAPPENING (1)',
 	appBarTitle: 'group_inou / HAPPENING (1)',
-	thumbSrc: '/assets/cover_happening.png',
+	thumbSrc: './assets/cover_happening.png',
 	lyricSrc: './assets/lyrics_ja.bson.gz',
 }

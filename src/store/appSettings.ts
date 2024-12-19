@@ -56,7 +56,7 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 
 	const lastPlayedTime = useLocalStorage('jp.g-a-l.happening.lastPlayedTime', 0)
 
-	const readPositions = useLocalStorage<Record<string, number>>(
+	const readPositions = useLocalStorage<Record<string, number | undefined>>(
 		'jp.g-a-l.happening.readPositions',
 		{}
 	)

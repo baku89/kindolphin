@@ -15,14 +15,13 @@ export function usePreloadBook(book: Book) {
 		}
 		hasStarted = true
 
-		preload.fetch('./assets/group_inou - HAPPY - 03 HAPPENING.mp3', 300)
-		preload.fetch('./assets/scroll_effect_line.webp', 200)
-
 		book.pages.forEach((page, i) => {
 			setTimeout(() => preload.fetch(page.src, page.height), i)
 		})
 
 		if (book.lyricSrc) {
+			preload.fetch('./assets/group_inou - HAPPY - 03 HAPPENING.mp3', 300)
+			preload.fetch('./assets/scroll_effect_line.webp', 200)
 			preload.fetch(book.lyricSrc, 300)
 		}
 	}

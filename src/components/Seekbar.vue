@@ -87,8 +87,10 @@ const knobStyle = computed(() => {
 		>
 			<path class="stroke" :d="d" :transform="trackTransform" />
 		</svg>
-		<div class="knob-wrapper" :style="knobStyle">
-			<button class="knob fa fa-regular fa-circle" v-hover />
+		<div class="knob-range">
+			<div class="knob-wrapper" :style="knobStyle">
+				<button class="knob fa fa-regular fa-circle" v-hover />
+			</div>
 		</div>
 	</div>
 </template>
@@ -102,6 +104,7 @@ const knobStyle = computed(() => {
 
 .track
 	width 100%
+	margin 0 auto
 	height 2rem
 	overflow visible
 
@@ -111,6 +114,13 @@ const knobStyle = computed(() => {
 	fill none
 	vector-effect non-scaling-stroke
 	shape-rendering crispEdges
+
+.knob-range
+	position absolute
+	top 0
+	left calc(0.25 * var(--header-height))
+	right calc(0.25 * var(--header-height))
+	bottom 0
 
 .knob-wrapper
 	position absolute
