@@ -1,9 +1,9 @@
 import {Book, Page} from './type'
 
 export const pages: Page[] = [
-	{src: './assets/ryoh_vol3/ryoh_vol3_00.webp', width: 613, height: 1592},
-	{src: './assets/ryoh_vol3/ryoh_vol3_01.webp', width: 613, height: 2052},
-	{src: './assets/ryoh_vol3/ryoh_vol3_02.webp', width: 613, height: 1120},
+	{src: './assets/ryoh_vol3/ryoh_vol3_00.webp', width: 613, height: 2052},
+	{src: './assets/ryoh_vol3/ryoh_vol3_01.webp', width: 613, height: 1120},
+	{src: './assets/ryoh_vol3/ryoh_vol3_02.webp', width: 613, height: 1592},
 	{src: './assets/ryoh_vol3/ryoh_vol3_03.webp', width: 613, height: 1460},
 	{src: './assets/ryoh_vol3/ryoh_vol3_04.webp', width: 613, height: 1639},
 	{src: './assets/ryoh_vol3/ryoh_vol3_05.webp', width: 613, height: 1250},

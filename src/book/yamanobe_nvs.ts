@@ -13,7 +13,7 @@ export const pages: Page[] = [
 	{src: './assets/yamanobe_nvs/yamanobe_nvs_09.webp', width: 550, height: 2373},
 	{src: './assets/yamanobe_nvs/yamanobe_nvs_10.webp', width: 550, height: 2332},
 	{src: './assets/yamanobe_nvs/yamanobe_nvs_11.webp', width: 550, height: 2114},
-	{src: './assets/yamanobe_nvs/yamanobe_nvs_12.webp', width: 550, height: 253},
+	// {src: './assets/yamanobe_nvs/yamanobe_nvs_12.webp', width: 550, height: 253},
 ]
 
 export const BookYamanobeNvs: Book = {
@@ -21,6 +21,6 @@ export const BookYamanobeNvs: Book = {
 	width: 550,
 	totalHeight: pages.reduce((acc, page) => acc + page.height, 0),
 	homeTitle: '[PR] 山野辺教授の就職研究リポート白書',
-	appBarTitle: '[PR] 山野辺教授の就職研究リポート白書',
+	appBarTitle: '山野辺教授の就職研究リポート白書',
 	thumbSrc: './assets/cover_yamanobe_nvs.png',
 }

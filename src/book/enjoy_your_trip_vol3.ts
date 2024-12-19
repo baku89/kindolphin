@@ -2,19 +2,14 @@ import {Book, Page} from './type'
 
 export const pages: Page[] = [
 	{
-		src: './assets/enjoy_your_trip_vol3/enjoy_your_trip_vol3_00.webp',
+		src: './assets/enjoy_your_trip_vol1/enjoy_your_trip_vol1_00.webp',
 		width: 500,
 		height: 125,
 	},
 	{
-		src: './assets/enjoy_your_trip_vol3/enjoy_your_trip_vol3_01.webp',
+		src: './assets/enjoy_your_trip_vol1/enjoy_your_trip_vol1_01.webp',
 		width: 500,
 		height: 266,
-	},
-	{
-		src: './assets/enjoy_your_trip_vol3/enjoy_your_trip_vol3_02.webp',
-		width: 500,
-		height: 184,
 	},
 	{
 		src: './assets/enjoy_your_trip_vol3/enjoy_your_trip_vol3_03.webp',

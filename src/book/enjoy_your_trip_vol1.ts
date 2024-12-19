@@ -4,6 +4,11 @@ export const pages: Page[] = [
 	{
 		src: './assets/enjoy_your_trip_vol1/enjoy_your_trip_vol1_00.webp',
 		width: 500,
+		height: 125,
+	},
+	{
+		src: './assets/enjoy_your_trip_vol1/enjoy_your_trip_vol1_01.webp',
+		width: 500,
 		height: 266,
 	},
 	// {
