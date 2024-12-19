@@ -37,8 +37,8 @@ export default (): UserConfig => {
 					enabled: true,
 				},
 				manifest: {
-					name: 'HAPPENING',
-					short_name: 'HAPPENING',
+					name: 'Kindolphin',
+					short_name: 'Kindolphin',
 					theme_color: '#e5e0cf',
 					display: 'standalone',
 					display_override: ['window-controls-overlay', 'standalone'],
