@@ -20,9 +20,18 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'View on YouTube',
 			ja: 'YouTubeで見る',
 		},
+		exhibitionHolding: {
+			// 開催中
+			en: 'Open',
+			ja: '開催中',
+		},
+		exhibitionPeriod: {
+			en: 'Dec 25 - Jan 6',
+			ja: '24/12/25 〜 1/6',
+		},
 		help: {
-			en: 'Help',
-			ja: 'ヘルプ',
+			en: 'About',
+			ja: 'これは何',
 		},
 		share: {
 			en: 'Share',
@@ -31,6 +40,10 @@ export const useUIStore = defineStore('ui', () => {
 		listen: {
 			en: 'Listen',
 			ja: '聴く',
+		},
+		socialMedia: {
+			en: 'IG',
+			ja: 'インスタ',
 		},
 		install: {
 			en: 'Install',

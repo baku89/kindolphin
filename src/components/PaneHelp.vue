@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FadeBg from './FadeBg.vue'
-
+import Statement from './Statement.vue'
 defineProps<{
 	show: boolean
 }>()
@@ -19,7 +19,8 @@ const env = (import.meta as any).env
 	<div class="PaneHelp" :class="{show}">
 		<div class="window">
 			<div class="content">
-				<h2>About group_inou</h2>
+				<Statement :show="show" />
+				<!-- <h2>About group_inou</h2>
 
 				<img src="/assets/artist_photo.webp" />
 
@@ -59,23 +60,13 @@ const env = (import.meta as any).env
 						>EYE</a
 					>”). This collaboration led to the release of this "Kindolphin," a
 					multilingual, interactive GIF manga app.
-				</p>
+				</p> -->
 
 				<hr />
 
 				<h2>Credit</h2>
 
 				<dl class="credit">
-					<div class="line">
-						<dt>Music</dt>
-						<div class="spacer">.........................................</div>
-						<dd>
-							<a href="https://twitter.com/gal_official" target="_blank">
-								group_inou
-							</a>
-						</dd>
-					</div>
-
 					<div class="line">
 						<dt>Video</dt>
 						<div class="spacer">.........................................</div>
@@ -87,6 +78,15 @@ const env = (import.meta as any).env
 						<div class="spacer">.........................................</div>
 						<dd>
 							<a href="https://baku89.com" target="_blank">Baku Hashimoto</a>
+						</dd>
+					</div>
+					<div class="line">
+						<dt>Music</dt>
+						<div class="spacer">.........................................</div>
+						<dd>
+							<a href="https://twitter.com/gal_official" target="_blank">
+								group_inou
+							</a>
 						</dd>
 					</div>
 				</dl>
@@ -107,7 +107,7 @@ const env = (import.meta as any).env
 .PaneHelp
 	position fixed
 	inset 0
-	margin calc(var(--header-height) + 36rem + 20rem) 20rem calc(var(--footer-height) + 20rem)
+	margin calc(var(--header-height) + 20rem) 20rem calc(var(--footer-height) + 20rem)
 	pointer-events none
 	display flex
 	transform scale3d(0, 0, 0)
@@ -117,7 +117,7 @@ const env = (import.meta as any).env
 		transform scale3d(1, 1, 1)
 
 .window
-	max-width var(--manga-width)
+	width var(--manga-width)
 	margin 0 auto
 	pointer-events auto
 	background var(--white)
@@ -134,6 +134,7 @@ const env = (import.meta as any).env
 		margin-right 0.5em
 
 .content
+	position relative
 	padding 0.5em 0 0
 	font-weight normal
 	overflow-y scroll

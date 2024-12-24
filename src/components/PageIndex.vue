@@ -100,7 +100,7 @@ function openBook(id: string) {
 //------------------------------------------------------------------------------
 // Aux action: Install PWA, or share, or just jump to the Linkcore
 
-const auxMode = ref<'install' | 'share' | 'listen'>('listen')
+const auxMode = ref<'install' | 'share' | 'social-media'>('social-media')
 
 const auxIcon = computed(() => {
 	if (auxMode.value === 'install') {
@@ -115,8 +115,8 @@ const auxIcon = computed(() => {
 		}
 	} else {
 		return {
-			icon: './assets/icons/listen.gif',
-			label: ui.label.listen,
+			icon: './assets/icons/share.gif',
+			label: ui.label.socialMedia,
 		}
 	}
 })
@@ -126,6 +126,8 @@ if ((window as any).deferredPrompt) {
 } else if ('share' in navigator) {
 	auxMode.value = 'share'
 }
+
+auxMode.value = 'social-media'
 
 window.addEventListener('beforeinstallprompt', e => {
 	e.preventDefault()
@@ -154,8 +156,8 @@ async function auxAction() {
 				text: 'GIF Manga Reader by AC-bu',
 				url: 'https://ac-bu.info/happening/',
 			})
-		} else if (auxMode.value === 'listen') {
-			window.open('https://linkco.re/Mu9VcVt8', '_blank')
+		} else if (auxMode.value === 'social-media') {
+			window.open('https://www.instagram.com/acbu_official/', '_blank')
 		}
 	} catch (e) {
 		// eslint-disable-next-line no-console
@@ -202,6 +204,12 @@ onMounted(async () => {
 	await delay(50)
 	fadeInStatus.value = 'out'
 })
+
+const isOpeningExhibition = computed(() => {
+	const now = new Date()
+	const end = new Date('2025-01-06 19:00:00 +0900')
+	return now <= end
+})
 </script>
 
 <template>
@@ -226,16 +234,20 @@ onMounted(async () => {
 			</div>
 		</header>
 		<main class="main">
-			<!-- <a
-				class="youtube"
-				href="https://www.youtube.com/watch?v=JP2728BtJ34"
+			<a
+				class="top-banner"
+				href="https://www.mistore.jp/store/nihombashi/shops/art/art/shopnews_list/shopnews0591.html"
 				target="_blank"
 				v-hover
+				v-if="isOpeningExhibition"
 			>
-				<i class="fa fa-brands fa-youtube"></i>
-				<div>{{ ui.label.viewOnYouTube }}</div>
-				<i class="fa fa-solid fa-sort"></i>
-			</a> -->
+				<img src="/assets/giftoooon_logo.png" />
+				<div class="text">
+					{{ ui.label.exhibitionHolding }}
+					<br />
+					<small>{{ ui.label.exhibitionPeriod }}</small>
+				</div>
+			</a>
 			<BookColumn
 				v-bind="bookColumnProps('happening-ja')"
 				@open="openBook('happening-ja')"
@@ -388,19 +400,30 @@ onMounted(async () => {
 	overflow-y scroll
 	-webkit-overflow-scrolling touch
 
-.youtube
+.top-banner
 	text-align center
 	font-size 12rem
-	height 35rem
-	line-height 30rem
+	height 50rem
 	border-bottom 1rem solid var(--black)
 	display flex
 	align-items center
-	justify-content space-between
+	justify-content center
+	gap 10rem
 	padding 0 var(--nav-margin-horiz)
 
 	i
 		font-size 16rem
+
+	img
+		height 90%
+		width auto
+
+	.text
+		text-align left
+		line-height 1.2
+
+		small
+			font-size 10rem
 
 	&.hover
 		background var(--black)
