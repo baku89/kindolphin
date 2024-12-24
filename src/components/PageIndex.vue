@@ -207,7 +207,7 @@ onMounted(async () => {
 
 const isOpeningExhibition = computed(() => {
 	const now = new Date()
-	const end = new Date('2025-01-06 19:00:00 +0900')
+	const end = new Date('2025-01-06T19:00:00+09:00')
 	return now <= end
 })
 </script>
