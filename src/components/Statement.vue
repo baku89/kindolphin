@@ -85,7 +85,7 @@ function beginAnimation() {
 		<div
 			class="img"
 			:style="{
-				backgroundImage: `url(./assets/giftoooon_statement_${resolution}.webp)`,
+				backgroundImage: `url(/assets/giftoooon_statement_${resolution}.webp)`,
 			}"
 		/>
 
@@ -164,11 +164,11 @@ function beginAnimation() {
 
 .lowres
 	left 0
-	background-image url('./assets/icons/lowres.png')
+	background-image url('/assets/icons/lowres.png')
 
 .hires
 	right 0
-	background-image url('./assets/icons/hires.png')
+	background-image url('/assets/icons/hires.png')
 
 .knob
 	z-index 2
