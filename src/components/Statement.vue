@@ -13,10 +13,10 @@ const resolution = ref(3)
 const buttons = ref<HTMLDivElement | null>(null)
 const preload = usePreload()
 
-preload.fetch('/assets/giftoooon_statement_0.webp', 100)
-preload.fetch('/assets/giftoooon_statement_1.webp', 100)
-preload.fetch('/assets/giftoooon_statement_2.webp', 100)
-preload.fetch('/assets/giftoooon_statement_3.webp', 100)
+preload.fetch('./assets/giftoooon_statement_0.webp', 100)
+preload.fetch('./assets/giftoooon_statement_1.webp', 100)
+preload.fetch('./assets/giftoooon_statement_2.webp', 100)
+preload.fetch('./assets/giftoooon_statement_3.webp', 100)
 
 const animatingStatus = ref<'forward' | 'reverse' | null>(null)
 
@@ -85,7 +85,7 @@ function beginAnimation() {
 		<div
 			class="img"
 			:style="{
-				backgroundImage: `url(/assets/giftoooon_statement_${resolution}.webp)`,
+				backgroundImage: `url('./assets/giftoooon_statement_${resolution}.webp')`,
 			}"
 		/>
 
