@@ -12,6 +12,7 @@ defineProps<{
 	readPosition: number
 	totalReadPosition: number
 	circleCount?: number
+	borrowed?: boolean
 }>()
 
 defineEmits<{
@@ -21,7 +22,7 @@ defineEmits<{
 
 <template>
 	<a class="BookColumn" @click="$emit('open')" v-hover>
-		<div class="thumb">
+		<div class="thumb" :class="{borrowed}">
 			<img class="thumb-content" :src="book.thumbSrc" />
 			<div
 				class="book-loading var(--white)-semitransparent"
@@ -32,13 +33,26 @@ defineEmits<{
 					<div class="bar" :style="{width: loadProgress * 100 + '%'}" />
 				</div>
 			</div>
+			<svg
+				class="borrowed-slash"
+				v-if="borrowed"
+				viewBox="0 0 10 10"
+				preserveAspectRatio="none"
+			>
+				<path d="M0,0 L10,10" />
+				<path d="M10,0 L0,10" />
+			</svg>
 		</div>
 		<div class="info">
 			<h2 v-html="book.homeTitle" />
-			<div class="read-now">
+			<div class="read-now-label" v-if="!borrowed">
 				{{ loadProgress < 1 ? ui.label.loading : ui.label.readNow }}
 			</div>
+			<div class="borrowed-label" v-else>
+				{{ ui.label.borrowed }}
+			</div>
 			<CircleProgress
+				v-if="!borrowed"
 				class="reading-progress"
 				:progress="readPosition"
 				:total="totalReadPosition"
@@ -73,6 +87,16 @@ defineEmits<{
 		width 120rem
 		aspect-ratio 3 / 4
 		border 1rem solid var(--black)
+
+		&.borrowed:before
+			content ''
+			position absolute
+			inset 0
+			background-size 8px 8px
+			background-position 0 0
+			background-repeat repeat
+			mix-blend-mode lighten
+			background-image url('data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAABwBACdASoQABAAAgA0JaTuHJ88/8QC/APsA///8A6gH//8wD///wD+AAAtgAD83wZdSvPCjHBRT9Z7kLWcp9rHB4aOvJkFan63NB4aOvJkFan64+FPtApnMsU55CRmcfMMsfPwAAA=')
 
 		.book-loading
 			position absolute
@@ -109,8 +133,18 @@ defineEmits<{
 			background var(--black)
 
 
-		&.album
-			aspect-ratio 1
+		.borrowed-slash
+			position absolute
+			inset 0
+			width 100%
+			height 100%
+
+			path
+				stroke var(--black)
+				stroke-width 2
+				vector-effect non-scaling-stroke
+
+
 
 .info
 	padding-top 4rem
@@ -135,22 +169,31 @@ defineEmits<{
 		display flex
 		flex-direction column
 
-.read-now
+.read-now-label, .borrowed-label
 	letter-spacing 0.1em
-	background var(--black)
 	font-size 10rem
+	line-height 1.3
 	padding 0.1em 0.2em
 	display inline-block
 	border-radius 2rem
-	color var(--white)
 	margin-bottom 1em
 	font-family "HiraKakuProN-W3, 游ゴシック, 'Yu Gothic', 'monaco', monospace" % null
+
+
+.read-now-label
+	background var(--black)
+	color var(--white)
 	// font-smoothing antialiased !important
 	// -webkit-font-smoothing antialiased !important
-
-	.book.hover &
+	.BookColumn.hover &
 		background var(--white)
 		color var(--black)
+
+.borrowed-label
+	border 1rem dotted currentColor
+
+	.BookColumn.hover &
+		color var(--white)
 
 .reading-progress
 	font-size 8rem

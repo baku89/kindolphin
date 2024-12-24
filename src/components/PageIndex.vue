@@ -11,6 +11,7 @@ import {
 	BookHappeningEn,
 	BookHappeningJa,
 	BookRyohVol1,
+	BookRyohVol2,
 	BookRyohVol3,
 	BookYamanobeNvs,
 	BookYamanobeVol1,
@@ -40,6 +41,7 @@ const shelf = shallowReactive<Record<string, Book>>({
 	'enjoy-your-trip-vol2': BookEnjoyYourTripVol2,
 	'enjoy-your-trip-vol3': BookEnjoyYourTripVol3,
 	'ryoh-vol1': BookRyohVol1,
+	'ryoh-vol2': BookRyohVol2,
 	'ryoh-vol3': BookRyohVol3,
 	'yamanobe-vol1': BookYamanobeVol1,
 	'yamanobe-vol2': BookYamanobeVol2,
@@ -258,6 +260,7 @@ onMounted(async () => {
 				v-bind="bookColumnProps('ryoh-vol1')"
 				@open="openBook('ryoh-vol1')"
 			/>
+			<BookColumn v-bind="bookColumnProps('ryoh-vol2')" :borrowed="true" />
 			<BookColumn
 				v-bind="bookColumnProps('ryoh-vol3')"
 				@open="openBook('ryoh-vol3')"

@@ -40,6 +40,10 @@ export const useUIStore = defineStore('ui', () => {
 			en: 'READ NOW',
 			ja: '今すぐ読む',
 		},
+		borrowed: {
+			en: 'BORROWED',
+			ja: '貸出中',
+		},
 		loading: {
 			en: 'DOWNLOADING...',
 			ja: '読み込み中...',
