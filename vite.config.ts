@@ -32,7 +32,6 @@ export default (): UserConfig => {
 			}),
 			vue(),
 			VitePWA({
-				registerType: 'autoUpdate',
 				injectRegister: 'inline',
 				devOptions: {
 					enabled: true,
