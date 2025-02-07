@@ -1,10 +1,7 @@
 import {createPinia} from 'pinia'
-import {registerSW} from 'virtual:pwa-register'
 import {createApp} from 'vue'
 
 import PageIndex from '@/components/PageIndex.vue'
-
-registerSW({immediate: true})
 
 const pinia = createPinia()
 const app = createApp(PageIndex)
