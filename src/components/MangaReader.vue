@@ -536,7 +536,7 @@ const showWobble = computed(() => {
 	border-top 1rem solid var(--black)
 	display flex
 	align-items stretch
-	gap 16rem
+	gap 8rem
 
 .play
 	position relative

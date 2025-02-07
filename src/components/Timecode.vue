@@ -19,11 +19,15 @@ const timecode = computed(() => {
 </script>
 
 <template>
-	<pre class="Timecode">{{ timecode }}</pre>
+	<pre class="Timecode" :class="{px: props.mode === 'px'}">{{ timecode }}</pre>
 </template>
 
 <style scoped lang="stylus">
 .Timecode
 	font-family monospace
 	font-size 14rem
+	text-align right
+
+	&.px
+		width 5em
 </style>
