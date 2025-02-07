@@ -272,7 +272,10 @@ const isOpeningExhibition = computed(() => {
 				v-bind="bookColumnProps('ryoh-vol1')"
 				@open="openBook('ryoh-vol1')"
 			/>
-			<BookColumn v-bind="bookColumnProps('ryoh-vol2')" :borrowed="true" />
+			<BookColumn
+				v-bind="bookColumnProps('ryoh-vol2')"
+				@open="openBook('ryoh-vol2')"
+			/>
 			<BookColumn
 				v-bind="bookColumnProps('ryoh-vol3')"
 				@open="openBook('ryoh-vol3')"

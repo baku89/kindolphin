@@ -1,7 +1,12 @@
 import {Book, Page} from './type'
 
 export const pages: Page[] = [
-	{src: './assets/ryoh_vol1/ryoh_vol1_00.webp', width: 613, height: 341},
+	{src: './assets/ryoh_vol2/ryoh_vol2_00.webp', width: 613, height: 692},
+	{src: './assets/ryoh_vol2/ryoh_vol2_01.webp', width: 613, height: 1277},
+	{src: './assets/ryoh_vol2/ryoh_vol2_02.webp', width: 613, height: 686},
+	{src: './assets/ryoh_vol2/ryoh_vol2_03.webp', width: 613, height: 2049},
+	{src: './assets/ryoh_vol2/ryoh_vol2_04.webp', width: 613, height: 2504},
+	{src: './assets/ryoh_vol2/ryoh_vol2_05.webp', width: 613, height: 971},
 ]
 
 export const BookRyohVol2: Book = {
