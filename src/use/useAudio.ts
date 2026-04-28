@@ -1,27 +1,50 @@
 import {toReactive} from '@vueuse/core'
 import {scalar} from 'linearly'
-import {clamp} from 'lodash'
 import {Ref, ref, watch} from 'vue'
 
-import {getReversedAudioBuffer} from '@/utils'
+// `?worker&url` makes Vite bundle the TS source to a standalone JS module
+// and return its URL. The plain `new URL(..., import.meta.url)` pattern
+// would not transpile .ts -- addModule() would receive raw TypeScript and
+// fail to parse it. The `&url` strips the Worker constructor wrapper that
+// `?worker` would otherwise add, so what we get is a clean module URL that
+// AudioWorklet.addModule() can load directly.
+import scratchProcessorUrl from '../audio/scratch-processor.ts?worker&url'
+
+// Compensation for the silent priming samples present at the head of the
+// MP3 file (a.k.a. encoder delay). Must match the value baked into the
+// content's timeline.
+const AUDIO_OFFSET_SECONDS = 0.68
+
+// Maximum |speed| while scratching. Capped to 1 so the pitch can only drop,
+// never rise -- a deliberate trait of this scratch effect.
+const SCRATCH_MAX_RATE = 1
+
+// Threshold (seconds) above which we hard-seek the cursor instead of letting
+// the variable speed catch up.
+const SEEK_THRESHOLD_SECONDS = 0.025
+
+// If no scratch input arrives within this window, the playback is paused.
+const AUTO_STOP_MS = 50
 
 function getNowSeconds() {
 	return Date.now() / 1000
 }
 
 export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
-	const maxRate = 1
-
 	const scratch = ref<(time: number) => void>(() => {})
 	const play = ref<(time: number) => void>(() => {})
 	const stop = ref<() => void>(() => {})
 
 	;(async () => {
 		const audioContext = new AudioContext()
-		const response = await fetch(src)
-		const arrayBuffer = await response.arrayBuffer()
-		const buffer = await audioContext.decodeAudioData(arrayBuffer)
-		const revBuffer = getReversedAudioBuffer(audioContext, buffer)
+
+		// AudioWorklet module + audio file are loaded in parallel.
+		const [, buffer] = await Promise.all([
+			audioContext.audioWorklet.addModule(scratchProcessorUrl),
+			fetch(src)
+				.then(res => res.arrayBuffer())
+				.then(buf => audioContext.decodeAudioData(buf)),
+		])
 
 		document.addEventListener('visibilitychange', () => {
 			if (document.visibilityState === 'visible') {
@@ -31,9 +54,14 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 
 		function resumeAudioContext() {
 			// https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
+			// Wrap in an arrow fn so `this` inside resume() is the AudioContext.
+			// Passing `audioContext.resume` directly loses the binding and throws
+			// "Illegal invocation" when the listener fires.
 			const eventName =
 				typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup'
-			document.addEventListener(eventName, audioContext.resume, {once: true})
+			document.addEventListener(eventName, () => audioContext.resume(), {
+				once: true,
+			})
 		}
 
 		resumeAudioContext()
@@ -52,63 +80,105 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 			}
 		})
 
-		let scratchGain: GainNode = audioContext.createGain()
+		const sampleRate = buffer.sampleRate
+		const numChannels = buffer.numberOfChannels
 
-		scratchGain.connect(masterGain)
+		// Copy each channel into its own ArrayBuffer so we can transfer
+		// ownership to the AudioWorklet without copying.
+		const channelBuffers: ArrayBuffer[] = []
+		for (let ch = 0; ch < numChannels; ch++) {
+			channelBuffers.push(buffer.getChannelData(ch).slice().buffer)
+		}
 
-		let source: AudioBufferSourceNode | null = null
+		const scratchNode = new AudioWorkletNode(
+			audioContext,
+			'scratch-processor',
+			{
+				numberOfInputs: 0,
+				numberOfOutputs: 1,
+				outputChannelCount: [numChannels],
+			}
+		)
+		scratchNode.connect(masterGain)
 
-		let prevTime = 0,
-			prevRate = 0,
-			lastTargetTime = 0
+		scratchNode.port.postMessage(
+			{type: 'load', channels: channelBuffers},
+			channelBuffers
+		)
 
-		let currentTime = 0
+		const speedParam = scratchNode.parameters.get('speed') as AudioParam
 
+		// `time` is in user-facing seconds; cursor uses sample index in the
+		// raw buffer, offset by the encoder-delay compensation.
+		function timeToCursor(time: number) {
+			return (time - AUDIO_OFFSET_SECONDS) * sampleRate
+		}
+
+		function seek(time: number) {
+			scratchNode.port.postMessage({
+				type: 'seek',
+				cursor: timeToCursor(time),
+			})
+		}
+
+		function setSpeed(value: number) {
+			// Step change -- the original (pre-worklet) implementation set
+			// playbackRate immediately on every input, and we preserve that
+			// abruptness so DJ-scratch interactions feel responsive instead
+			// of glide-y.
+			speedParam.cancelScheduledValues(audioContext.currentTime)
+			speedParam.setValueAtTime(value, audioContext.currentTime)
+		}
+
+		// State for tracking the cursor between scratch() invocations.
+		let prevTime = 0
+		let prevRate = 0
+		let lastTargetTime = 0
+		let predictedTime = 0
 		let autoStopTimer: ReturnType<typeof setTimeout> | undefined
 
-		scratch.value = async (targetTime: number) => {
+		scratch.value = (targetTime: number) => {
 			const now = getNowSeconds()
-			const unboundRate = (targetTime - lastTargetTime) / (now - prevTime)
-			const rate = scalar.clamp(unboundRate, -maxRate, maxRate)
+			const dt = now - prevTime
 
-			currentTime += (now - prevTime) * prevRate
+			// Skip the first call (no meaningful dt) by treating it as a seek.
+			const isFirstCall = prevTime === 0 || dt <= 0 || dt > 1
+
+			const unboundRate = isFirstCall ? 0 : (targetTime - lastTargetTime) / dt
+			const rate = scalar.clamp(
+				unboundRate,
+				-SCRATCH_MAX_RATE,
+				SCRATCH_MAX_RATE
+			)
+
+			if (!isFirstCall) {
+				predictedTime += dt * prevRate
+			}
+
+			const directionReversed = rate * prevRate < 0
+			const error = Math.abs(targetTime - predictedTime)
 
 			lastTargetTime = targetTime
 			prevTime = now
 			prevRate = rate
 
-			// When the difference between target and current times exceeds the
-			// threshold or the playback direction has inverted,
-			// just seek to the target time
-			const error = Math.abs(targetTime - currentTime)
-
-			if (error > 0.025 || rate * prevRate < 0) {
-				disposeSource()
+			if (isFirstCall || directionReversed || error > SEEK_THRESHOLD_SECONDS) {
+				seek(targetTime)
+				predictedTime = targetTime
 			}
 
-			if (!source) {
-				const currentBuffer = rate > 0 ? buffer : revBuffer
-				const timeInBuffer =
-					unboundRate > 0 ? targetTime : currentBuffer.duration - targetTime
-
-				source = recreateAndStartSource(currentBuffer, timeInBuffer)
-				currentTime = targetTime
-			}
-
-			// Update the playback rate and volume
-			source.playbackRate.value = Math.abs(rate)
-			const volume = scalar.fit(Math.abs(1 - unboundRate), 0, 1, 1, 1)
-
-			scratchGain.gain.linearRampToValueAtTime(
-				volume,
-				audioContext.currentTime + 0.5
-			)
+			setSpeed(rate)
 
 			clearTimeout(autoStopTimer)
-			autoStopTimer = setTimeout(disposeSource, 50)
+			autoStopTimer = setTimeout(() => {
+				setSpeed(0)
+				autoStopTimer = undefined
+			}, AUTO_STOP_MS)
 		}
 
 		play.value = (time: number) => {
+			// Coming from a fully stopped state -- fade the master gain in to
+			// avoid an audible pop.
 			if (autoStopTimer === undefined) {
 				masterGain.gain.value = 0
 				masterGain.gain.linearRampToValueAtTime(
@@ -117,55 +187,25 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 				)
 			}
 
-			recreateAndStartSource(buffer, time)
-			scratchGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2)
+			seek(time)
+			setSpeed(1)
+
+			// Reset the scratch tracking state so a subsequent scratch() call
+			// computes its delta from this playback start point.
+			prevTime = getNowSeconds()
+			prevRate = 1
+			lastTargetTime = time
+			predictedTime = time
+
+			clearTimeout(autoStopTimer)
+			autoStopTimer = undefined
 		}
 
 		stop.value = () => {
-			disposeSource()
-		}
-
-		let startTimer: ReturnType<typeof setTimeout>
-
-		function recreateAndStartSource(buf: AudioBuffer, time: number) {
-			time -= 0.68
-			disposeSource()
-
-			const delay = Math.max(0, -time)
-
-			source = audioContext.createBufferSource()
-			source.buffer = buf
-			source.loop = false
-			source.connect(scratchGain)
-
-			if (time > 0) {
-				source.start(0, clamp(time, 0, buf.duration))
-			} else {
-				startTimer = setTimeout(() => {
-					source?.start(0, clamp(time, 0, buf.duration))
-				}, delay * 1000)
-			}
-
-			return source
-		}
-
-		function disposeSource() {
+			setSpeed(0)
 			clearTimeout(autoStopTimer)
 			autoStopTimer = undefined
-			clearTimeout(startTimer)
-
-			try {
-				source?.stop()
-				source?.disconnect()
-
-				scratchGain.disconnect()
-				scratchGain = audioContext.createGain()
-				scratchGain.connect(masterGain)
-			} catch (e) {
-				null
-			} finally {
-				source = null
-			}
+			prevRate = 0
 		}
 	})()
 
