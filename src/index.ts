@@ -52,3 +52,25 @@ window.addEventListener('beforeinstallprompt', e => {
 	console.info('PWA support detected')
 	;(window as any).deferredPrompt = e
 })
+
+// When the service worker is configured with skipWaiting + clientsClaim
+// (see vite.config.ts), a freshly deployed build activates the new SW
+// in the background and takes control of the live page without
+// reloading. The HTML/JS already in memory is still the old version
+// though, so the user keeps seeing stale UI until they manually
+// refresh. Force a one-shot reload as soon as a NEW controller takes
+// over so the page is guaranteed to match the cache the SW just
+// installed.
+//
+// `controllerchange` also fires on the very first install (no prior
+// controller -> first controller). We skip that case by checking the
+// initial controller: a reload there would loop on first visit.
+if ('serviceWorker' in navigator) {
+	const hadController = !!navigator.serviceWorker.controller
+	let reloading = false
+	navigator.serviceWorker.addEventListener('controllerchange', () => {
+		if (!hadController || reloading) return
+		reloading = true
+		window.location.reload()
+	})
+}

@@ -80,6 +80,15 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		html.style.setProperty('--black', invert ? 'white' : 'black')
 		html.style.setProperty('--white', invert ? 'black' : 'white')
 
+		// Keep <meta name="theme-color"> in sync with the active bg so the
+		// iOS standalone PWA notch / status bar repaints when the user
+		// switches themes. Safari browser-mode tinting is handled by
+		// useThemeColorAnchor (which doesn't read this meta).
+		const metaThemeColor = document.querySelector('meta[name=theme-color]')
+		if (metaThemeColor) {
+			metaThemeColor.setAttribute('content', currentTheme.value.bg)
+		}
+
 		localStorage.setItem('jp.g-a-l.happening.cssVars', JSON.stringify(lsCache))
 		localStorage.setItem('jp.g-a-l.happening.invert', JSON.stringify(invert))
 	})
