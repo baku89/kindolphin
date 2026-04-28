@@ -4,10 +4,11 @@
 
 A progressive web app that gathers AC-bu's “GIF manga” works (a comics format using looping animated GIFs as the panels) into one viewer. Originally built as the interactive music video for group_inou's “HAPPENING,” and later renewed as a dedicated catalog viewer on the occasion of AC-bu's solo exhibition “GIFTOOOON.”
 
+Designed and implemented by [Baku Hashimoto](https://baku89.com).
+
 - Animation: [AC-bu](https://www.ac-bu.info/)
 - Music: [group_inou](https://twitter.com/gal_official)
 - Audio Engineering: [Yogo Yuichi](https://www.escentier.com/)
-- Interactive Design: [Baku Hashimoto](https://baku89.com)
 
 ## How to make it work on your local machine
 
