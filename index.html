@@ -14,7 +14,9 @@
 	<link rel="shortcut icon" href="./favicon/favicon.ico">
 	<meta name="msapplication-TileColor" content="#da532c">
 	<meta name="msapplication-config" content="./favicon/browserconfig.xml">
-	<meta name="theme-color" content="#e5e0cf">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<meta name="apple-mobile-web-app-title" content="Kindolphin">
 
 	<!-- OGP, Site Description -->
 	<meta name="keywords" content="%VITE_OG_KEYWORDS%" />
@@ -70,17 +72,16 @@
 		html.style.setProperty('--black', invert ? 'white' : 'black')
 		html.style.setProperty('--white', invert ? 'black' : 'white')
 
-		const metaThemeColor = document.querySelector('meta[name=theme-color]')
-		if (metaThemeColor) {
-			metaThemeColor.setAttribute('content', cssVars['--theme-bg'])
-		}
+		// (No theme-color meta manipulation here -- see the comment above
+		// the apple-mobile-web-app-* metas in <head> for why we deliberately
+		// have no <meta name="theme-color">.)
 	</script>
 	
 </head>
 
 <body>
 	<div id="app">
-		
+
 	</div>
 	<div id="splash">
 		<div class="splash">
@@ -88,8 +89,14 @@
 			<div class="loading-text"><span>Kindolphin<span></div>
 			<img class="kindle-ish-tree" src="./assets/kindle_ish_tree.webp" />
 		</div>
-		<div class="bg-overlay"></div>
+		<!-- Order matters: ink-overlay paints first (bottom), bg-overlay
+		     paints last (top). The composited result is the same either
+		     way (lighten + darken with these specific colors collapses
+		     to bg), but iOS Safari 16+ samples the topmost RAW layer
+		     color when tinting the URL/status/tab bar -- so the topmost
+		     overlay must be bg-colored to keep the chrome bg-tinted. -->
 		<div class="ink-overlay"></div>
+		<div class="bg-overlay"></div>
 	</div>
 	<script type="module" src="./src/index.ts"></script>
 </body>

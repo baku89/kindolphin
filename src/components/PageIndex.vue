@@ -22,6 +22,7 @@ import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
 import {usePreloadBook} from '@/use/usePreloadBook'
+import {useThemeColorAnchor} from '@/use/useThemeColorAnchor'
 
 import BookColumn from './BookColumn.vue'
 import FooterButton from './FooterButton.vue'
@@ -33,6 +34,8 @@ const audioDuration = 164.4930612244898
 
 const settings = useAppSettingsStore()
 const ui = useUIStore()
+
+useThemeColorAnchor()
 
 const shelf = shallowReactive<Record<string, Book>>({
 	'happening-ja': BookHappeningJa,
@@ -352,8 +355,10 @@ const isOpeningExhibition = computed(() => {
 		<div class="PageIndex__fade-in" v-if="fadeInStatus === 'in'" />
 	</Transition>
 	<PaneHelp :show="popover === 'help'" @close="popover = null" />
-	<div class="bg-overlay" />
+	<!-- ink-overlay first, bg-overlay on top (see index.html for the
+	     iOS Safari URL-bar-sampling rationale). -->
 	<div class="ink-overlay" />
+	<div class="bg-overlay" />
 	<PaneSettings :show="popover === 'theme'" @close="popover = null" />
 </template>
 

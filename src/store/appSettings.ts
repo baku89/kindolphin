@@ -82,12 +82,6 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 
 		localStorage.setItem('jp.g-a-l.happening.cssVars', JSON.stringify(lsCache))
 		localStorage.setItem('jp.g-a-l.happening.invert', JSON.stringify(invert))
-
-		// Change the theme-color in the meta tag
-		const metaThemeColor = document.querySelector('meta[name=theme-color]')
-		if (metaThemeColor) {
-			metaThemeColor.setAttribute('content', currentTheme.value.bg)
-		}
 	})
 
 	return {
