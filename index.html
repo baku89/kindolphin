@@ -72,6 +72,16 @@
 		html.style.setProperty('--black', invert ? 'white' : 'black')
 		html.style.setProperty('--white', invert ? 'black' : 'white')
 
+		// Set <html lang> synchronously so style.styl's `:root[lang=ja]`
+		// / `:root[lang=en]` rules can hide the inactive language from
+		// the very first paint. Without this the bilingual <p lang="ja">
+		// / <p lang="en"> blocks (e.g. PaneHelp) would briefly render
+		// both languages between page load and Vue mount.
+		const langRaw = localStorage.getItem('jp.g-a-l.happening.lang')
+		html.lang = langRaw
+			? JSON.parse(langRaw)
+			: navigator.language === 'ja' ? 'ja' : 'en'
+
 		// (No theme-color meta manipulation here -- see the comment above
 		// the apple-mobile-web-app-* metas in <head> for why we deliberately
 		// have no <meta name="theme-color">.)

@@ -84,6 +84,14 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		localStorage.setItem('jp.g-a-l.happening.invert', JSON.stringify(invert))
 	})
 
+	// Mirror the active language to <html lang>. CSS rules in style.styl key
+	// off the root's lang to hide elements whose own `lang` attribute
+	// doesn't match -- that's how the bilingual <p lang="ja"> / <p lang="en">
+	// content in PaneHelp etc. gets filtered to a single language.
+	watchEffect(() => {
+		document.documentElement.lang = lang.value
+	})
+
 	return {
 		muted,
 		themes,

@@ -38,3 +38,6 @@ public/assets/yamanobe_nvs/*.gif
 dev-dist/sw.js
 
 public/assets/group_inou - HAPPY - 03 HAPPENING.mp3
+
+# Source video for the about-image (converted to .webp at build prep time)
+*.mov

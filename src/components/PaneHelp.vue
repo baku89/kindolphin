@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FadeBg from './FadeBg.vue'
-import Statement from './Statement.vue'
+
 defineProps<{
 	show: boolean
 }>()
@@ -19,52 +19,90 @@ const env = (import.meta as any).env
 	<div class="PaneHelp" :class="{show}">
 		<div class="window">
 			<div class="content">
-				<Statement :show="show" />
-				<!-- <h2>About group_inou</h2>
+				<h2 lang="ja">Kindophinとは？</h2>
+				<h2 lang="en">What is Kindolphin?</h2>
 
-				<img src="/assets/artist_photo.webp" />
+				<img src="/about-image.webp" />
 
-				<p>
-					<a href="https://natalie.mu/music/news/554591"
-						>group_inouが突如配信した新曲「HAPPENING」のMV公開、手がけたのはAC部
-						- Natalie
-					</a>
+				<p lang="ja">
+					クリエイティブチームのAC部は、
+					ハイテンションかつ濃厚なビジュアル表現と「違和感」を持ち味に、
+					MVやCMなど、いろいろな作品を作ってきました。
+					<strong>Kindolphin</strong>（Kind–Dolphin =
+					やさしいイルカ）は、AC部が編み出し、これまでにさまざまなメディアで連載してきた「GIF漫画」を
+					まとめて読めるようにしたアプリです。
 				</p>
 
 				<p lang="en">
-					group_inou is an electric and hip-hop duo based in Tokyo, known for
-					transcending the boundaries of band scene, hip-hop, and club music.
-					Over their two-decade-long career, they have released 5 albums and
-					three EPs, captivating audiences at major festivals both in Japan and
-					internationally.
+					AC-bu is a creative team known for its high-energy, densely packed
+					visual style and unmistakable sense of oddness, making music videos,
+					commercials, and all kinds of other work.
+					<strong>Kindolphin</strong> (a portmanteau of “kind” and “dolphin”) is
+					an app that brings together AC-bu’s “GIF manga,” a format they
+					invented and have been serializing across various media, so they can
+					all be read in one place.
+				</p>
+
+				<p lang="ja">
+					当初はgroup_inouの楽曲『<a
+						href="https://www.youtube.com/watch?v=JP2728BtJ34"
+						target="_blank"
+						rel="noopener"
+						>HAPPENING</a
+					>』のための、
+					「読みながら聴く」インタラクティブ・ミュージックビデオアプリとして公開されました。
+					その後、AC部の個展『<a
+						href="https://ac-bu.info/giftoooon/"
+						target="_blank"
+						rel="noopener"
+						>GIFTOOOON展</a
+					>』にあわせて、過去のGIF漫画作品もまとめて読める専用電子書籍アプリとして大幅にリニューアル。
+					デザインアワード（<a
+						href="https://tokyotypedirectorsclub.org/award/2025_tdc_06/"
+						target="_blank"
+						rel="noopener"
+						>Tokyo TDC賞</a
+					>）やアニメーション映画祭（<a
+						href="https://archives.airport-anifes.jp/site2024/film/fes2024-group-inou-happning/"
+						target="_blank"
+						rel="noopener"
+						>新千歳映画祭</a
+					>）での受賞など、各所で話題を集めています。
+					今後も新旧作品を随時収録予定です！
 				</p>
 
 				<p lang="en">
-					They has also gained recognition for their impressive visuals and
-					music videos, realized through artistic partnerships with graphic
-					designers, filmmakers, and media artists.
+					It began as an interactive music video for “<a
+						href="https://www.youtube.com/watch?v=JP2728BtJ34"
+						target="_blank"
+						rel="noopener"
+						>HAPPENING</a
+					>,” a track by Japanese indie duo group_inou. As you scroll, the music
+					is scratched in sync with the page, creating a “read-and-listen”
+					experience where the song moves forward as you read the manga. Later,
+					on the occasion of AC-bu’s solo exhibition “<a
+						href="https://ac-bu.info/giftoooon/"
+						target="_blank"
+						rel="noopener"
+						>GIFTOOOON</a
+					>,” it was renewed as an app where past GIF manga works could also be
+					collected and read. It has been drawing attention at design awards
+					(such as the
+					<a
+						href="https://tokyotypedirectorsclub.org/award/2025_tdc_06/"
+						target="_blank"
+						rel="noopener"
+						>Tokyo TDC Awards</a
+					>) and animation festivals (such as the
+					<a
+						href="https://archives.airport-anifes.jp/site2024/film/fes2024-group-inou-happning/"
+						target="_blank"
+						rel="noopener"
+						>New Chitose Airport International Animation Festival</a
+					>). New and past works will continue to be added over time!
 				</p>
-
-				<p lang="en">
-					To celebrate their EP “HAPPENING,” released after a 7-year hiatus,
-					they collaborated with the renowned animation group AC-bu (known for
-					works like “<a href="https://www.youtube.com/watch?v=ACEBZ-KmuQo"
-						>THERAPY</a
-					>,” “<a href="https://www.youtube.com/watch?v=w_os8HqfxHc">HEART</a>,”
-					“<a href="https://www.youtube.com/watch?v=ZE2ywCcKkdQ">ORIENTATION</a
-					>,” and “<a href="https://www.youtube.com/watch?v=Ty2h9XZB6-o"
-						>CATCH</a
-					>”) and experimental filmmaker and creative coder
-					<a href="https://baku89.com/">Baku Hashimoto</a>
-					(known for “<a href="https://www.youtube.com/watch?v=WSFeje8-4Vc"
-						>EYE</a
-					>”). This collaboration led to the release of this "Kindolphin," a
-					multilingual, interactive GIF manga app.
-				</p> -->
 
 				<hr />
-
-				<h2>Credit</h2>
 
 				<dl class="credit">
 					<div class="line">
@@ -106,7 +144,10 @@ const env = (import.meta as any).env
 			</div>
 
 			<div class="buttons">
-				<button @click="$emit('close')" v-hover>閉じる (<u>C</u>lose)</button>
+				<button @click="$emit('close')" v-hover>
+					<span lang="ja">閉じる (<u>C</u>lose)</span>
+					<span lang="en"><u>C</u>lose</span>
+				</button>
 			</div>
 		</div>
 	</div>
@@ -127,6 +168,7 @@ const env = (import.meta as any).env
 
 .window
 	width var(--manga-width)
+	max-width 50ic
 	margin 0 auto
 	pointer-events auto
 	background var(--white)

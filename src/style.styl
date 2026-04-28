@@ -76,6 +76,21 @@ body
 button
 	cursor pointer
 
+// Hide content tagged for the inactive language. The active language is
+// mirrored onto <html lang> by appSettings.ts; any element whose own
+// `lang` attribute disagrees gets dropped from the layout. Untagged
+// elements remain visible in either language.
+:root[lang=ja] [lang=en]
+:root[lang=en] [lang=ja]
+	display none
+
+// Inline emphasis.
+strong
+	font-weight bold
+
+em
+	font-style italic
+
 .splash
 	position fixed
 	z-index 18
