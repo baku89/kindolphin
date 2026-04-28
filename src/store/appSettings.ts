@@ -80,17 +80,19 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 		html.style.setProperty('--black', invert ? 'white' : 'black')
 		html.style.setProperty('--white', invert ? 'black' : 'white')
 
-		// Keep <meta name="theme-color"> in sync with the active bg so the
-		// iOS standalone PWA notch / status bar repaints when the user
-		// switches themes. The meta is only present in standalone mode
-		// (injected by the FOUC script in index.html); in Safari browser
-		// mode it's deliberately absent so useThemeColorAnchor's live
-		// observer keeps working. So this query may legitimately return
-		// null -- skip the update in that case.
-		const metaThemeColor = document.querySelector('meta[name=theme-color]')
-		if (metaThemeColor) {
-			metaThemeColor.setAttribute('content', currentTheme.value.bg)
-		}
+		// Re-insert <meta name="theme-color"> from scratch on every theme
+		// change. iOS Safari freezes the URL-bar tint observer when the
+		// existing meta's content is mutated in place, but replacing the
+		// node forces a re-evaluation. Remove every prior meta with this
+		// name (defensive against duplicates from the FOUC script) and
+		// append a fresh one with the active bg.
+		document
+			.querySelectorAll('meta[name=theme-color]')
+			.forEach(el => el.remove())
+		const metaThemeColor = document.createElement('meta')
+		metaThemeColor.setAttribute('name', 'theme-color')
+		metaThemeColor.setAttribute('content', currentTheme.value.bg)
+		document.head.appendChild(metaThemeColor)
 
 		localStorage.setItem('jp.g-a-l.happening.cssVars', JSON.stringify(lsCache))
 		localStorage.setItem('jp.g-a-l.happening.invert', JSON.stringify(invert))
