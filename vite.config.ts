@@ -2,6 +2,7 @@ import {fileURLToPath} from 'node:url'
 
 import vue from '@vitejs/plugin-vue'
 import {execSync} from 'child_process'
+import {randomUUID} from 'crypto'
 import fs from 'fs'
 import path from 'path'
 import {Plugin, UserConfig} from 'vite'
@@ -9,12 +10,22 @@ import mkcert from 'vite-plugin-mkcert'
 import {VitePWA} from 'vite-plugin-pwa'
 import topLevelAwait from 'vite-plugin-top-level-await'
 
-// Serve the local mkcert root CA at /__mkcert/rootCA.pem during dev so
-// a phone on the same network can install the trust profile by simply
-// opening the URL in mobile Safari. Saves the AirDrop dance on every
-// new device. Resolves the CA root via `mkcert -CAROOT` so we don't
-// hard-code the platform-specific path. Returns 404 cleanly if mkcert
-// isn't on PATH or hasn't been initialised.
+// Serve the local mkcert root CA during dev so a phone on the same
+// network can install the trust profile by simply opening a URL in
+// mobile Safari -- skipping the AirDrop step every new device.
+//
+// Two endpoints because the platforms expect different shapes:
+//   /__mkcert/mkcert.mobileconfig — iOS / iPadOS Configuration Profile.
+//     Mobile Safari only recognises a CA install if it arrives as a
+//     plist-wrapped .mobileconfig with mime type
+//     application/x-apple-aspen-config; raw PEM is rejected as
+//     "invalid".
+//   /__mkcert/rootCA.pem — the raw PEM, for desktop browsers and
+//     Android (where the .mobileconfig wrapper is meaningless).
+//
+// Both resolve the CA path via `mkcert -CAROOT` rather than
+// hard-coding the platform-specific location, and 404 cleanly if
+// mkcert isn't installed.
 function serveMkcertRootCA(): Plugin {
 	const caRoot = (() => {
 		try {
@@ -24,28 +35,103 @@ function serveMkcertRootCA(): Plugin {
 		}
 	})()
 
+	function readRootCA() {
+		if (!caRoot) return null
+		const file = path.join(caRoot, 'rootCA.pem')
+		if (!fs.existsSync(file)) return null
+		return fs.readFileSync(file, 'utf8')
+	}
+
+	function buildMobileConfig(pem: string): string {
+		// The cert payload in a mobileconfig is base64-encoded DER. The
+		// body of a PEM file (between BEGIN/END markers) is already that
+		// base64-of-DER, so we just strip the markers and whitespace.
+		const certBase64 = pem
+			.replace(/-----BEGIN CERTIFICATE-----/g, '')
+			.replace(/-----END CERTIFICATE-----/g, '')
+			.replace(/\s+/g, '')
+		const profileUUID = randomUUID().toUpperCase()
+		const certUUID = randomUUID().toUpperCase()
+		return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>PayloadCertificateFileName</key>
+			<string>rootCA.pem</string>
+			<key>PayloadContent</key>
+			<data>${certBase64}</data>
+			<key>PayloadDescription</key>
+			<string>mkcert local development CA</string>
+			<key>PayloadDisplayName</key>
+			<string>mkcert dev CA</string>
+			<key>PayloadIdentifier</key>
+			<string>dev.kindolphin.mkcert.cert.${certUUID}</string>
+			<key>PayloadType</key>
+			<string>com.apple.security.root</string>
+			<key>PayloadUUID</key>
+			<string>${certUUID}</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+		</dict>
+	</array>
+	<key>PayloadDescription</key>
+	<string>Installs the mkcert local CA so this device trusts HTTPS dev servers signed by it.</string>
+	<key>PayloadDisplayName</key>
+	<string>mkcert dev CA (kindolphin)</string>
+	<key>PayloadIdentifier</key>
+	<string>dev.kindolphin.mkcert.${profileUUID}</string>
+	<key>PayloadOrganization</key>
+	<string>kindolphin dev</string>
+	<key>PayloadRemovalDisallowed</key>
+	<false/>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>${profileUUID}</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>
+`
+	}
+
 	return {
 		name: 'serve-mkcert-root-ca',
 		apply: 'serve',
 		configureServer(server) {
+			server.middlewares.use(
+				'/__mkcert/mkcert.mobileconfig',
+				(_req, res) => {
+					const pem = readRootCA()
+					if (!pem) {
+						res.statusCode = 404
+						res.end('mkcert rootCA not found')
+						return
+					}
+					res.setHeader('Content-Type', 'application/x-apple-aspen-config')
+					res.setHeader(
+						'Content-Disposition',
+						'attachment; filename="mkcert.mobileconfig"'
+					)
+					res.end(buildMobileConfig(pem))
+				}
+			)
 			server.middlewares.use('/__mkcert/rootCA.pem', (_req, res) => {
-				if (!caRoot) {
+				const pem = readRootCA()
+				if (!pem) {
 					res.statusCode = 404
-					res.end('mkcert -CAROOT not available')
+					res.end('mkcert rootCA not found')
 					return
 				}
-				const file = path.join(caRoot, 'rootCA.pem')
-				if (!fs.existsSync(file)) {
-					res.statusCode = 404
-					res.end(`rootCA.pem not found at ${file}`)
-					return
-				}
-				res.setHeader('Content-Type', 'application/x-x509-ca-cert')
+				res.setHeader('Content-Type', 'application/x-pem-file')
 				res.setHeader(
 					'Content-Disposition',
 					'attachment; filename="rootCA.pem"'
 				)
-				fs.createReadStream(file).pipe(res)
+				res.end(pem)
 			})
 		},
 	}
@@ -76,8 +162,9 @@ export default (): UserConfig => {
 			// `mkcert` to install a trusted root CA on first run, then
 			// issues a leaf cert for the dev server. The result is no
 			// "couldn't establish a secure connection" warning on phones,
-			// provided the device first imports the CA from
-			// /__mkcert/rootCA.pem (served by serveMkcertRootCA below).
+			// provided the device first imports the CA via
+			// /__mkcert/mkcert.mobileconfig (iOS) or /__mkcert/rootCA.pem
+			// (desktop / Android), both served by serveMkcertRootCA below.
 			mkcert(),
 			serveMkcertRootCA(),
 			topLevelAwait({
