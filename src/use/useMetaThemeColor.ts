@@ -1,97 +1,107 @@
-import {onMounted, watchEffect} from 'vue'
+import {watchEffect} from 'vue'
 
 import {useAppSettingsStore} from '@/store/appSettings'
 
 /**
- * Single source of truth for tinting iOS / Safari / Android chrome with the
- * active theme bg.
+ * Single source of truth for tinting iOS Safari, iOS standalone PWA,
+ * Android Chrome, and Apple's "Liquid Glass" chrome (iOS / iPadOS / macOS
+ * 26+) with the active theme bg.
  *
- * Primary mechanism: <meta name="theme-color">.
- *   The standard, cross-platform signal. iOS Safari and Chrome both read
- *   it and tint the URL bar / status bar / installed-PWA notch with the
- *   color it carries. We re-CREATE the element on every theme change
- *   (not just mutate its content): mutating in place leaves iOS Safari's
- *   URL-bar tint frozen on the previous color, but a fresh node forces
- *   a re-evaluation. The very first paint is seeded by an inline FOUC
- *   script in index.html; this composable replaces that seed and owns
- *   every update from then on.
+ * Three orthogonal mechanisms run together because no single one
+ * covers every platform / OS version:
  *
- * Secondary workaround: a pair of fixed-element anchor strips.
- *   iOS 16+ Safari (and likely iOS 26 too, where this surfaced again)
- *   has a parallel "live observer" tint path that samples the
- *   background-color of qualifying position:fixed elements at the top
- *   and bottom edges. The meta path covers most cases, but Safari can
- *   ignore or stale the meta in edge cases (e.g. tab restore, some
- *   reload flows); these strips backstop those by carrying the same
- *   color via CSS variable. They cost nothing visually because their
- *   bg matches the theme bg.
+ * 1. <meta name="theme-color"> — the cross-platform signal.
+ *    Android Chrome reads it for the address bar, iOS standalone PWA
+ *    reads it for the notch / status bar, and pre-26 iOS Safari reads
+ *    it for the URL bar. Safari 26 itself ignores the meta entirely
+ *    (it derives the toolbar color from CSS instead) but other
+ *    targets still need it, so we keep it. Replacing the node (rather
+ *    than mutating its content attribute) is what actually triggers a
+ *    repaint on those targets that DO read it.
  *
- * The criteria the live observer enforces (per the
- * andesco/safari-color-tinting demo):
- *   - position: fixed within 4px of the top (or bottom) edge
- *   - >= 80% viewport width on iOS
- *   - >= 3px height
- *   - solid background-color (not mix-blend-mode / backdrop-filter)
- *   - sufficiently high z-index
+ * 2. Top fixed-position "anchor" element — required for iOS 26 Safari.
+ *    Safari 26 samples the URL/tab bar's tint from the background-color
+ *    of a qualifying position:fixed element near the top edge of the
+ *    viewport (or falls back to <body> bg if none qualifies). The
+ *    sample is taken at initial paint AND when the element is added
+ *    / removed, but DOES NOT re-trigger when an existing element's
+ *    background-color changes — even via CSS variable. So mutating
+ *    `var(--theme-bg)` is a dead end for the top bar in iOS 26; we
+ *    have to remove and re-create the anchor element on every theme
+ *    change to force re-sampling. The qualifying criteria (per the
+ *    andesco/safari-color-tinting demo and grooovinger.com): position
+ *    fixed within 4px of the top edge, ≥80% viewport width, ≥3px
+ *    height, solid bg, no mix-blend-mode/backdrop-filter.
+ *
+ * 3. <body> background-color via the existing `--theme-bg` CSS
+ *    variable — covers the iOS 26 BOTTOM bar (which samples body bg
+ *    and DOES re-render on bg-color changes) and acts as a final
+ *    fallback for everything else. This is owned by appSettings + the
+ *    body { background var(--theme-bg) } rule in style.styl, so this
+ *    composable doesn't manage it directly; we just rely on it.
+ *
+ * The very first paint is seeded by the FOUC script in index.html
+ * (which creates the meta from cached cssVars). This composable
+ * replaces that seed on mount and owns every update afterwards.
  */
 
-// 3px is the documented minimum height the iOS tint observer accepts
-// (per the andesco/safari-color-tinting demo). We sit on that floor so
-// the strip is as close to invisible as possible and doesn't clip
-// content that wants to render edge-to-edge (e.g. the splash ramp at
-// top: 0). Deliberately a fixed height rather than `max(3px, safe-area)`:
-// the strip only needs to hold the observer's attention, not to fill
-// the safe-area region.
-const ANCHOR_STYLES = `
-.theme-color-anchor {
+// 6px > 3px observer minimum, with bottom: -8px / top: 0 placement
+// well within the 4px / 3px edge tolerances. Higher z-index than
+// app content but below modal overlays so we don't accidentally win
+// the sample fight when a modal that does want to tint the bar opens.
+const TOP_ANCHOR_STYLE = `
 	position: fixed;
+	top: 0;
 	left: 0;
 	right: 0;
-	height: 3px;
-	background-color: var(--theme-bg);
-	z-index: 1000;
+	height: 6px;
+	z-index: 1;
 	pointer-events: none;
-}
-.theme-color-anchor-top { top: 0; }
-.theme-color-anchor-bottom { bottom: 0; }
 `
+
+function recreateTopAnchor(bg: string) {
+	document
+		.querySelectorAll('.theme-color-anchor-top')
+		.forEach(el => el.remove())
+
+	const el = document.createElement('div')
+	el.className = 'theme-color-anchor-top'
+	el.style.cssText = `${TOP_ANCHOR_STYLE}background-color: ${bg};`
+	document.body.appendChild(el)
+}
+
+function recreateMetaThemeColor(bg: string) {
+	document
+		.querySelectorAll('meta[name=theme-color]')
+		.forEach(el => el.remove())
+
+	const meta = document.createElement('meta')
+	meta.setAttribute('name', 'theme-color')
+	meta.setAttribute('content', bg)
+	document.head.appendChild(meta)
+}
 
 export function useMetaThemeColor() {
 	const settings = useAppSettingsStore()
 
-	// Primary: replace <meta name="theme-color"> from scratch on every
-	// theme change. Mutating the existing node's content attribute
-	// leaves iOS Safari's URL-bar tint frozen on the previous color,
-	// but appending a fresh element forces a re-evaluation. We remove
-	// every prior meta with this name (defensive against duplicates
-	// from the FOUC script in index.html) and append a new one.
+	// One reactive pass per theme change. watchEffect runs synchronously
+	// during setup so the first invocation happens before mount, which
+	// is fine — both the meta and the anchor element are appended to
+	// nodes (head / body) that exist by the time setup runs.
 	watchEffect(() => {
 		const bg = settings.currentTheme.bg
-		document
-			.querySelectorAll('meta[name=theme-color]')
-			.forEach(el => el.remove())
-		const meta = document.createElement('meta')
-		meta.setAttribute('name', 'theme-color')
-		meta.setAttribute('content', bg)
-		document.head.appendChild(meta)
-	})
 
-	// Secondary (iOS 26 workaround): inject the live-observer anchor
-	// strips. Their bg is keyed off `var(--theme-bg)`, which
-	// appSettings updates as part of the same theme switch, so the
-	// observer repaints the chrome live without needing JS to touch
-	// the strips here.
-	onMounted(() => {
-		if (document.querySelector('.theme-color-anchor')) return
+		// (2) Recreate the top fixed anchor so iOS 26 Safari re-samples
+		// the URL/tab bar tint. Mutating bg-color in place is silently
+		// ignored by the live observer in iOS 26.
+		recreateTopAnchor(bg)
 
-		const style = document.createElement('style')
-		style.textContent = ANCHOR_STYLES
-		document.head.appendChild(style)
+		// (1) Replace the meta tag so other targets (Android Chrome,
+		// iOS standalone PWA, pre-26 iOS Safari) repaint their chrome.
+		recreateMetaThemeColor(bg)
 
-		for (const pos of ['top', 'bottom'] as const) {
-			const el = document.createElement('div')
-			el.className = `theme-color-anchor theme-color-anchor-${pos}`
-			document.body.appendChild(el)
-		}
+		// (3) The bottom toolbar is driven by body's bg-color, which
+		// appSettings already updates via the `--theme-bg` CSS variable
+		// — no work needed here.
 	})
 }
