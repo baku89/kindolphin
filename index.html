@@ -15,14 +15,21 @@
 	<meta name="msapplication-TileColor" content="#da532c">
 	<meta name="msapplication-config" content="./favicon/browserconfig.xml">
 	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
 	<meta name="apple-mobile-web-app-title" content="Kindolphin">
-	<!-- iOS standalone PWA respects <meta name="theme-color"> for the
-	     status bar / notch background, even though Safari browser mode
-	     ignores it (browser mode is handled by useThemeColorAnchor's
-	     fixed-element anchors instead). The content is overwritten by
-	     the FOUC script below and by appSettings on theme change. -->
-	<meta name="theme-color" content="#e5e0cf">
+	<!-- iOS standalone PWA reads <meta name="theme-color"> for the
+	     status bar / notch background. We deliberately scope it to
+	     display-mode: standalone so Safari browser mode IGNORES it:
+	     in browser mode iOS only resamples theme-color at coarse
+	     events (initial paint, scroll-end), so dynamic updates freeze
+	     the URL-bar tint at the old color until the user nudges the
+	     chrome. Browser-mode tinting is handled by useThemeColorAnchor's
+	     fixed-element strips, which iOS observes live on bg-color
+	     change. The content is overwritten by the FOUC script below
+	     and by appSettings on theme change.
+	     We also deliberately omit apple-mobile-web-app-status-bar-style:
+	     "default" forces an opaque white system bar in standalone that
+	     caps theme-color tinting to a thin strip below it. -->
+	<meta name="theme-color" content="#e5e0cf" media="(display-mode: standalone)">
 
 	<!-- OGP, Site Description -->
 	<meta name="keywords" content="%VITE_OG_KEYWORDS%" />
