@@ -22,52 +22,90 @@ import {useAppSettingsStore} from '@/store/appSettings'
  * 2. Top fixed-position "anchor" element — required for iOS 26 Safari.
  *    Safari 26 samples the URL/tab bar's tint from the background-color
  *    of a qualifying position:fixed element near the top edge of the
- *    viewport (or falls back to <body> bg if none qualifies). The
- *    sample is taken at initial paint AND when the element is added
- *    / removed, but DOES NOT re-trigger when an existing element's
- *    background-color changes — even via CSS variable. So mutating
- *    `var(--theme-bg)` is a dead end for the top bar in iOS 26; we
- *    have to remove and re-create the anchor element on every theme
- *    change to force re-sampling. The qualifying criteria (per the
- *    andesco/safari-color-tinting demo and grooovinger.com): position
- *    fixed within 4px of the top edge, ≥80% viewport width, ≥3px
- *    height, solid bg, no mix-blend-mode/backdrop-filter.
+ *    viewport, or falls back to <body> bg if none qualifies. The
+ *    sample is captured at initial paint and the live observer
+ *    explicitly does NOT track later JS-driven bg-color mutations on
+ *    the same element ("intentional, as constant toolbar color
+ *    changes would be visually chaotic" — every Safari-26 writeup
+ *    says so). What it DOES re-trigger on is changes to the render
+ *    tree itself: an element disappearing (display:none / removal)
+ *    and a new one appearing.
+ *
+ *    So instead of mutating bg-color in place, this composable on
+ *    every theme change:
+ *      a) hides the old anchor (display: none)
+ *      b) waits one animation frame so iOS observes the empty
+ *         render-tree state and falls back to body bg
+ *      c) appends a brand-new anchor with the new bg-color so iOS
+ *         re-samples it as a fresh element
+ *      d) removes the old (now hidden, off-tree) anchor
+ *    The double rAF guards against engines that batch the hide and
+ *    the append into a single render pass.
+ *
+ *    Qualifying criteria (per andesco/safari-color-tinting and
+ *    grooovinger.com): position:fixed within 4px of the top edge,
+ *    ≥80% viewport width, ≥3px height, solid bg, no mix-blend-mode
+ *    or backdrop-filter.
  *
  * 3. <body> background-color via the existing `--theme-bg` CSS
  *    variable — covers the iOS 26 BOTTOM bar (which samples body bg
  *    and DOES re-render on bg-color changes) and acts as a final
- *    fallback for everything else. This is owned by appSettings + the
- *    body { background var(--theme-bg) } rule in style.styl, so this
- *    composable doesn't manage it directly; we just rely on it.
+ *    fallback for everything else. We additionally set body bg as an
+ *    inline style on each theme change: that's a render-tree-visible
+ *    property change Safari sometimes picks up on, and it's free.
+ *    The CSS-var-driven body { background } rule in style.styl
+ *    remains in place as the load-time seed.
  *
  * The very first paint is seeded by the FOUC script in index.html
  * (which creates the meta from cached cssVars). This composable
  * replaces that seed on mount and owns every update afterwards.
  */
 
-// 6px > 3px observer minimum, with bottom: -8px / top: 0 placement
-// well within the 4px / 3px edge tolerances. Higher z-index than
-// app content but below modal overlays so we don't accidentally win
-// the sample fight when a modal that does want to tint the bar opens.
+// 6px height > 3px observer minimum. top: 0 sits inside the 4px-from-top
+// tolerance. Width: 100% via left/right: 0. z-index 1000 so the strip
+// always wins the topmost-qualifying-fixed-element race against any
+// app-level fixed bg (PageIndex.PageIndex itself is position:fixed with
+// bg, so without this the anchor and PageIndex would compete).
 const TOP_ANCHOR_STYLE = `
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
 	height: 6px;
-	z-index: 1;
+	z-index: 1000;
 	pointer-events: none;
 `
 
-function recreateTopAnchor(bg: string) {
-	document
-		.querySelectorAll('.theme-color-anchor-top')
-		.forEach(el => el.remove())
+function applyTopAnchor(bg: string) {
+	const previous = Array.from(
+		document.querySelectorAll<HTMLDivElement>('.theme-color-anchor-top')
+	)
 
-	const el = document.createElement('div')
-	el.className = 'theme-color-anchor-top'
-	el.style.cssText = `${TOP_ANCHOR_STYLE}background-color: ${bg};`
-	document.body.appendChild(el)
+	// Hide every existing anchor up front so iOS sees them leave the
+	// render tree before the replacement appears. Don't remove yet —
+	// removal during the same task as the append is what gets coalesced
+	// into a no-op.
+	for (const el of previous) {
+		el.style.display = 'none'
+	}
+
+	requestAnimationFrame(() => {
+		// Now create and append the fresh anchor. iOS sees a new node
+		// enter the render tree on the next paint and re-samples its bg.
+		const next = document.createElement('div')
+		next.className = 'theme-color-anchor-top'
+		next.style.cssText = `${TOP_ANCHOR_STYLE}background-color: ${bg};`
+		document.body.appendChild(next)
+
+		requestAnimationFrame(() => {
+			// Drop the now-hidden previous anchors after one more frame
+			// so the new one is unambiguously the topmost candidate
+			// before iOS performs its post-paint sample.
+			for (const el of previous) {
+				el.remove()
+			}
+		})
+	})
 }
 
 function recreateMetaThemeColor(bg: string) {
@@ -91,17 +129,19 @@ export function useMetaThemeColor() {
 	watchEffect(() => {
 		const bg = settings.currentTheme.bg
 
-		// (2) Recreate the top fixed anchor so iOS 26 Safari re-samples
-		// the URL/tab bar tint. Mutating bg-color in place is silently
-		// ignored by the live observer in iOS 26.
-		recreateTopAnchor(bg)
+		// (2) Hide-then-recreate the top anchor across two animation
+		// frames so iOS 26 Safari re-samples the URL bar tint. Direct
+		// bg mutation on a long-lived element is silently ignored.
+		applyTopAnchor(bg)
 
 		// (1) Replace the meta tag so other targets (Android Chrome,
 		// iOS standalone PWA, pre-26 iOS Safari) repaint their chrome.
 		recreateMetaThemeColor(bg)
 
-		// (3) The bottom toolbar is driven by body's bg-color, which
-		// appSettings already updates via the `--theme-bg` CSS variable
-		// — no work needed here.
+		// (3) Mirror the bg onto body's inline style. The CSS var on
+		// :root already drives body { background } via the stylesheet,
+		// but writing it inline is a separate render-tree mutation
+		// that some Safari builds notice for re-sampling.
+		document.body.style.backgroundColor = bg
 	})
 }
