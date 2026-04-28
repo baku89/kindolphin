@@ -89,6 +89,15 @@ const env = (import.meta as any).env
 							</a>
 						</dd>
 					</div>
+					<div class="line">
+						<dt>Audio Engineering</dt>
+						<div class="spacer">.........................................</div>
+						<dd>
+							<a href="https://www.escentier.com/" target="_blank">
+								Yogo Yuichi
+							</a>
+						</dd>
+					</div>
 				</dl>
 
 				<p style="text-align: right">
