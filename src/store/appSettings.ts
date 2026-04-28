@@ -82,8 +82,11 @@ export const useAppSettingsStore = defineStore('appSettings', () => {
 
 		// Keep <meta name="theme-color"> in sync with the active bg so the
 		// iOS standalone PWA notch / status bar repaints when the user
-		// switches themes. Safari browser-mode tinting is handled by
-		// useThemeColorAnchor (which doesn't read this meta).
+		// switches themes. The meta is only present in standalone mode
+		// (injected by the FOUC script in index.html); in Safari browser
+		// mode it's deliberately absent so useThemeColorAnchor's live
+		// observer keeps working. So this query may legitimately return
+		// null -- skip the update in that case.
 		const metaThemeColor = document.querySelector('meta[name=theme-color]')
 		if (metaThemeColor) {
 			metaThemeColor.setAttribute('content', currentTheme.value.bg)
