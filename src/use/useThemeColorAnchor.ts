@@ -36,23 +36,25 @@ import {onMounted} from 'vue'
  *   theme bg -- the same color the rest of the page paints in the safe-area
  *   regions after our overlay composite.
  */
+// 3px is the documented minimum height WebKit's tint observer accepts
+// (per the andesco/safari-color-tinting demo). We sit on that floor so
+// the strip is as close to invisible as possible and doesn't clip
+// content that wants to render edge-to-edge (e.g. the splash ramp at
+// top: 0). Deliberately a fixed height rather than `max(3px, safe-area)`:
+// the strip only needs to hold WebKit's attention, not to fill the
+// safe-area region.
 const ANCHOR_STYLES = `
 .theme-color-anchor {
 	position: fixed;
 	left: 0;
 	right: 0;
+	height: 3px;
 	background-color: var(--theme-bg);
 	z-index: 1000;
 	pointer-events: none;
 }
-.theme-color-anchor-top {
-	top: 0;
-	height: max(15px, var(--safe-top, 0px));
-}
-.theme-color-anchor-bottom {
-	bottom: 0;
-	height: max(15px, var(--safe-bottom, 0px));
-}
+.theme-color-anchor-top { top: 0; }
+.theme-color-anchor-bottom { bottom: 0; }
 `
 
 export function useThemeColorAnchor() {
