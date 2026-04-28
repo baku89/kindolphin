@@ -22,7 +22,7 @@ import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
 import {usePreloadBook} from '@/use/usePreloadBook'
-import {useThemeColorAnchor} from '@/use/useThemeColorAnchor'
+import {useMetaThemeColor} from '@/use/useMetaThemeColor'
 
 import BookColumn from './BookColumn.vue'
 import FooterButton from './FooterButton.vue'
@@ -35,7 +35,7 @@ const audioDuration = 164.4930612244898
 const settings = useAppSettingsStore()
 const ui = useUIStore()
 
-useThemeColorAnchor()
+useMetaThemeColor()
 
 const shelf = shallowReactive<Record<string, Book>>({
 	'happening-ja': BookHappeningJa,
