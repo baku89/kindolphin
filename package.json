@@ -34,9 +34,11 @@
 		"stylus": "^0.60.0",
 		"typescript": "^5.2.2",
 		"vite": "^4.4.9",
+		"vite-plugin-mkcert": "^2.0.0",
 		"vite-plugin-pwa": "^0.21.1",
 		"vite-plugin-top-level-await": "^1.4.1",
 		"vue": "3.4.15",
 		"vue-eslint-parser": "^9.3.2"
-	}
+	},
+	"dependencies": {}
 }

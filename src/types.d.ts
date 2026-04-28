@@ -5,7 +5,7 @@ module '*?raw' {
 	export default content
 }
 
-module '*?worker&url' {
+module '*?url' {
 	const url: string
 	export default url
 }

@@ -18,7 +18,7 @@ const settings = useAppSettingsStore()
 	<Transition>
 		<FadeBg v-if="show" @click="$emit('close')" />
 	</Transition>
-	<div class="PaneSettings" ref="$root" :class="{show}">
+	<div class="PaneSettings" :class="{show}">
 		<section class="property">
 			<h2 class="name">
 				<span lang="ja">画面色</span><span lang="en">Page Color</span>
@@ -52,7 +52,7 @@ const settings = useAppSettingsStore()
 	border-radius 20rem 20rem 0 0
 	z-index 100
 	font-size 16rem
-	padding calc(2 * var(--nav-margin-horiz)) calc(2 * var(--nav-margin-horiz)) calc(2 * var(--nav-margin-horiz) + env(safe-area-inset-bottom))
+	padding calc(2 * var(--nav-margin-horiz)) calc(2 * var(--nav-margin-horiz)) calc(2 * var(--nav-margin-horiz) + var(--safe-bottom))
 	transition transform 0.3s steps(5)
 	transform translate3d(0, 100%, 0)
 

@@ -1,7 +1,7 @@
 @import './reset.styl'
 
 :root
-	//UI等の基準値
+	// UI等の基準値
 	font-size 'clamp(0.8px, var(--px), 1.5px)' % null
 	--theme-bg #e5e0cf
 	--theme-ink #4b3876
@@ -9,26 +9,57 @@
 	--black black
 	--var(--white) var(--white)
 	--manga-width 'min(100vw, 60vh)' % null
-	//漫画座標系の基準値
+	// 漫画座標系の基準値
 	--px calc((var(--manga-width) / 324))
 	--nav-margin-vert 5rem
 	--nav-margin-horiz 10rem
 	--header-height 50rem
 	--footer-height calc(1rem + var(--nav-margin-vert) + var(--header-height) + var(--footer-padding-bottom))
-	--footer-padding-bottom calc(var(--nav-margin-vert) + env(safe-area-inset-bottom))
+	--footer-padding-bottom calc(var(--nav-margin-vert) + var(--safe-bottom))
 	--font-small 'monaco', serif
+	// PWA / iOS notch + home indicator safe area (requires viewport-fit=cover).
+	// Wrap env() once here so components can reference predictable variables.
+	--safe-top env(safe-area-inset-top, 0px)
+	--safe-right env(safe-area-inset-right, 0px)
+	--safe-bottom env(safe-area-inset-bottom, 0px)
+	--safe-left env(safe-area-inset-left, 0px)
+	// Browser: dvh follows the URL bar collapse/expand.
+	--app-full-viewport-height 100dvh
+
+// iOS standalone PWA bug workaround: 100dvh under-reports by safe-area-inset-bottom
+// in standalone mode, leaving a gap above the home indicator. lvh is the
+// largest viewport unit and always reports the full screen height there.
+// See https://stackoverflow.com/q/79902310
+@media all and (display-mode standalone)
+	:root
+		--app-full-viewport-height 100lvh
 
 html, body
 	overflow hidden
 	width 100%
-	height 100%
 
 html
 	font-weight bold
 	font-family serif
+	// Always cover the full physical screen so the safe-area regions
+	// (notch / status bar / home indicator / URL bar backdrop in browser
+	// mode) are filled. Using 100lvh here (instead of the dvh-based
+	// --app-full-viewport-height) is required: in normal Safari, dvh shrinks
+	// with the URL bar and leaves the area behind the bar without a backdrop,
+	// causing mix-blend-mode overlays to render their raw color and Safari
+	// to sample that color into the URL bar tint.
+	height 100lvh
+	background var(--theme-bg)
 
-//Hide the scrollbar
+// Hide the scrollbar
 body
+	// Cover the full physical screen (not 100dvh!) so the body background
+	// paints behind iOS Safari's URL bar / notch. body { position: fixed }
+	// creates a stacking context, so mix-blend-mode overlays (.ink-overlay,
+	// .bg-overlay) blend only against backdrops inside body. If body's box
+	// shrinks with dvh, those overlays render their raw color in the safe
+	// area / URL bar region, and Safari samples that into the URL bar tint.
+	height 100lvh
 	position fixed
 	overflow hidden
 	background var(--theme-bg)
@@ -60,6 +91,9 @@ button
 		width var(--manga-width)
 
 	.ramp
+		// Edge-to-edge: top: 0 anchors to the physical top edge so the ramp
+		// extends behind the iOS notch / Dynamic Island. Requires
+		// viewport-fit=cover and apple-mobile-web-app-status-bar-style="black-translucent".
 		position fixed
 		top 0
 		right 0

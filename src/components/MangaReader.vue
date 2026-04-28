@@ -469,7 +469,12 @@ const showWobble = computed(() => {
 		width var(--manga-width)
 
 .header
-	height var(--header-height)
+	// Extend the header upward by the notch / status bar inset so the visual
+	// content (icons, title) stays the same size while the white background
+	// fills the area behind the notch. Requires viewport-fit=cover and
+	// apple-mobile-web-app-status-bar-style="black-translucent".
+	height calc(var(--header-height) + var(--safe-top))
+	padding-top var(--safe-top)
 	background var(--white)
 	border-bottom 1rem solid var(--black)
 	transform translate3d(0, -100%, 0)
@@ -477,7 +482,8 @@ const showWobble = computed(() => {
 	display grid
 	grid-template-columns 1fr auto 1fr
 	align-items center
-	padding 0 var(--nav-margin-horiz)
+	padding-right 'max(var(--nav-margin-horiz), var(--safe-right))' % null
+	padding-left 'max(var(--nav-margin-horiz), var(--safe-left))' % null
 
 	.left
 	.right

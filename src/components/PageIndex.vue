@@ -375,7 +375,10 @@ const isOpeningExhibition = computed(() => {
 		opacity 0
 
 .header
-	height var(--header-height)
+	// Extend the header upward by the notch / status bar inset so the
+	// background fills the area behind the notch while content stays sized
+	// to --header-height.
+	height calc(var(--header-height) + var(--safe-top))
 	border-bottom 1rem solid var(--black)
 	font-size 12rem
 	text-align center
@@ -383,7 +386,9 @@ const isOpeningExhibition = computed(() => {
 	display grid
 	grid-template-columns 1fr auto 1fr
 	align-items center
-	padding 0 var(--nav-margin-horiz)
+	padding-top var(--safe-top)
+	padding-right 'max(var(--nav-margin-horiz), var(--safe-right))' % null
+	padding-left 'max(var(--nav-margin-horiz), var(--safe-left))' % null
 
 	.title
 		font-size 24rem

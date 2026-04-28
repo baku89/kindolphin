@@ -2,13 +2,19 @@ import {toReactive} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {Ref, ref, watch} from 'vue'
 
-// `?worker&url` makes Vite bundle the TS source to a standalone JS module
-// and return its URL. The plain `new URL(..., import.meta.url)` pattern
-// would not transpile .ts -- addModule() would receive raw TypeScript and
-// fail to parse it. The `&url` strips the Worker constructor wrapper that
-// `?worker` would otherwise add, so what we get is a clean module URL that
-// AudioWorklet.addModule() can load directly.
-import scratchProcessorUrl from '../audio/scratch-processor.ts?worker&url'
+// `new URL(..., import.meta.url)` is Vite's canonical pattern for
+// referencing a static asset. The `.js` source is emitted verbatim into
+// the build output and `addModule()` loads it as a plain script in
+// AudioWorkletGlobalScope.
+//
+// We deliberately avoid `?worker&url`: that bundles the file as a Web
+// Worker (with `self`-based glue code), which dev mode tolerates because
+// the module is served on the fly, but production fails because the glue
+// code references globals that don't exist in AudioWorkletGlobalScope.
+const scratchProcessorUrl = new URL(
+	'../audio/scratch-processor.js',
+	import.meta.url
+).href
 
 // Compensation for the silent priming samples present at the head of the
 // MP3 file (a.k.a. encoder delay). Must match the value baked into the
@@ -25,6 +31,14 @@ const SEEK_THRESHOLD_SECONDS = 0.025
 
 // If no scratch input arrives within this window, the playback is paused.
 const AUTO_STOP_MS = 50
+
+// Tiny ramp window applied to every speed change. At 5ms this is below the
+// threshold where humans hear a "glide" between pitches, so scratching
+// still feels instant -- but it eliminates the click that an abrupt
+// setValueAtTime can produce at process-block boundaries (where the speed
+// would otherwise jump discontinuously between blocks). The seek crossfade
+// inside scratch-processor.ts uses the same window for the same reason.
+const SPEED_RAMP_SECONDS = 0.005
 
 function getNowSeconds() {
 	return Date.now() / 1000
@@ -122,12 +136,20 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		function setSpeed(value: number) {
-			// Step change -- the original (pre-worklet) implementation set
-			// playbackRate immediately on every input, and we preserve that
-			// abruptness so DJ-scratch interactions feel responsive instead
-			// of glide-y.
-			speedParam.cancelScheduledValues(audioContext.currentTime)
-			speedParam.setValueAtTime(value, audioContext.currentTime)
+			// 5ms linear ramp instead of an instant setValueAtTime. The
+			// duration is below the perceptual threshold for pitch glides
+			// (~20ms) so scratching still feels immediate, but it removes
+			// the inter-block step discontinuity that produces clicks.
+			//
+			// `cancelAndHoldAtTime` (rather than `cancelScheduledValues`) is
+			// the spec-canonical way to begin a new automation segment from
+			// the param's current value: it pins whatever value the param
+			// holds at `t` as the implicit anchor for the linearRamp that
+			// follows. Without an anchor, some implementations leave the
+			// ramp's start undefined.
+			const t = audioContext.currentTime
+			speedParam.cancelAndHoldAtTime(t)
+			speedParam.linearRampToValueAtTime(value, t + SPEED_RAMP_SECONDS)
 		}
 
 		// State for tracking the cursor between scratch() invocations.

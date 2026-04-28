@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import {execSync} from 'child_process'
 import {UserConfig} from 'vite'
+import mkcert from 'vite-plugin-mkcert'
 import {VitePWA} from 'vite-plugin-pwa'
 import topLevelAwait from 'vite-plugin-top-level-await'
 
@@ -24,6 +25,15 @@ export default (): UserConfig => {
 			port: 5552,
 		},
 		plugins: [
+			// Local HTTPS via a locally-trusted CA. AudioWorklet (and other
+			// powerful APIs like getUserMedia) require a secure context, and
+			// iOS / Android browsers do not treat http://192.168.x.x as
+			// secure -- only HTTPS or `localhost`. The plugin shells out to
+			// `mkcert` to install a trusted root CA on first run, then
+			// issues a leaf cert for the dev server. The result is no
+			// "couldn't establish a secure connection" warning on phones,
+			// provided the device first imports the CA (see project README).
+			mkcert(),
 			topLevelAwait({
 				// The export name of top-level await promise for each chunk module
 				promiseExportName: '__tla',
@@ -40,6 +50,7 @@ export default (): UserConfig => {
 					name: 'Kindolphin',
 					short_name: 'Kindolphin',
 					theme_color: '#e5e0cf',
+					background_color: '#e5e0cf',
 					display: 'standalone',
 					display_override: ['window-controls-overlay', 'standalone'],
 					icons: [
@@ -57,6 +68,16 @@ export default (): UserConfig => {
 						'**/*.{woff2,ttf}',
 					],
 					maximumFileSizeToCacheInBytes: 10 * 1024 * 1024 /* 10MB */,
+					// SPA fallback: avoid white flash and broken edge-to-edge
+					// rendering when standalone PWA navigates to an unknown route.
+					navigateFallback: 'index.html',
+					navigateFallbackDenylist: [
+						/^\/robots\.txt$/,
+						/^\/manifest\.webmanifest$/,
+					],
+					cleanupOutdatedCaches: true,
+					clientsClaim: true,
+					skipWaiting: true,
 				},
 			}),
 		],
