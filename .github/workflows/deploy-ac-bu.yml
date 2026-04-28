@@ -1,4 +1,4 @@
-name: Deploy to AC-bu's website
+name: Deploy to AC-bu's website (Kindolphin)
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
           username: ${{ secrets.FTP_AC_BU_USERNAME }}
           password: ${{ secrets.FTP_AC_BU_PASSWORD }}
           local-dir: ./dist/
-          server-dir: ./happening/
+          server-dir: ./kindolphin/
