@@ -8,7 +8,6 @@ import path from 'path'
 import {Plugin, UserConfig} from 'vite'
 import mkcert from 'vite-plugin-mkcert'
 import {VitePWA} from 'vite-plugin-pwa'
-import topLevelAwait from 'vite-plugin-top-level-await'
 
 // Serve the local mkcert root CA during dev so a phone on the same
 // network can install the trust profile by simply opening a URL in
@@ -167,12 +166,6 @@ export default (): UserConfig => {
 			// (desktop / Android), both served by serveMkcertRootCA below.
 			mkcert(),
 			serveMkcertRootCA(),
-			topLevelAwait({
-				// The export name of top-level await promise for each chunk module
-				promiseExportName: '__tla',
-				// The function to generate import names of top-level await promise in each chunk module
-				promiseImportName: i => `__tla_${i}`,
-			}),
 			vue(),
 			VitePWA({
 				injectRegister: 'inline',
