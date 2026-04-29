@@ -21,8 +21,8 @@ import {
 import {useAppSettingsStore} from '@/store/appSettings'
 import {useUIStore} from '@/store/ui'
 import {scrollTrack} from '@/timeline'
-import {usePreloadBook} from '@/use/usePreloadBook'
 import {useMetaThemeColor} from '@/use/useMetaThemeColor'
+import {usePreloadBook} from '@/use/usePreloadBook'
 
 import BookColumn from './BookColumn.vue'
 import FooterButton from './FooterButton.vue'
