@@ -436,8 +436,8 @@ const showWobble = computed(() => {
 				@update:modelValue="onSeek"
 				:duration="timelineDuration"
 				:amplitude="amplitude"
-				@pointerdown="onStartSeek"
-				@pointerup="onEndSeek"
+				@start-seek="onStartSeek"
+				@end-seek="onEndSeek"
 			/>
 			<Timecode
 				class="timecode"

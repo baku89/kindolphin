@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	'update:modelValue': [value: number]
+	startSeek: []
+	endSeek: []
 }>()
 
 const $slider = ref<HTMLElement | null>(null)
@@ -19,11 +21,14 @@ const $slider = ref<HTMLElement | null>(null)
 const {dragging} = useElementDrag($slider, {
 	onPointerdown,
 	onDrag,
+	onPointerup,
 })
 
 let knobOffset = 0
 
 function onPointerdown(e: DragEvent) {
+	emit('startSeek')
+
 	const isKnobPressed = e.target.classList.contains('knob')
 
 	if (isKnobPressed) {
@@ -35,6 +40,10 @@ function onPointerdown(e: DragEvent) {
 	}
 
 	onDrag(e)
+}
+
+function onPointerup() {
+	emit('endSeek')
 }
 
 function onDrag(e: DragEvent) {
