@@ -37,6 +37,11 @@ export function useVirtualScroll(
 	let easeSpeedOptions: null | {
 		get: () => number
 		onReach: () => void
+		// Fired when the ease is canceled by `cancelInertia()` before it
+		// reaches `get()`. Without this, callers that track an implicit
+		// "we are resuming" state via the ease have no way to learn the
+		// ease was killed and can leak that state forever.
+		onAbort?: () => void
 	} = null
 
 	useEventListener(el, 'wheel', onWheel)
@@ -81,12 +86,17 @@ export function useVirtualScroll(
 	})
 
 	function onPointerdown() {
-		cancelInertia()
-
+		// Notify the caller *before* canceling inertia. The caller may want
+		// to peek at the in-flight resume ease (via its own bookkeeping) to
+		// decide what state to transition to. If we cancel first, the
+		// onAbort hook fires and erases that context, so the caller sees a
+		// clean slate and can't tell that a resume was in progress.
 		options.onPointerdown({
 			offset: 0,
 			delta: 0,
 		})
+
+		cancelInertia()
 	}
 
 	function onDrag(e: DragEvent) {
@@ -180,7 +190,11 @@ export function useVirtualScroll(
 	function cancelInertia() {
 		swipeDelta = inertiaSpeed = 0
 		wheelScrollOrigin = null
-		easeSpeedOptions = null
+		if (easeSpeedOptions !== null) {
+			const aborted = easeSpeedOptions
+			easeSpeedOptions = null
+			aborted.onAbort?.()
+		}
 	}
 
 	function scrollTo(y: number) {
@@ -196,5 +210,6 @@ export function useVirtualScroll(
 		scrollTo,
 		cancelInertia,
 		easeToSpeed,
+		dragging,
 	}
 }

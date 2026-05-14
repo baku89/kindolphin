@@ -44,9 +44,8 @@ const {width: viewWidth, height: viewHeight} = useElementSize($mangaWrapper, {
 })
 
 const $scrollable = ref<HTMLElement | null>(null)
-const {scroll, cancelInertia, scrollTo, easeToSpeed} = useVirtualScroll(
-	$scrollable,
-	{
+const {scroll, cancelInertia, scrollTo, easeToSpeed, dragging} =
+	useVirtualScroll($scrollable, {
 		mapScroll(y) {
 			return scalar.clamp(y, 0, maxScroll.value)
 		},
@@ -54,8 +53,15 @@ const {scroll, cancelInertia, scrollTo, easeToSpeed} = useVirtualScroll(
 			showNav.value = e.delta < 0
 		},
 		onPointerdown() {
+			// Capture "user intends playback to resume" before cancelInertia
+			// nukes the in-flight resume ease. Without this, a new wheel tick
+			// arriving mid-`resuming` would lose the intent and the next
+			// pointerup wouldn't restart the ease -- leaving us stuck with
+			// pausingState=null forever despite the user expecting playback.
+			const wasIntendingToPlay =
+				playing.value || pausingState.value !== null
 			cancelInertia()
-			if (playing.value) {
+			if (wasIntendingToPlay) {
 				pausingState.value = 'scratching'
 			}
 			playing.value = false
@@ -72,11 +78,16 @@ const {scroll, cancelInertia, scrollTo, easeToSpeed} = useVirtualScroll(
 						playing.value = true
 						pausingState.value = null
 					},
+					onAbort: () => {
+						// Ease killed before reaching target (e.g. the user
+						// triggered something that called cancelInertia).
+						// Clear the implicit "resuming" flag so it can't leak.
+						pausingState.value = null
+					},
 				})
 			}
 		},
-	}
-)
+	})
 
 const mangaScale = computed(() => viewWidth.value / props.book.width)
 const maxScroll = computed(
@@ -311,14 +322,26 @@ document.addEventListener('visibilitychange', async () => {
 })
 
 //------------------------------------------------------------------------------
-// Space to toggle
+// Space to toggle.
+//
+// Priority for who "wins" a state conflict: mouse > space > wheel.
+// - Mouse (manga drag, or active seekbar drag) is held by a finger and we
+//   never want a stray keypress to fight it: bail out early.
+// - Space, otherwise, collapses any wheel-induced transition state
+//   ('scratching'/'resuming') so the toggle always reaches a clean
+//   playing/stopped decision instead of being swallowed during the brief
+//   window the old code early-returned on `pausingState !== null`.
 const {space} = useMagicKeys()
 whenever(space, () => {
-	if (pausingState.value !== null || !hasAudio.value) {
-		return
-	}
+	if (!hasAudio.value) return
+	if (dragging.value || pausingState.value === 'seeking') return
 
-	playing.value = !playing.value
+	const wasIntendingToPlay = playing.value || pausingState.value !== null
+	if (pausingState.value !== null) {
+		cancelInertia()
+		pausingState.value = null
+	}
+	playing.value = !wasIntendingToPlay
 })
 
 //------------------------------------------------------------------------------
