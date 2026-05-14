@@ -8,7 +8,7 @@ Designed and implemented by [Baku Hashimoto](https://baku89.com).
 
 - Animation: [AC-bu](https://www.ac-bu.info/)
 - Music: [group_inou](https://twitter.com/gal_official)
-- Audio Engineering: [Yogo Yuichi](https://www.escentier.com/)
+- Audio Engineering: [Yogo Yuichi](https://www.escentier.com/) — the AudioWorklet scratch pipeline borrows the JS-side speed-ramp smoothing technique from his [web-audio-pitch-dropper](https://github.com/yuichkun/web-audio-pitch-dropper); see also his [talk](https://www.youtube.com/watch?v=a4EAaBmIHq0) on the subject.
 
 ## How to make it work on your local machine
 

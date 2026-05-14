@@ -34,13 +34,18 @@ const SEEK_THRESHOLD_SECONDS = 0.01
 // If no scratch input arrives within this window, the playback is paused.
 const AUTO_STOP_MS = 50
 
-// Tiny ramp window applied to every speed change. At 5ms this is below the
-// threshold where humans hear a "glide" between pitches, so scratching
-// still feels instant -- but it eliminates the click that an abrupt
-// setValueAtTime can produce at process-block boundaries (where the speed
-// would otherwise jump discontinuously between blocks). The seek crossfade
-// inside scratch-processor.ts uses the same window for the same reason.
-const SPEED_RAMP_SECONDS = 0.005
+// Ramp window applied to every speed change. Originally 5ms (sub-glide,
+// just enough to mask inter-block clicks), but the input rate stream from
+// scrolling is jittery enough that a short ramp leaves the pitch hopping
+// audibly. Stretching the ramp to 50ms turns each setSpeed call into a
+// continuous segment of a piecewise-linear trajectory -- since setSpeed
+// fires every ~16ms (frame cadence) and each ramp takes 50ms, the param
+// is always mid-ramp and never sits at a single setpoint. The net effect
+// is a 1st-order LPF on rate, executed natively by Web Audio.
+//
+// This technique borrowed from
+// https://github.com/yuichkun/web-audio-pitch-dropper -- see README credits.
+const SPEED_RAMP_SECONDS = 0.05
 
 function getNowSeconds() {
 	return Date.now() / 1000
