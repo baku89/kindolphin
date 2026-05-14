@@ -23,11 +23,11 @@
 
 const SPEED_MAX = 1
 
-// Crossfade window applied after every cursor jump (`seek`). 5ms is short
-// enough to feel instantaneous but long enough to mask the step
-// discontinuity in the waveform that would otherwise click. Matches the
-// speed-param ramp window on the JS side.
-const SEEK_CROSSFADE_SECONDS = 0.005
+// Crossfade window applied after every cursor jump (`seek`). Sized to sit
+// just under the JS-side seek threshold so consecutive seeks during fast
+// scrubs don't truncate each other's fades (which would re-introduce the
+// click we're trying to mask).
+const SEEK_CROSSFADE_SECONDS = 0.008
 
 class ScratchProcessor extends AudioWorkletProcessor {
 	static get parameterDescriptors() {

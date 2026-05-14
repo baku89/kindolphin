@@ -26,8 +26,10 @@ const AUDIO_OFFSET_SECONDS = 0.68
 const SCRATCH_MAX_RATE = 1
 
 // Threshold (seconds) above which we hard-seek the cursor instead of letting
-// the variable speed catch up.
-const SEEK_THRESHOLD_SECONDS = 0.025
+// the variable speed catch up. Finer granularity dissolves the rhythmic
+// "chop" perception during fast scrubs into broadband noise that's easier
+// to ignore; paired with a proportionally longer crossfade in the worklet.
+const SEEK_THRESHOLD_SECONDS = 0.01
 
 // If no scratch input arrives within this window, the playback is paused.
 const AUTO_STOP_MS = 50
