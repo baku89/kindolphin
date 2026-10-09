@@ -1,51 +1,24 @@
+import {TimePitchPlayer} from '@arikata-nobuaki/time-pitch-player'
 import {toReactive} from '@vueuse/core'
 import {scalar} from 'linearly'
 import {Ref, ref, watch} from 'vue'
 
-// `new URL(..., import.meta.url)` is Vite's canonical pattern for
-// referencing a static asset. The `.js` source is emitted verbatim into
-// the build output and `addModule()` loads it as a plain script in
-// AudioWorkletGlobalScope.
+// PROTOTYPE: scratch playback driven by @arikata-nobuaki/time-pitch-player
+// instead of the in-house AudioWorklet. Kept API-compatible with the
+// original useAudio (scratch / play / stop).
 //
-// We deliberately avoid `?worker&url`: that bundles the file as a Web
-// Worker (with `self`-based glue code), which dev mode tolerates because
-// the module is served on the fly, but production fails because the glue
-// code references globals that don't exist in AudioWorkletGlobalScope.
-const scratchProcessorUrl = new URL(
-	'../audio/scratch-processor.js',
-	import.meta.url
-).href
+// Known gaps versus the in-house worklet (see branch notes):
+//   - The player clamps currentTime to [0, duration], so the pre-song
+//     blank zone (negative time) is emulated by pausing at 0.
+//   - Speed is sent as a message, not an a-rate AudioParam, so there is no
+//     native linear ramp between setSpeed calls.
+//   - The player owns its AudioContext and GainNode; volume changes are
+//     instantaneous (no 250ms fade).
 
-// Compensation for the silent priming samples present at the head of the
-// MP3 file (a.k.a. encoder delay). Must match the value baked into the
-// content's timeline.
 const AUDIO_OFFSET_SECONDS = 0.68
-
-// Maximum |speed| while scratching. Capped to 1 so the pitch can only drop,
-// never rise -- a deliberate trait of this scratch effect.
 const SCRATCH_MAX_RATE = 1
-
-// Threshold (seconds) above which we hard-seek the cursor instead of letting
-// the variable speed catch up. Finer granularity dissolves the rhythmic
-// "chop" perception during fast scrubs into broadband noise that's easier
-// to ignore; paired with a proportionally longer crossfade in the worklet.
 const SEEK_THRESHOLD_SECONDS = 0.01
-
-// If no scratch input arrives within this window, the playback is paused.
 const AUTO_STOP_MS = 50
-
-// Ramp window applied to every speed change. Originally 5ms (sub-glide,
-// just enough to mask inter-block clicks), but the input rate stream from
-// scrolling is jittery enough that a short ramp leaves the pitch hopping
-// audibly. Stretching the ramp to 50ms turns each setSpeed call into a
-// continuous segment of a piecewise-linear trajectory -- since setSpeed
-// fires every ~16ms (frame cadence) and each ramp takes 50ms, the param
-// is always mid-ramp and never sits at a single setpoint. The net effect
-// is a 1st-order LPF on rate, executed natively by Web Audio.
-//
-// This technique borrowed from
-// https://github.com/yuichkun/web-audio-pitch-dropper -- see README credits.
-const SPEED_RAMP_SECONDS = 0.05
 
 function getNowSeconds() {
 	return Date.now() / 1000
@@ -57,109 +30,33 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 	const stop = ref<() => void>(() => {})
 
 	;(async () => {
-		const audioContext = new AudioContext()
+		const player = new TimePitchPlayer()
+		player.pitchFollowsSpeed = true
+		// Start silent: play() is only used to resume the AudioContext.
+		player.playbackRate = 0
+		player.onerror = msg => console.error('[time-pitch-player]', msg)
 
-		// AudioWorklet module + audio file are loaded in parallel.
-		const [, buffer] = await Promise.all([
-			audioContext.audioWorklet.addModule(scratchProcessorUrl),
-			fetch(src)
-				.then(res => res.arrayBuffer())
-				.then(buf => audioContext.decodeAudioData(buf)),
-		])
+		;(window as any).__tpPlayer = player // prototype debug hook
+		await player.loadUrl(src, 'song')
 
-		document.addEventListener('visibilitychange', () => {
-			if (document.visibilityState === 'visible') {
-				resumeAudioContext()
-			}
+		// The package resumes its AudioContext inside play(); we need the
+		// same for scratching, so prime it on the first user gesture.
+		const eventName =
+			typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup'
+		document.addEventListener(eventName, () => void player.play(), {
+			once: true,
 		})
 
-		function resumeAudioContext() {
-			// https://qiita.com/zprodev/items/7fcd8335d7e8e613a01f
-			// Wrap in an arrow fn so `this` inside resume() is the AudioContext.
-			// Passing `audioContext.resume` directly loses the binding and throws
-			// "Illegal invocation" when the listener fires.
-			const eventName =
-				typeof document.ontouchend !== 'undefined' ? 'touchend' : 'mouseup'
-			document.addEventListener(eventName, () => audioContext.resume(), {
-				once: true,
-			})
-		}
-
-		resumeAudioContext()
-
-		const masterGain = audioContext.createGain()
-		masterGain.connect(audioContext.destination)
-
-		watch(volume, (volume, prevVolume) => {
-			if (volume < prevVolume) {
-				masterGain.gain.value = volume
-			} else {
-				masterGain.gain.linearRampToValueAtTime(
-					volume,
-					audioContext.currentTime + 0.25
-				)
-			}
-		})
-
-		const sampleRate = buffer.sampleRate
-		const numChannels = buffer.numberOfChannels
-
-		// Copy each channel into its own ArrayBuffer so we can transfer
-		// ownership to the AudioWorklet without copying.
-		const channelBuffers: ArrayBuffer[] = []
-		for (let ch = 0; ch < numChannels; ch++) {
-			channelBuffers.push(buffer.getChannelData(ch).slice().buffer)
-		}
-
-		const scratchNode = new AudioWorkletNode(
-			audioContext,
-			'scratch-processor',
-			{
-				numberOfInputs: 0,
-				numberOfOutputs: 1,
-				outputChannelCount: [numChannels],
-			}
-		)
-		scratchNode.connect(masterGain)
-
-		scratchNode.port.postMessage(
-			{type: 'load', channels: channelBuffers},
-			channelBuffers
-		)
-
-		const speedParam = scratchNode.parameters.get('speed') as AudioParam
-
-		// `time` is in user-facing seconds; cursor uses sample index in the
-		// raw buffer, offset by the encoder-delay compensation.
-		function timeToCursor(time: number) {
-			return (time - AUDIO_OFFSET_SECONDS) * sampleRate
-		}
+		watch(volume, v => (player.volume = v), {immediate: true})
 
 		function seek(time: number) {
-			scratchNode.port.postMessage({
-				type: 'seek',
-				cursor: timeToCursor(time),
-			})
+			player.currentTime = Math.max(0, time - AUDIO_OFFSET_SECONDS)
 		}
 
 		function setSpeed(value: number) {
-			// 5ms linear ramp instead of an instant setValueAtTime. The
-			// duration is below the perceptual threshold for pitch glides
-			// (~20ms) so scratching still feels immediate, but it removes
-			// the inter-block step discontinuity that produces clicks.
-			//
-			// `cancelAndHoldAtTime` (rather than `cancelScheduledValues`) is
-			// the spec-canonical way to begin a new automation segment from
-			// the param's current value: it pins whatever value the param
-			// holds at `t` as the implicit anchor for the linearRamp that
-			// follows. Without an anchor, some implementations leave the
-			// ramp's start undefined.
-			const t = audioContext.currentTime
-			speedParam.cancelAndHoldAtTime(t)
-			speedParam.linearRampToValueAtTime(value, t + SPEED_RAMP_SECONDS)
+			player.playbackRate = value
 		}
 
-		// State for tracking the cursor between scratch() invocations.
 		let prevTime = 0
 		let prevRate = 0
 		let lastTargetTime = 0
@@ -169,8 +66,6 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		scratch.value = (targetTime: number) => {
 			const now = getNowSeconds()
 			const dt = now - prevTime
-
-			// Skip the first call (no meaningful dt) by treating it as a seek.
 			const isFirstCall = prevTime === 0 || dt <= 0 || dt > 1
 
 			const unboundRate = isFirstCall ? 0 : (targetTime - lastTargetTime) / dt
@@ -180,9 +75,7 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 				SCRATCH_MAX_RATE
 			)
 
-			if (!isFirstCall) {
-				predictedTime += dt * prevRate
-			}
+			if (!isFirstCall) predictedTime += dt * prevRate
 
 			const directionReversed = rate * prevRate < 0
 			const error = Math.abs(targetTime - predictedTime)
@@ -196,7 +89,11 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 				predictedTime = targetTime
 			}
 
-			setSpeed(rate)
+			// Blank zone emulation: the player cannot sit at a negative
+			// position, so hold it silent at 0 until the cursor enters the song.
+			const inBlank = targetTime < AUDIO_OFFSET_SECONDS
+			setSpeed(inBlank ? 0 : rate)
+			if (!player.playing) void player.play()
 
 			clearTimeout(autoStopTimer)
 			autoStopTimer = setTimeout(() => {
@@ -206,21 +103,10 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 
 		play.value = (time: number) => {
-			// Coming from a fully stopped state -- fade the master gain in to
-			// avoid an audible pop.
-			if (autoStopTimer === undefined) {
-				masterGain.gain.value = 0
-				masterGain.gain.linearRampToValueAtTime(
-					volume.value,
-					audioContext.currentTime + 0.25
-				)
-			}
-
 			seek(time)
 			setSpeed(1)
+			void player.play()
 
-			// Reset the scratch tracking state so a subsequent scratch() call
-			// computes its delta from this playback start point.
 			prevTime = getNowSeconds()
 			prevRate = 1
 			lastTargetTime = time
@@ -238,9 +124,5 @@ export function useAudio(src: string, {volume}: {volume: Ref<number>}) {
 		}
 	})()
 
-	return toReactive({
-		scratch,
-		play,
-		stop,
-	})
+	return toReactive({scratch, play, stop})
 }

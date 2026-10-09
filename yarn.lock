@@ -15,6 +15,11 @@
     jsonpointer "^5.0.1"
     leven "^3.1.0"
 
+"@arikata-nobuaki/time-pitch-player@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@arikata-nobuaki/time-pitch-player/-/time-pitch-player-1.0.4.tgz#37bb2b7b1cba2ea0b170c1d291e961fc0f4579cd"
+  integrity sha512-wDBHH1dKPcdw01FXjUWeCRKxZY8PPMN4S7zFNgn/tPcYkNAotC8Mcfgmd+kus3d0ivAeu+yfWEIouyrb6PsF2A==
+
 "@babel/code-frame@^7.28.6", "@babel/code-frame@^7.29.0":
   version "7.29.0"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.29.0.tgz#7cd7a59f15b3cc0dcd803038f7792712a7d0b15c"
